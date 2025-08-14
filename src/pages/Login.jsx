@@ -1,8 +1,15 @@
 import React, { useState } from 'react';
 import logo from '../../public/logo.svg';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Login = () => {
     const [isFlipped, setIsFlipped] = useState(false);
+    const navigate = useNavigate();
+
+  const handleLogin = () => {
+    // After successful login logic
+    navigate('/src/pages/Internal_Pages/Dashboard.jsx'); // Navigate to dashboard
+  };
 
     return (
         <div className="h-screen relative overflow-hidden">
@@ -34,8 +41,8 @@ const Login = () => {
                                     <img src={logo} alt="" className="object-cover w-28 h-5" />
                                 </div>
 
-                                <input type="text" placeholder="Email" className="w-full border mt-11 rounded-md px-2 py-1" />
-                                <input type="password" placeholder="Password" className="w-full border mt-3 rounded-md px-2 py-1" />
+                                <input type="text" placeholder="Email" className="w-full border mt-11 rounded-md px-2 py-1 text-base" />
+                                <input type="password" placeholder="Password" className="w-full border mt-3 rounded-md px-2 py-1 text-base" />
 
                                 <div className="flex flex-row justify-between items-start mt-2">
                                     <div className="flex items-center gap-1">
@@ -55,8 +62,8 @@ const Login = () => {
                                         </p>
                                     </div>
                                 </div>
+                                                           <button className="w-full bg-[#334DE5] text-white rounded-md py-[6px] mt-10"  onClick={handleLogin}>Login</button>
 
-                                <button className="w-full bg-[#334DE5] text-white rounded-md py-[6px] mt-10">Login</button>
                             </div>
 
                             {/* Signup Form (Back) */}
