@@ -20,7 +20,7 @@ const App = () => {
   className={`
     bg-slate-900 text-white flex-shrink-0 h-full
     transition-[width] duration-300 ease-in-out
-    ${isSidebarOpen ? "w-68" : "w-12"}
+    ${isSidebarOpen ? "w-68" : "w-14"}
   `}
   style={{ willChange: "width" }}
 >
@@ -56,6 +56,15 @@ const App = () => {
                 }
               />
               <Route
+                path="/all-leads"
+                element={
+                  <>
+                    <AllLeads/>
+                    
+                  </>
+                }
+              />
+              <Route
                 path="/todays-task"
                 element={
                   <>
@@ -66,15 +75,7 @@ const App = () => {
                   </>
                 }
               />
-              <Route
-                path="/all-leads"
-                element={
-                  
-                    <AllLeads/>
-                    
-                 
-                }
-              />
+              
             </Routes>
           </div>
         </main>

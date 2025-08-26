@@ -49,7 +49,7 @@ const SidebarMenu = ({ isOpen, toggleSidebar, setSidebarOpen }) => {
       </div>
 
       {/* Menu Items */}
-      <div>
+      <div className="ml-2">
         {menuItems.map((item, index) => (
           <Link
             key={index}
