@@ -24,7 +24,7 @@ const SidebarMenu = ({ isOpen, toggleSidebar, setSidebarOpen }) => {
   ];
 
   return (
-    <nav className="flex flex-col py-4 space-y-2 relative h-full gap-4">
+    <nav className="flex flex-col py-4 space-y-2 relative h-full gap-4 justify-between">
       {/* Logo toggles sidebar */}
       <div
         className="flex justify-center border-slate-700 cursor-pointer overflow-hidden"
@@ -74,6 +74,27 @@ const SidebarMenu = ({ isOpen, toggleSidebar, setSidebarOpen }) => {
             </span>
           </Link>
         ))}
+      </div>
+      <div
+        className="flex justify-center border-slate-700 cursor-pointer overflow-hidden"
+        
+        style={{
+          transition: "width 0.3s ease, height 0.3s ease, margin-left 0.3s ease",
+          width: isOpen ? "11rem" : "2.5rem",
+          height: "2.5rem",
+          marginLeft: isOpen ? "20px" : "10px"
+        }}
+      >
+        <img
+          src={isOpen ? "/public/webnest-logo-full.svg" : "/public/webnst-logo.svg"}
+          alt="Logo"
+          style={{
+            width: isOpen ? "11rem" : "2.5rem",
+            height: "2.5rem",
+            objectFit: "contain",
+            transition: "opacity 0.3s ease"
+          }}
+        />
       </div>
     </nav>
   );

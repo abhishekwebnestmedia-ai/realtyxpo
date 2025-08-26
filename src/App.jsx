@@ -35,7 +35,7 @@ const App = () => {
         <main className="flex flex-col flex-1 overflow-hidden bg-white text-gray-900 rounded-3xl m-5 transition-all duration-300 ease-in-out">
           <TopBar toggleSidebar={toggleSidebar} />
 
-          <div className="flex-1 overflow-y-auto px-5 pt-5 pb-5 bg-[#F4F6FF] scrollbar-hidden rounded-2xl">
+          <div className="flex-1 overflow-y-auto px-5 pt-5 pb-5 bg-[#F4F6FF] scrollbar-hidden ">
             <Routes>
               <Route path="/" element={<OverviewDashboard />} />
               <Route

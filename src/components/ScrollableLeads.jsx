@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Pagination from "./Pagination"; // ✅ Make sure this path is correct
-
+import { motion } from "framer-motion";
+import { Pencil, Trash2, ChevronDown, ListFilter, FilePlus2 } from "lucide-react";
 const buyersData = [
   {
     id: 1,
@@ -784,18 +785,18 @@ const rentalData = [
 ];
 
 const LeadTable = () => {
- const statusClasses = {
-  Hot: "text-red-600 bg-red-50 border-red-200",
-  "Not Connected": "text-gray-600 bg-gray-50 border-gray-200",
-  Serious: "text-green-600 bg-green-50 border-green-200",
-  Potential: "text-blue-600 bg-blue-50 border-blue-200",
-  Futuristic: "text-pink-600 bg-pink-50 border-pink-200",
-  "Dead Lead": "text-amber-700 bg-amber-50 border-amber-200",
-  New: "text-indigo-600 bg-indigo-50 border-indigo-200",
-  "In Progress": "text-yellow-700 bg-yellow-50 border-yellow-200",
-  "Follow-up": "text-purple-600 bg-purple-50 border-purple-200",
-  Closed: "text-green-700 bg-green-50 border-green-200",
-};
+  const statusClasses = {
+    Hot: "text-red-600 bg-red-50 border-red-200",
+    "Not Connected": "text-gray-600 bg-gray-50 border-gray-200",
+    Serious: "text-green-600 bg-green-50 border-green-200",
+    Potential: "text-blue-600 bg-blue-50 border-blue-200",
+    Futuristic: "text-pink-600 bg-pink-50 border-pink-200",
+    "Dead Lead": "text-amber-700 bg-amber-50 border-amber-200",
+    New: "text-indigo-600 bg-indigo-50 border-indigo-200",
+    "In Progress": "text-yellow-700 bg-yellow-50 border-yellow-200",
+    "Follow-up": "text-purple-600 bg-purple-50 border-purple-200",
+    Closed: "text-green-700 bg-green-50 border-green-200",
+  };
 
   const [activeTab, setActiveTab] = useState("buyers");
   const [currentPage, setCurrentPage] = useState(1);
@@ -814,97 +815,128 @@ const LeadTable = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="">
       {/* Toggle Buttons */}
-      <div className="flex gap-4 mb-4">
-        <button
-          onClick={() => {
-            setActiveTab("buyers");
-            setCurrentPage(1);
-          }}
-          className={`px-4 py-2 rounded-lg font-medium ${
-            activeTab === "buyers"
-              ? "bg-blue-500 text-white"
-              : "bg-gray-200 text-gray-700"
-          }`}
-        >
-          All Buyers
-        </button>
-        <button
-          onClick={() => {
-            setActiveTab("rental");
-            setCurrentPage(1);
-          }}
-          className={`px-4 py-2 rounded-lg font-medium ${
-            activeTab === "rental"
-              ? "bg-blue-500 text-white"
-              : "bg-gray-200 text-gray-700"
-          }`}
-        >
-          Rental Business
-        </button>
-      </div>
 
+      <div className="flex justify-between items-center ">
+        <h2 className="font-semibold text-2xl">All Leads</h2>
+        <div className="flex gap-3">
+          
+          <button className="rounded bg-[#5169F3] text-white px-3 py-1 text-sm hover:bg-cyan-700 flex items-center gap-1">
+            Add Bulk Lead{" "}
+            <span>
+              <FilePlus2 size={14} />
+            </span>
+          </button>
+          <button className="rounded border border-cyan-600 bg-[#5169F3] text-white px-3 py-1 text-sm hover:bg-cyan-600 hover:text-white flex items-center gap-1">
+            Add Lead{" "}
+            <span>
+              <FilePlus2 size={14} />
+            </span>
+          </button>
+        </div>
+      </div>
+      <div className="flex flex-row justify-between items-center">
+        <div className="relative flex bg-white rounded-full p-1  w-72  mt-6 ">
+          {/* Background Slider */}
+          <motion.div
+            layout
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className="absolute top-1 bottom-1 w-[calc(50%-0.25rem)] rounded-full bg-[#000D55]"
+            style={{
+              left: activeTab === "buyers" ? "0.25rem" : "calc(50% + 0.1rem)",
+            }}
+          />
+
+          {/* Buyers Tab */}
+          <button
+            onClick={() => setActiveTab("buyers")}
+            className={`relative z-10 flex-1 text-center py-2 font-medium rounded-full ${
+              activeTab === "buyers" ? "text-white" : "text-gray-700"
+            }`}
+          >
+            All Buyers
+          </button>
+
+          {/* Rental Tab */}
+          <button
+            onClick={() => setActiveTab("rental")}
+            className={`relative z-10 flex-1 text-center py-2 font-medium rounded-full ${
+              activeTab === "rental" ? "text-white" : "text-gray-700"
+            }`}
+          >
+            Rental Business
+          </button>
+        </div>
+        <div className="flex flex-row gap-3 text-sm text-gray-600 items-center justify-center">
+          <button className="flex items-center gap-1 hover:text-cyan-600 transition">
+            View All <ChevronDown size={16} />
+          </button>
+          <button className="flex items-center gap-1 hover:text-cyan-600 transition">
+            Filter <ListFilter size={16}/>
+          </button>
+        </div>
+      </div>
       {/* Table Container */}
-      <div className="overflow-x-auto border rounded-lg scrollbar-hidden">
+      <div className="overflow-x-auto border rounded-lg scrollbar-hidden mt-4">
         <table className="border-collapse min-w-full text-sm">
-          <thead className="bg-gray-100">
+          <thead className="bg-[#FAFBFC]">
             <tr>
-              <th className="px-[1rem] py-[0.75rem] text-left">
+              <th className="text-[#656972] px-[1rem] py-[1.25rem] text-sm text-left">
                 <input type="checkbox" />
               </th>
-              <th className="px-[1rem] py-[0.75rem] text-left min-w-[12rem]">
-                Name
+              <th className="text-[#656972] px-[1rem] py-[1.25rem] text-sm text-left min-w-[12rem]">
+                Customer Name
               </th>
-              <th className="px-[1rem] py-[0.75rem] text-left min-w-[12rem]">
+              <th className="text-[#656972] px-[1rem] py-[1.25rem] text-sm text-left min-w-[12rem]">
                 Contact Number
               </th>
-              <th className="px-[1rem] py-[0.75rem] text-left min-w-[16rem]">
+              <th className="text-[#656972] px-[1rem] py-[1.25rem] text-sm text-left min-w-[16rem]">
                 Email
               </th>
-              <th className="px-[1rem] py-[0.75rem] text-center min-w-[10rem]">
+              <th className="text-[#656972] px-[1rem] py-[1.25rem] text-sm text-center min-w-[10rem]">
                 Status
               </th>
-              <th className="px-[1rem] py-[0.75rem] text-left min-w-[8rem]">
+              <th className="text-[#656972] px-[1rem] py-[1.25rem] text-sm text-left min-w-[8rem]">
                 Follow-up
               </th>
-              <th className="px-[1rem] py-[0.75rem] text-left min-w-[12rem]">
+              <th className="text-[#656972] px-[1rem] py-[1.25rem] text-sm text-left min-w-[12rem]">
                 Requirement
               </th>
-              <th className="px-[1rem] py-[0.75rem] text-left min-w-[10rem]">
+              <th className="text-[#656972] px-[1rem] py-[1.25rem] text-sm text-left min-w-[10rem]">
                 Remark
               </th>
-              <th className="px-[1rem] py-[0.75rem] text-left min-w-[9rem]">
+              <th className="text-[#656972] px-[1rem] py-[1.25rem] text-sm text-left min-w-[9rem]">
                 Date
               </th>
-              <th className="px-[1rem] py-[0.75rem] text-left min-w-[9rem]">
+              <th className="text-[#656972] px-[1rem] py-[1.25rem] text-sm text-left min-w-[9rem]">
                 Captured By
               </th>
-              <th className="px-[1rem] py-[0.75rem] text-left min-w-[9rem]">
+              <th className="text-[#656972] px-[1rem] py-[1.25rem] text-sm text-left min-w-[9rem]">
                 Assign To
               </th>
-              <th className="px-[1rem] py-[0.75rem] text-left min-w-[9rem]">
+              <th className="text-[#656972] px-[1rem] py-[1.25rem] text-sm text-left min-w-[9rem]">
                 Transfer To
               </th>
-              <th className="px-[1rem] py-[0.75rem] text-left min-w-[8rem]">
+              <th className="text-[#656972] px-[1rem] py-[1.25rem] text-sm text-left min-w-[8rem]">
                 Source
               </th>
-              <th className="px-[1rem] py-[0.75rem] text-left min-w-[7rem]">
+              <th className="text-[#656972] px-[1rem] py-[1.25rem] text-sm text-left min-w-[7rem]">
                 Action
               </th>
             </tr>
           </thead>
           <tbody>
             {paginatedData.map((item) => (
-              <tr key={item.id} className="border-t hover:bg-gray-50">
+              <tr key={item.id} className="border-t hover:bg-gray-50 bg-white">
                 <td className="px-[1rem] py-[0.75rem]">
                   <input type="checkbox" />
                 </td>
-                <td className="px-[1rem] py-[0.75rem] font-medium">
+                <td className="px-[1rem] py-[0.75rem] text-sm font-medium">
                   {item.name}
                 </td>
-                <td className="px-[1rem] py-[0.75rem]">{item.phone}</td>
-                <td className="px-[1rem] py-[0.75rem]">{item.email}</td>
+                <td className="text-sm px-[1rem] py-[0.75rem]">{item.phone}</td>
+                <td className="text-sm px-[1rem] py-[0.75rem]">{item.email}</td>
                 <td className="px-[1rem] py-[0.75rem]">
                   <div
                     className={`border rounded-full px-3 py-1 text-sm font-medium text-center ${
@@ -915,17 +947,34 @@ const LeadTable = () => {
                     {item.status}
                   </div>
                 </td>
-                <td className="px-[1rem] py-[0.75rem]">{item.followUp}</td>
-                <td className="px-[1rem] py-[0.75rem]">{item.requirement}</td>
-                <td className="px-[1rem] py-[0.75rem]">{item.remark}</td>
-                <td className="px-[1rem] py-[0.75rem]">{item.date}</td>
-                <td className="px-[1rem] py-[0.75rem]">{item.capturedBy}</td>
-                <td className="px-[1rem] py-[0.75rem]">{item.assignTo}</td>
-                <td className="px-[1rem] py-[0.75rem]">{item.transferTo}</td>
-                <td className="px-[1rem] py-[0.75rem]">{item.source}</td>
-                <td className="px-[1rem] py-[0.75rem]">
-                  <button className="text-blue-600 hover:underline">
-                    Edit
+                <td className="text-sm px-[1rem] py-[0.75rem]">
+                  {item.followUp}
+                </td>
+                <td className="text-sm px-[1rem] py-[0.75rem]">
+                  {item.requirement}
+                </td>
+                <td className="text-sm px-[1rem] py-[0.75rem]">
+                  {item.remark}
+                </td>
+                <td className="text-sm px-[1rem] py-[0.75rem]">{item.date}</td>
+                <td className="text-sm px-[1rem] py-[0.75rem]">
+                  {item.capturedBy}
+                </td>
+                <td className="text-sm px-[1rem] py-[0.75rem]">
+                  {item.assignTo}
+                </td>
+                <td className="text-sm px-[1rem] py-[0.75rem]">
+                  {item.transferTo}
+                </td>
+                <td className="text-sm px-[1rem] py-[0.75rem]">
+                  {item.source}
+                </td>
+                <td className="text-sm px-[1rem] py-[0.75rem] flex gap-2">
+                  <button className="text-[#00E029] hover:underline">
+                    <Pencil size={16} />
+                  </button>
+                  <button className="text-red-500">
+                    <Trash2 size={16} />
                   </button>
                 </td>
               </tr>
