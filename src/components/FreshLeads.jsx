@@ -1,205 +1,112 @@
 import React from "react";
-import { Pencil, Trash2 } from "lucide-react";
-import { CheckSquare, PlusCircle } from "lucide-react";
+import { Filter, Download, Eye, Edit, Trash, ExternalLink, Pencil } from "lucide-react";
 
-const leads = [
-  {
-    id: 1,
-    source: "/public/icons/99acres.svg",
-    name: "Abhishek Singh",
-    date: "3 June 2025",
-    phone: "+91 8171 839997",
-    email: "abhishek@realtyxpo.com",
-    budget: "25k",
-    type: "Rent",
-    requirement: "Remark",
-  },
-  {
-    id: 2,
-    source: "/public/icons/99acres.svg",
-    name: "Abhishek Singh",
-    date: "3 June 2025",
-    phone: "+91 8171 839997",
-    email: "abhishek@realtyxpo.com",
-    budget: "25k",
-    type: "Rent",
-    requirement: "Remark",
-  },
-  {
-    id: 3,
-    source: "/public/icons/99acres.svg",
-    name: "Abhishek Singh",
-    date: "3 June 2025",
-    phone: "+91 8171 839997",
-    email: "abhishek@realtyxpo.com",
-    budget: "25k",
-    type: "Rent",
-    requirement: "Remark",
-  },
-  {
-    id: 4,
-    source: "/public/icons/99acres.svg",
-    name: "Abhishek Singh",
-    date: "3 June 2025",
-    phone: "+91 8171 839997",
-    email: "abhishek@realtyxpo.com",
-    budget: "25k",
-    type: "Rent",
-    requirement: "Remark",
-  },
-  {
-    id: 5,
-    source: "/public/icons/99acres.svg",
-    name: "Abhishek Singh",
-    date: "3 June 2025",
-    phone: "+91 8171 839997",
-    email: "abhishek@realtyxpo.com",
-    budget: "25k",
-    type: "Rent",
-    requirement: "Remark",
-  },
-];
+const FreshLeads = () => {
+  const leads = [
+    {
+      source: "/icons/facebook.svg",
+      name: "Abhishek Singh",
+      date: "24 Aug, 2025",
+      phone: "+91 9876543210",
+      email: "abhishek@example.com",
+      budget: "50k",
+      type: "Purchase",
+      requirement: "2BHK Flat",
+    },
+    {
+      source: "/icons/instagram.svg",
+      name: "Priya Sharma",
+      date: "23 Aug, 2025",
+      phone: "+91 8765432109",
+      email: "priya@example.com",
+      budget: "50k",
+      type: "Rent",
+      requirement: "1BHK Apartment",
+    },
+    {
+      source: "/icons/youtube.svg",
+      name: "Rahul Verma",
+      date: "22 Aug, 2025",
+      phone: "+91 7654321098",
+      email: "rahul@example.com",
+      budget: "50k",
+      type: "Purchase",
+      requirement: "3BHK Villa",
+    },
+  ];
 
-export default function FreshLeads() {
   return (
-    <section className="rounded-xl mt-9">
+    <div className=" rounded-2xl w-full mt-9 ">
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
-        <h2 className="font-semibold text-2xl">Fresh Leads</h2>
-        <div className="flex gap-5 text-[13px] text-gray-600 font-medium">
+        <h2 className="font-semibold text-2xl cursor-pointer">Fresh Leads</h2>
+        <div className="flex gap-4 text-sm text-gray-600">
           <button className="flex items-center gap-1 hover:text-cyan-600">
-            View All
+            View All <ExternalLink size={16} />
           </button>
           <button className="flex items-center gap-1 hover:text-cyan-600">
-            Filter
+            Filter <Filter size={16} />
           </button>
           <button className="flex items-center gap-1 hover:text-cyan-600">
-            Download PDF
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-4 h-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"
-              />
-            </svg>
+            Download PDF <Download size={16} />
           </button>
         </div>
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto scrollbar-hide rounded-2xl">
-        <table className="w-full min-w-max text-sm">
+      <div className="overflow-x-auto rounded-2xl scrollbar-hidden bg-white">
+        <table className="w-full border border-gray-200 rounded-lg">
           <thead>
-            <tr className="bg-[#FAFBFC] text-gray-700 border gap-4">
-              <th className="w-10 text-center sticky left-0 z-10 mx-1 p-4 whitespace-nowrap">
-                <CheckSquare size={18} />
-              </th>
-              <th className="text-left sticky left-12 z-10 text-sm px-5 py-6 font-medium whitespace-nowrap">
-                Name
-              </th>
-              <th className="text-left px-10 py-6 text-sm whitespace-nowrap">
-                Promises
-              </th>
-              <th className="text-left px-10 py-6 text-sm whitespace-nowrap">
-                Online Portal Checked
-              </th>
-              <th className="text-left px-10 py-6 text-sm whitespace-nowrap">
-                Whatsapp Status/ Post in Group
-              </th>
-              <th className="text-left px-10 py-6 text-sm whitespace-nowrap">
-                Buyers Working
-              </th>
-              <th className="text-left px-10 py-6 text-sm whitespace-nowrap">
-                Sellers Working
-              </th>
-              <th className="text-left px-10 py-6 text-sm whitespace-nowrap">
-                Meeting
-              </th>
-              <th className="text-left px-10 py-6 text-sm whitespace-nowrap">
-                Add More
-              </th>
+            <tr className="bg-gray-100 text-sm text-gray-600">
+              <th className="text-sm px-4 py-6 text-left text-nowrap">Lead Source</th>
+              <th className="text-sm px-4 py-6 text-left ">Name</th>
+              <th className="text-sm px-4 py-6 text-left text-nowrap">Lead Update On</th>
+              <th className="text-sm px-4 py-6 text-left">Phone No.</th>
+              <th className="text-sm px-4 py-6 text-left">Email</th>
+              <th className="text-sm px-4 py-6 text-left">Budget</th>
+              <th className="text-sm px-4 py-6 text-left">Type</th>
+              <th className="text-sm px-4 py-6 text-left">Requirement</th>
+              <th className="px-4 py-3 text-center">Action</th>
             </tr>
           </thead>
           <tbody>
-            {leads.map((person, idx) => (
-              <React.Fragment key={idx}>
-                {/* Morning Row */}
-                <tr className="bg-[#FFF4BD] border-b">
-                  <td
-                    className="text-center z-10 bg-white sticky left-0 mx-1 p-4 whitespace-nowrap"
-                    rowSpan={2}
-                  >
-                    <CheckSquare size={18} className="text-blue-500" />
-                  </td>
-                  <td
-                    className="p-2 sticky z-10 left-12 bg-white whitespace-nowrap"
-                    rowSpan={2}
-                  >
-                    {person.name}
-                  </td>
-                  <td className="py-4 px-6 font-medium whitespace-nowrap">
-                    {person.morning.commitment}
-                  </td>
-                  <td className="py-4 px-6 whitespace-nowrap">
-                    {person.morning.portal}
-                  </td>
-                  <td className="py-4 px-6 font-semibold whitespace-nowrap">
-                    {person.morning.whatsapp}
-                  </td>
-                  <td className="py-4 px-6 whitespace-nowrap">
-                    {person.morning.buyers}
-                  </td>
-                  <td className="py-4 px-6 whitespace-nowrap">
-                    {person.morning.sellers}
-                  </td>
-                  <td className="py-4 px-6 whitespace-nowrap">
-                    {person.morning.met}
-                  </td>
-                  <td className="p-2 text-center whitespace-nowrap">
-                    <button className="text-blue-500 hover:text-blue-700">
-                      <PlusCircle size={18} />
+            {leads.map((lead, index) => (
+              <tr
+                key={index}
+                className="border-t border-gray-200 text-gray-700 hover:bg-gray-50"
+              >
+                <td className="px-4 py-3 flex justify-center">
+                  <img src={lead.source} alt="Source" className="w-6 h-6" />
+                </td>
+                <td className="text-sm px-4 py-3 text-nowrap">{lead.name}</td>
+                <td className="text-sm px-4 py-3">{lead.date}</td>
+                <td className="text-sm px-4 py-3 text-nowrap">{lead.phone}</td>
+                <td className="text-sm px-4 py-3">{lead.email}</td>
+                <td className="text-sm px-4 py-3">
+                  <span className="bg-green-100 text-green-700 text-xs font-medium px-3 py-1 rounded-full">
+                    {lead.budget}
+                  </span>
+                </td>
+                <td className="text-sm px-4 py-3">{lead.type}</td>
+                <td className="text-sm px-4 py-3">{lead.requirement}</td>
+                <td className="text-sm px-4 py-3 text-center">
+                  <div className="flex justify-center gap-3">
+                    <button className="text-blue-600 hover:text-blue-800">
+                      
+                      <Pencil className="w-4 h-4" />
                     </button>
-                  </td>
-                </tr>
-
-                {/* Evening Row */}
-                <tr className="bg-[#FFC6C7] border-b">
-                  <td className="py-4 px-6 font-medium whitespace-nowrap">
-                    {person.evening.commitment}
-                  </td>
-                  <td className="py-4 px-6 whitespace-nowrap">
-                    {person.evening.portal}
-                  </td>
-                  <td className="py-4 px-6 font-semibold whitespace-nowrap">
-                    {person.evening.whatsapp}
-                  </td>
-                  <td className="py-4 px-6 whitespace-nowrap">
-                    {person.evening.buyers}
-                  </td>
-                  <td className="py-4 px-6 whitespace-nowrap">
-                    {person.evening.sellers}
-                  </td>
-                  <td className="py-4 px-6 whitespace-nowrap">
-                    {person.evening.met}
-                  </td>
-                  <td className="py-4 text-center whitespace-nowrap">
-                    <button className="text-blue-500 hover:text-blue-700">
-                      <PlusCircle size={18} />
+                    <button className="text-red-600 hover:text-red-800">
+                      <Trash className="w-4 h-4" />
                     </button>
-                  </td>
-                </tr>
-              </React.Fragment>
+                  </div>
+                </td>
+              </tr>
             ))}
           </tbody>
         </table>
       </div>
-    </section>
+    </div>
   );
-}
+};
+
+export default FreshLeads;

@@ -1,14 +1,15 @@
-import { Bell, ChevronDown } from "lucide-react";
+import { Bell, ChevronDown, PanelsTopLeft, Radio } from "lucide-react";
 import { useState } from "react";
-import { PanelsTopLeft, Radio } from "lucide-react";
-const TopBar = () => {
+
+const TopBar = ({ toggleSidebar }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <header className="flex justify-between items-center px-5 py-[6px] bg-white shadow sticky top-0 z-50 ">
+    <header className="flex justify-between items-center px-5 py-[6px] bg-white shadow sticky top-0 z-50">
+      
       {/* Left side */}
       <div className="flex items-center space-x-4">
-        <div className="">
+        <div className="cursor-pointer" onClick={toggleSidebar}>
           <PanelsTopLeft size={24} color="black" />
         </div>
         <div>

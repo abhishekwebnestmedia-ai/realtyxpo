@@ -40,7 +40,7 @@ const MembersAttendanceTable = () => {
   };
 
   return (
-    <div className="flex flex-col rounded-2xl w-[60%] bg-[#F4F6FF] shadow-sm ">
+    <div className="flex flex-col rounded-2xl w-[55%] bg-[#F4F6FF] shadow-sm   ">
       {/* Header */}
       <div className="flex justify-between items-center px-5 py-3 ">
         <h2 className="font-semibold text-gray-800">Members Attendance</h2>
@@ -55,9 +55,9 @@ const MembersAttendanceTable = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-white mx-[6px] rounded-2xl mb-1">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left text-gray-700">
+      <div className="bg-white mx-[6px] rounded-2xl mb-1 ">
+        <div className="overflow-x-auto scrollbar-hidden">
+          <table className="w-full text-sm text-left text-gray-700 ">
             <thead className=" text-gray-600 uppercase text-xs">
               <tr>
                 <th className="px-4 py-3 w-16">Status</th>
@@ -72,7 +72,7 @@ const MembersAttendanceTable = () => {
                   key={i}
                   className="border-t border-gray-200  hover:bg-gray-100 transition"
                 >
-                  <td className="px-4 py-3">{statusIcons[status]}</td>
+                  <td className="px-4 py-3 self-center">{statusIcons[status]}</td>
                   <td className="px-4 py-3">{name}</td>
                   <td
                     className="px-4 py-3 truncate max-w-[200px]"
