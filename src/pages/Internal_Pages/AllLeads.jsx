@@ -3,6 +3,7 @@ import ScrollableLeadsTable from '../../components/ScrollableLeads'
 const AllLeads = () => {
   return (
     <div>
+        
       <ScrollableLeadsTable/>
     </div>
   )

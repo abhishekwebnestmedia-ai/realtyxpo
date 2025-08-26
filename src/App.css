@@ -1,1 +1,8 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.btn {
+  @apply rounded border border-cyan-600 bg-[#5169F3] text-white px-3 py-1 text-sm 
+         hover:bg-cyan-600;
+}

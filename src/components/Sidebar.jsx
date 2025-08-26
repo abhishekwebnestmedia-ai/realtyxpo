@@ -10,7 +10,7 @@ import icon7 from "../../public/menuicons/7.svg";
 import icon8 from "../../public/menuicons/8.svg";
 import icon9 from "../../public/menuicons/9.svg";
 
-const SidebarMenu = ({ isOpen, toggleSidebar, setSidebarOpen }) => {
+const SidebarMenu = ({ isOpen}) => {
   const menuItems = [
     { icon: icon9, text: "Dashboard", path: "/" },
     { icon: icon1, text: "Daily Plan", path: "/daily-plan" },
@@ -49,7 +49,7 @@ const SidebarMenu = ({ isOpen, toggleSidebar, setSidebarOpen }) => {
       </div>
 
       {/* Menu Items */}
-      <div className="ml-2">
+      <div className="ml-2 ">
         {menuItems.map((item, index) => (
           <Link
             key={index}
@@ -89,7 +89,7 @@ const SidebarMenu = ({ isOpen, toggleSidebar, setSidebarOpen }) => {
           src={isOpen ? "/public/webnest-logo-full.svg" : "/public/webnst-logo.svg"}
           alt="Logo"
           style={{
-            width: isOpen ? "11rem" : "2.5rem",
+            width: isOpen ? "11rem" : "2rem",
             height: "2.5rem",
             objectFit: "contain",
             transition: "opacity 0.3s ease"

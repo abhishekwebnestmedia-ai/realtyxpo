@@ -7,7 +7,8 @@ import FreshLeads from "./components/FreshLeads";
 import TodaysTask from "./components/TodaysTask";
 import AllBuyers from "./pages/Internal_Pages/AllBuyers";
 import DailyPlan from "./pages/Internal_Pages/DailyPlan";
-import AllLeads from '../src/pages/Internal_Pages/AllLeads'
+import AllLeads from "../src/pages/Internal_Pages/AllLeads";
+import './App.css';
 const App = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
@@ -17,20 +18,15 @@ const App = () => {
     <Router>
       <div className="flex h-screen bg-gray-900 text-gray-100 overflow-hidden">
         <aside
-  className={`
+          className={`
     bg-slate-900 text-white flex-shrink-0 h-full
     transition-[width] duration-300 ease-in-out
     ${isSidebarOpen ? "w-68" : "w-14"}
   `}
-  style={{ willChange: "width" }}
->
-  <SidebarMenu
-    isOpen={isSidebarOpen}
-    toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-    setSidebarOpen={setIsSidebarOpen}
-  />
-</aside>
-
+          style={{ willChange: "width" }}
+        >
+          <SidebarMenu isOpen={isSidebarOpen} />
+        </aside>
 
         <main className="flex flex-col flex-1 overflow-hidden bg-white text-gray-900 rounded-3xl m-5 transition-all duration-300 ease-in-out">
           <TopBar toggleSidebar={toggleSidebar} />
@@ -47,7 +43,7 @@ const App = () => {
                   </>
                 }
               />
-               <Route
+              <Route
                 path="/daily-plan"
                 element={
                   <>
@@ -59,8 +55,7 @@ const App = () => {
                 path="/all-leads"
                 element={
                   <>
-                    <AllLeads/>
-                    
+                    <AllLeads />
                   </>
                 }
               />
@@ -75,7 +70,6 @@ const App = () => {
                   </>
                 }
               />
-              
             </Routes>
           </div>
         </main>
