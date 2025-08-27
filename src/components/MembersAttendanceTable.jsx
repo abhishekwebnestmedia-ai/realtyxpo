@@ -1,4 +1,4 @@
-import { ChevronDown, Filter, CheckCircle2, XCircle } from "lucide-react";
+import { ChevronDown, Filter, CheckCircle2, XCircle, ArrowUpRight } from "lucide-react";
 
 const MembersAttendanceTable = () => {
   const members = [
@@ -46,7 +46,7 @@ const MembersAttendanceTable = () => {
         <h2 className="font-semibold text-gray-800">Members Attendance</h2>
         <div className="flex gap-3 text-sm text-gray-600">
           <button className="flex items-center gap-1 hover:text-cyan-600 transition">
-            View All <ChevronDown size={16} />
+            View All <ArrowUpRight size={16} />
           </button>
           <button className="flex items-center gap-1 hover:text-cyan-600 transition">
             Filter <Filter size={16} />

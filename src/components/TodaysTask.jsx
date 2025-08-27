@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { CheckSquare, Filter, Download, ExternalLink, PlusCircle } from "lucide-react";
 import Pagination from "./pagination";
 
-const TodaysTask = ({ rowsPerPage = 10, showPagination = true, maxRows = null }) => {
+const TodaysTask = ({ rowsPerPage = 4, showPagination = true, maxRows = null }) => {
   const data = [
     {
       name: "Abhishek Singh",
@@ -54,38 +54,38 @@ const TodaysTask = ({ rowsPerPage = 10, showPagination = true, maxRows = null })
    
       {/* Table */}
       <div className="overflow-x-auto scrollbar-hide rounded-2xl">
-        <table className="w-full min-w-max text-sm relative border-collapse">
+        <table className="relative w-full text-sm border-collapse min-w-max">
           <thead>
             <tr className="bg-[#FAFBFC] text-gray-700">
               <th className="w-10 text-center sticky left-0 z-30 bg-[#FAFBFC] p-4">
                 <CheckSquare size={18} />
               </th>
               <th className="text-left sticky left-[40px] z-30 bg-[#FAFBFC] px-4 py-6">Name</th>
-              <th className="text-left px-10 py-6 text-sm">Promises</th>
-              <th className="text-left px-10 py-6 text-sm">Online Portal Checked</th>
-              <th className="text-left px-10 py-6 text-sm">Whatsapp Status/ Post in Group</th>
-              <th className="text-left px-10 py-6 text-sm">Buyers Working</th>
-              <th className="text-left px-10 py-6 text-sm">Sellers Working</th>
-              <th className="text-left px-10 py-6 text-sm">Meeting</th>
-              <th className="text-left px-10 py-6 text-sm">Add More</th>
+              <th className="px-10 py-6 text-sm text-left">Promises</th>
+              <th className="px-10 py-6 text-sm text-left">Online Portal Checked</th>
+              <th className="px-10 py-6 text-sm text-left">Whatsapp Status/ Post in Group</th>
+              <th className="px-10 py-6 text-sm text-left">Buyers Working</th>
+              <th className="px-10 py-6 text-sm text-left">Sellers Working</th>
+              <th className="px-10 py-6 text-sm text-left">Meeting</th>
+              <th className="px-10 py-6 text-sm text-left">Add More</th>
             </tr>
           </thead>
           <tbody>
             {currentRows.map((person, idx) => (
               <React.Fragment key={idx}>
                 <tr className="bg-[#FFF4BD] border-b">
-                  <td className="text-center sticky left-0 z-20 bg-white p-4" rowSpan={2}>
+                  <td className="sticky left-0 z-20 p-4 text-center bg-white" rowSpan={2}>
                     <CheckSquare size={18} className="text-blue-500" />
                   </td>
                   <td className="px-3 sticky left-[40px] z-20 bg-white" rowSpan={2}>
                     {person.name}
                   </td>
-                  <td className="py-4 px-6 font-medium">{person.morning.commitment}</td>
-                  <td className="py-4 px-6">{person.morning.portal}</td>
-                  <td className="py-4 px-6 font-semibold">{person.morning.whatsapp}</td>
-                  <td className="py-4 px-6">{person.morning.buyers}</td>
-                  <td className="py-4 px-6">{person.morning.sellers}</td>
-                  <td className="py-4 px-6">{person.morning.met}</td>
+                  <td className="px-6 py-4 font-medium">{person.morning.commitment}</td>
+                  <td className="px-6 py-4">{person.morning.portal}</td>
+                  <td className="px-6 py-4 font-semibold">{person.morning.whatsapp}</td>
+                  <td className="px-6 py-4">{person.morning.buyers}</td>
+                  <td className="px-6 py-4">{person.morning.sellers}</td>
+                  <td className="px-6 py-4">{person.morning.met}</td>
                   <td className="p-2 text-center">
                     <button className="text-blue-500 hover:text-blue-700">
                       <PlusCircle size={18} />
@@ -94,12 +94,12 @@ const TodaysTask = ({ rowsPerPage = 10, showPagination = true, maxRows = null })
                 </tr>
 
                 <tr className="bg-[#FFC6C7] border-b">
-                  <td className="py-4 px-6 font-medium">{person.evening.commitment}</td>
-                  <td className="py-4 px-6">{person.evening.portal}</td>
-                  <td className="py-4 px-6 font-semibold">{person.evening.whatsapp}</td>
-                  <td className="py-4 px-6">{person.evening.buyers}</td>
-                  <td className="py-4 px-6">{person.evening.sellers}</td>
-                  <td className="py-4 px-6">{person.evening.met}</td>
+                  <td className="px-6 py-4 font-medium">{person.evening.commitment}</td>
+                  <td className="px-6 py-4">{person.evening.portal}</td>
+                  <td className="px-6 py-4 font-semibold">{person.evening.whatsapp}</td>
+                  <td className="px-6 py-4">{person.evening.buyers}</td>
+                  <td className="px-6 py-4">{person.evening.sellers}</td>
+                  <td className="px-6 py-4">{person.evening.met}</td>
                   <td className="py-4 text-center">
                     <button className="text-blue-500 hover:text-blue-700">
                       <PlusCircle size={18} />

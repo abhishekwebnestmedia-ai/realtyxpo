@@ -9,8 +9,8 @@ const TopBar = ({ toggleSidebar }) => {
       
       {/* Left side */}
       <div className="flex items-center space-x-4">
-        <div className="cursor-pointer" onClick={toggleSidebar}>
-          <PanelsTopLeft size={24} color="black" />
+        <div className="cursor-pointer " onClick={toggleSidebar}>
+          <PanelsTopLeft size={24} color="black" className="object-contain" />
         </div>
         <div>
           <p className="text-lg font-medium">Welcome Sahil</p>

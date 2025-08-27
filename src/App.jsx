@@ -9,6 +9,7 @@ import AllBuyers from "./pages/Internal_Pages/AllBuyers";
 import DailyPlan from "./pages/Internal_Pages/DailyPlan";
 import AllLeads from "../src/pages/Internal_Pages/AllLeads";
 import './App.css';
+import Inventory from "./pages/Internal_Pages/Inventory";
 const App = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
@@ -56,6 +57,14 @@ const App = () => {
                 element={
                   <>
                     <AllLeads />
+                  </>
+                }
+              />
+              <Route
+                path="/inventory"
+                element={
+                  <>
+                    <Inventory />
                   </>
                 }
               />

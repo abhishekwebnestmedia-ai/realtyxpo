@@ -6,3 +6,6 @@
   @apply rounded border border-cyan-600 bg-[#5169F3] text-white px-3 py-1 text-sm 
          hover:bg-cyan-600;
 }
+.white-btn {
+  @apply rounded border border-[#5169F3] bg-white text-[#5169F3] px-3 py-1 text-sm hover:bg-gray-100 
+}

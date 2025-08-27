@@ -14,16 +14,16 @@ const OverviewDashboard = () => {
       <div className="flex justify-between items-center ">
         <h2 className="font-semibold text-2xl">Overview Dashboard</h2>
         <div className="flex gap-3">
-          <button className="rounded border border-cyan-600 text-cyan-600 px-3 py-1 text-sm hover:bg-cyan-600 hover:text-white">
+          <button className="white-btn">
             Assign Lead +
           </button>
-          <button className="rounded bg-cyan-600 text-white px-3 py-1 text-sm hover:bg-cyan-700 flex items-center gap-1">
+          <button className="btn flex items-center gap-1">
             Add Bulk Lead{" "}
             <span>
               <FilePlus2 size={14} />
             </span>
           </button>
-          <button className="rounded border border-cyan-600 text-cyan-600 px-3 py-1 text-sm hover:bg-cyan-600 hover:text-white flex items-center gap-1">
+          <button className="white-btn flex items-center gap-1">
             Add Lead{" "}
             <span>
               <FilePlus2 size={14} />

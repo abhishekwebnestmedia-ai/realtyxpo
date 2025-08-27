@@ -24,7 +24,7 @@ const SidebarMenu = ({ isOpen}) => {
   ];
 
   return (
-    <nav className="flex flex-col py-4 space-y-2 relative h-full gap-4 justify-between">
+    <nav className="flex flex-col py-4 relative h-full  justify-between">
       {/* Logo toggles sidebar */}
       <div
         className="flex justify-center border-slate-700 cursor-pointer overflow-hidden"
@@ -66,7 +66,7 @@ const SidebarMenu = ({ isOpen}) => {
               style={{
                 opacity: isOpen ? 1 : 0,
                 maxWidth: isOpen ? "200px" : "0px",
-                marginLeft: isOpen ? "8px" : "0px",
+                
                 transitionProperty: "opacity, max-width, margin-left"
               }}
             >

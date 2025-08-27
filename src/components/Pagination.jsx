@@ -4,7 +4,7 @@ const Pagination = ({ totalPages, currentPage, onPageChange }) => {
   if (totalPages <= 1) return null;
 
   return (
-    <div className="flex justify-center mt-4 gap-2">
+    <div className="flex justify-center gap-2 mt-4">
       {/* Previous Button */}
       <button
         onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
