@@ -5,7 +5,7 @@ const Inventory = () => {
   return (
     <div className='h-full'>
         <div className="flex items-center justify-between ">
-        <h2 className="text-2xl font-semibold">All Leads</h2>
+        <h2 className="text-2xl font-semibold">Inventory</h2>
         <div className="flex gap-3">
           
           <button className="flex items-center gap-1 btn">
