@@ -24,10 +24,10 @@ const SidebarMenu = ({ isOpen}) => {
   ];
 
   return (
-    <nav className="flex flex-col py-4 relative h-full  justify-between">
+    <nav className="relative flex flex-col justify-between h-full py-4">
       {/* Logo toggles sidebar */}
       <div
-        className="flex justify-center border-slate-700 cursor-pointer overflow-hidden"
+        className="flex justify-center overflow-hidden cursor-pointer border-slate-700"
         
         style={{
           transition: "width 0.3s ease, height 0.3s ease, margin-left 0.3s ease",
@@ -49,20 +49,20 @@ const SidebarMenu = ({ isOpen}) => {
       </div>
 
       {/* Menu Items */}
-      <div className="ml-2 ">
+      <div className="mx-2 ">
         {menuItems.map((item, index) => (
           <Link
             key={index}
             to={item.path}
             
-            className="group flex items-center rounded-lg hover:bg-slate-700 py-3 transition-colors duration-300"
+            className="flex items-center py-3 transition-colors duration-300 rounded-lg group hover:bg-slate-700"
             style={{ overflow: "hidden" }}
           >
-            <span className="flex justify-center items-center w-12 flex-shrink-0">
+            <span className="flex items-center justify-center flex-shrink-0 w-12">
               <img src={item.icon} alt={item.text} className="w-6 h-6" />
             </span>
             <span
-              className="transition-all text-xl duration-300 whitespace-nowrap overflow-hidden"
+              className="overflow-hidden text-xl transition-all duration-300 whitespace-nowrap"
               style={{
                 opacity: isOpen ? 1 : 0,
                 maxWidth: isOpen ? "200px" : "0px",
@@ -76,7 +76,7 @@ const SidebarMenu = ({ isOpen}) => {
         ))}
       </div>
       <div
-        className="flex justify-center border-slate-700 cursor-pointer overflow-hidden"
+        className="flex justify-center overflow-hidden cursor-pointer border-slate-700"
         
         style={{
           transition: "width 0.3s ease, height 0.3s ease, margin-left 0.3s ease",
