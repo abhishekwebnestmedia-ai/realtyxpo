@@ -13,7 +13,6 @@ import FindOpportunity from "./pages/Internal_Pages/FindOpportunity";
 import LearnGrow from "./pages/Internal_Pages/LearnGrow";
 
 const App = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   return (
     <Router>
