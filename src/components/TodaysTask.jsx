@@ -5,7 +5,7 @@ import Pagination from "./pagination";
 const TodaysTask = ({ rowsPerPage = 4, showPagination = true, maxRows = null }) => {
   const data = [
     {
-      name: "Abhishek Singh",
+      name: "Abhishek Singh", 
       morning: { commitment: "Morning Commitment", portal: 32, whatsapp: 54, buyers: "-", sellers: 53, met: 53 },
       evening: { commitment: "Evening Achievements", portal: 28, whatsapp: 60, buyers: "-", sellers: 53, met: 53 },
     },

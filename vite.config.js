@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     host: true,          // exposes to LAN
-    port: 5173,          // can be any free port
-    historyApiFallback: true, // for React Router
+    port: 3000,          
+    historyApiFallback: true, 
   },
 })

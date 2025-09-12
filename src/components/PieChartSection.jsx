@@ -51,7 +51,7 @@ export default function LeadsChart() {
   ];
 
   return (
-    <div className="bg-[#F4F6FF] p-6 rounded-2xl flex items-center gap-20 w-[45%]">
+    <div className="bg-[#F4F6FF] p-6 rounded-2xl flex items-center justify-around w-full h-full">
       {/* Apex Donut Chart */}
       <div className="relative w-40 h-40">
         <ReactApexChart
@@ -69,23 +69,30 @@ export default function LeadsChart() {
 
       {/* Custom Legend */}
       {/* Custom Legend */}
-<div className="grid grid-cols-1 gap-2 max-w-[160px]">
-  {legendItems.map((item, i) => (
-    <div key={i} className="flex items-center justify-between w-full gap-8">
-      <div className="flex items-center gap-2 overflow-hidden">
-        <span
-          className="w-2 h-2 rounded-full flex-shrink-0"
-          style={{ backgroundColor: item.color }}
-        ></span>
-        <span className="text-gray-700 text-sm text-nowrap " title={item.label}>
-          {item.label}
-        </span>
+      <div className="grid grid-cols-1 gap-2 ">
+        {legendItems.map((item, i) => (
+          <div
+            key={i}
+            className="flex items-center justify-between w-full gap-8"
+          >
+            <div className="flex items-center gap-2 overflow-hidden">
+              <span
+                className="w-2 h-2 rounded-full flex-shrink-0"
+                style={{ backgroundColor: item.color }}
+              ></span>
+              <span
+                className="text-gray-700 text-sm text-nowrap "
+                title={item.label}
+              >
+                {item.label}
+              </span>
+            </div>
+            <span className="text-gray-700 text-sm flex-shrink-0">
+              {item.value}
+            </span>
+          </div>
+        ))}
       </div>
-      <span className="text-gray-700 text-sm flex-shrink-0">{item.value}</span>
-    </div>
-  ))}
-</div>
-
     </div>
   );
 }

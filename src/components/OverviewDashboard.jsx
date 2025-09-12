@@ -8,6 +8,7 @@ import { FilePlus2 } from "lucide-react";
 import { Filter, Download, ExternalLink } from "lucide-react";
 
 const OverviewDashboard = () => {
+  
   return (
     <div className="w-full">
       {/* Header with buttons */}
@@ -17,6 +18,7 @@ const OverviewDashboard = () => {
           <button className="white-btn">
             Assign Lead +
           </button>
+          
           <button className="btn flex items-center gap-1">
             Add Bulk Lead{" "}
             <span>
@@ -34,9 +36,14 @@ const OverviewDashboard = () => {
 
       {/* Pie Chart & Attendance Table */}
       <section className="flex justify-between gap-6 bg-white mt-4 p-5 rounded-3xl">
-        <PieChartSection />
-        <MembersAttendanceTable />
-      </section>
+  <div className="w-1/2">
+    <PieChartSection />
+  </div>
+  <div className="w-1/2">
+    <MembersAttendanceTable />
+  </div>
+</section>
+
 
       {/* Additional Sections */}
       <section>

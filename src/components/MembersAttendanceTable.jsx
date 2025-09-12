@@ -40,7 +40,7 @@ const MembersAttendanceTable = () => {
   };
 
   return (
-    <div className="flex flex-col rounded-2xl w-[55%] bg-[#F4F6FF] shadow-sm   ">
+    <div className="flex flex-col rounded-2xl w-full bg-[#F4F6FF] shadow-sm   ">
       {/* Header */}
       <div className="flex justify-between items-center px-5 py-3 ">
         <h2 className="font-semibold text-gray-800">Members Attendance</h2>

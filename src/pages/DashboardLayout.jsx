@@ -5,6 +5,7 @@ import SidebarMenu from "../components/Sidebar";
 import TopBar from "../components/TopBar";
 
 const DashboardLayout = () => {
+  
      const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const toggleSidebar = () => {

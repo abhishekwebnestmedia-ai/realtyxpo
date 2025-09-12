@@ -24,7 +24,7 @@ const SidebarMenu = ({ isOpen}) => {
   ];
 
   return (
-    <nav className="relative flex flex-col justify-between h-full py-4">
+    <nav className="relative flex flex-col h-full py-4">
       {/* Logo toggles sidebar */}
       <div
         className="flex justify-center overflow-hidden cursor-pointer border-slate-700"
@@ -49,7 +49,7 @@ const SidebarMenu = ({ isOpen}) => {
       </div>
 
       {/* Menu Items */}
-      <div className="mx-2 ">
+      <div className="mx-2 mt-6 ">
         {menuItems.map((item, index) => (
           <Link
             key={index}
@@ -76,7 +76,7 @@ const SidebarMenu = ({ isOpen}) => {
         ))}
       </div>
       <div
-        className="flex justify-center overflow-hidden cursor-pointer border-slate-700"
+        className="flex justify-center absolute bottom-3 overflow-hidden cursor-pointer border-slate-700"
         
         style={{
           transition: "width 0.3s ease, height 0.3s ease, margin-left 0.3s ease",

@@ -1,19 +1,27 @@
 import { Bell, ChevronDown, PanelsTopLeft, Radio } from "lucide-react";
-import { useState } from "react";
-
+import { useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
 const TopBar = ({ toggleSidebar }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const { logout } = useContext(AuthContext);
+  const { user, loading } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout(); // Clears token and user
+    navigate("/login"); // Redirect to login page
+  };
 
   return (
     <header className="flex justify-between items-center px-5 py-[6px] bg-white shadow sticky top-0 z-50">
-      
       {/* Left side */}
       <div className="flex items-center space-x-4">
         <div className="cursor-pointer " onClick={toggleSidebar}>
           <PanelsTopLeft size={24} color="black" className="object-contain" />
         </div>
         <div>
-          <p className="text-lg font-medium">Welcome Sahil</p>
+          <p className="text-lg font-medium">Welcome {user.name}</p>
         </div>
       </div>
 
@@ -39,9 +47,9 @@ const TopBar = ({ toggleSidebar }) => {
               className="w-10 h-10 rounded-full border"
             />
             <div className="flex flex-col">
-              <span className="font-medium">Sahil Panchal</span>
+              <span className="font-medium">{user.name}</span>
               <span className="font-medium truncate w-32">
-                Shashankpanchal20@gmail.com
+                {user.email}
               </span>
             </div>
             <ChevronDown size={18} />
@@ -56,9 +64,12 @@ const TopBar = ({ toggleSidebar }) => {
               <div className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer">
                 Settings
               </div>
-              <div className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer">
+              <button
+                className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
+                onClick={handleLogout}
+              >
                 Logout
-              </div>
+              </button>
             </div>
           )}
         </div>

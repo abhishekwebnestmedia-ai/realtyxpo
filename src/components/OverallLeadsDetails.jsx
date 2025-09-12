@@ -13,7 +13,7 @@ const OverallLeadsDetails = () => {
   ];
   
   return (
-    <section className="flex flex-wrap gap-4 rounded-lg mt-4 w-full">
+    <section className="flex flex-col gap-4 rounded-lg mt-4 w-full">
       {/* Header */}
       <div className="w-full flex justify-between items-center mb-4">
         <h2 className="font-semibold text-2xl text-gray-800">Overall Leads Details</h2>
@@ -28,10 +28,11 @@ const OverallLeadsDetails = () => {
       </div>
 
       {/* Cards */}
-      {leadCards.map(({ label, value, borderColor, textColor, bgColor }) => (
+      <div className="grid grid-cols-4 gap-4">
+        {leadCards.map(({ label, value, borderColor, textColor, bgColor }) => (
         <div
           key={label}
-          className={`flex flex-row px-4 py-3 gap-4 rounded-3xl shadow-sm bg-white border-l-4 ${borderColor} w-64`}
+          className={`flex flex-row  px-4 py-3 gap-4 rounded-3xl shadow-sm bg-white border-l-4 ${borderColor} `}
         >
           <div className="">
             <div className={`p-2 rounded-full ${bgColor}`}>
@@ -44,6 +45,7 @@ const OverallLeadsDetails = () => {
           </div>
         </div>
       ))}
+      </div>
     </section>
   );
 };

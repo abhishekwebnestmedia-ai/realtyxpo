@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import DashboardLayout from "./pages/DashboardLayout";
@@ -11,20 +11,26 @@ import BrokersRequirements from "./pages/Internal_Pages/BrokersRequirements";
 import MyTeam from "./pages/Internal_Pages/MyTeam";
 import FindOpportunity from "./pages/Internal_Pages/FindOpportunity";
 import LearnGrow from "./pages/Internal_Pages/LearnGrow";
-
+import { AuthProvider } from "./context/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
 const App = () => {
 
   return (
+    <AuthProvider>
     <Router>
       <Routes>
         {/* Login Route */}
         <Route path="/login" element={<Login />} />
 
         {/* Protected Dashboard Routes */}
-        <Route
-          path="/"
-          element={<DashboardLayout  />}
-        >
+           <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout />
+              </ProtectedRoute>
+            }
+          >
           <Route index element={<OverviewDashboard />} />
           <Route path="daily-plan" element={<DailyPlan />} />
           <Route path="all-leads" element={<AllLeads />} />
@@ -37,6 +43,7 @@ const App = () => {
         </Route>
       </Routes>
     </Router>
+    </AuthProvider>
   );
 };
 

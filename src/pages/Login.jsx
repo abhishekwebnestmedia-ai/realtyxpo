@@ -1,15 +1,36 @@
-import React, { useState } from 'react';
-import logo from '../../public/logo.svg';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useContext } from "react";
+import logo from "../../public/logo.svg";
+import { Link, useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext"; // ✅ Add this
+
 
 const Login = () => {
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [signupName, setSignupName] = useState("");
+  const [signupEmail, setSignupEmail] = useState("");
+  const [signupPassword, setSignupPassword] = useState("");
+  const { login, register } = useContext(AuthContext);
+  const handleLogin = async () => {
+    const success = await login(loginEmail, loginPassword);
+    if (success) {
+      navigate("/"); // ✅ Navigate to dashboard
+    } else {
+      alert("Invalid email or password");
+    }
+  };
+  const handleRegister = async () => {
+    try {
+      await register(signupName, signupEmail, signupPassword);
+      alert("Registration successful! Please login.");
+      setIsFlipped(false); // Flip back to login
+    } catch (error) {
+      alert("Registration failed: " + error.response?.data?.message);
+    }
+  };
+
   const [isFlipped, setIsFlipped] = useState(false);
   const navigate = useNavigate();
-
-  const handleLogin = () => {
-    // Here you can add authentication logic before navigating
-    navigate('/'); // ✅ Navigate to main dashboard (or use /dashboard if you add that route)
-  };
 
   return (
     <div className="relative h-screen overflow-hidden">
@@ -32,7 +53,7 @@ const Login = () => {
           <div className="w-80 h-[400px] perspective mt-[30%]">
             <div
               className={`w-full h-full transition-transform duration-1000 transform-style-preserve-3d ${
-                isFlipped ? 'rotate-y-180' : ''
+                isFlipped ? "rotate-y-180" : ""
               }`}
             >
               {/* Login Form (Front) */}
@@ -45,11 +66,15 @@ const Login = () => {
                 <input
                   type="text"
                   placeholder="Email"
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
                   className="w-full px-2 py-1 text-base border rounded-md mt-11"
                 />
                 <input
                   type="password"
                   placeholder="Password"
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
                   className="w-full px-2 py-1 mt-3 text-base border rounded-md"
                 />
 
@@ -59,17 +84,22 @@ const Login = () => {
                     <p className="text-xs">Keep Me Login</p>
                   </div>
                   <div className="flex flex-col items-end">
-                    <button className="text-xs text-[#334DE5]">Forgotten Password!</button>
+                    <button className="text-xs text-[#334DE5]">
+                      Forgotten Password!
+                    </button>
                     <p className="text-xs">
-                      New Here?{' '}
-                      <button onClick={() => setIsFlipped(true)} className="text-[#334DE5]">
+                      New Here?{" "}
+                      <button
+                        onClick={() => setIsFlipped(true)}
+                        className="text-[#334DE5]"
+                      >
                         Register here
                       </button>
                     </p>
                   </div>
                 </div>
                 <button
-                  type='button'
+                  type="button"
                   className="w-full bg-[#334DE5] text-white rounded-md py-[6px] mt-10"
                   onClick={handleLogin}
                 >
@@ -87,21 +117,27 @@ const Login = () => {
                 <input
                   type="text"
                   placeholder="Name"
+                  value={signupName}
+                  onChange={(e) => setSignupName(e.target.value)}
                   className="w-full px-2 py-1 border rounded-md mt-11"
                 />
                 <input
                   type="text"
                   placeholder="Email"
+                  value={signupEmail}
+                  onChange={(e) => setSignupEmail(e.target.value)}
                   className="w-full px-2 py-1 mt-3 border rounded-md"
                 />
                 <input
                   type="password"
                   placeholder="Password"
+                  value={signupPassword}
+                  onChange={(e) => setSignupPassword(e.target.value)}
                   className="w-full px-2 py-1 mt-3 border rounded-md"
                 />
 
                 <p className="mt-2 text-xs">
-                  Already have an account?{' '}
+                  Already have an account?{" "}
                   <button
                     onClick={() => setIsFlipped(false)}
                     className="text-[#334DE5]"
@@ -110,7 +146,11 @@ const Login = () => {
                   </button>
                 </p>
 
-                <button className="w-full bg-[#334DE5] text-white rounded-md py-[6px] mt-6">
+                <button
+                  type="button"
+                  className="w-full bg-[#334DE5] text-white rounded-md py-[6px] mt-6"
+                  onClick={handleRegister}
+                >
                   Sign Up
                 </button>
               </div>
@@ -122,7 +162,7 @@ const Login = () => {
         <div className="relative w-[65%] perspective">
           <div
             className={`absolute inset-0 w-full h-full transition-transform duration-1000 transform-style-preserve-3d ${
-              isFlipped ? 'rotate-y-180' : ''
+              isFlipped ? "rotate-y-180" : ""
             }`}
           >
             {/* Front Side of Right BG */}
