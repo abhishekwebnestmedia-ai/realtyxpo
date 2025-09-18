@@ -13,6 +13,8 @@ import FindOpportunity from "./pages/Internal_Pages/FindOpportunity";
 import LearnGrow from "./pages/Internal_Pages/LearnGrow";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import EditLead from "./pages/Add_delete_pages/EditLead";
+
 const App = () => {
 
   return (
@@ -40,6 +42,8 @@ const App = () => {
           <Route path="my-team" element={<MyTeam />} />
           <Route path="find-opportunity" element={<FindOpportunity />} />
           <Route path="learn-grow" element={<LearnGrow />} />
+          {/* Add route for EditLead so /Add_Delete_Pages/EditLead is matched */}
+          <Route path="Add_Delete_Pages/EditLead" element={<EditLead />} />
         </Route>
       </Routes>
     </Router>

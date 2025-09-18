@@ -8,22 +8,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   // ✅ Fetch user profile
-  const fetchUserProfile = async (token) => {
-    try {
-      const res = await api.get("/auth/profile", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setUser(res.data); // Set full user profile
-    } catch (error) {
-      console.error(
-        "Failed to fetch user profile:",
-        error.response?.data || error.message
-      );
-      setUser(null);
-    }
-  };
+  
 
   // ✅ Restore user from token on page refresh
   useEffect(() => {
@@ -75,7 +60,22 @@ export const AuthProvider = ({ children }) => {
       };
     }
   };
-
+  const fetchUserProfile = async (token) => {
+    try {
+      const res = await api.get("/auth/profile", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setUser(res.data); // Set full user profile
+    } catch (error) {
+      console.error(
+        "Failed to fetch user profile:",
+        error.response?.data || error.message
+      );
+      setUser(null);
+    }
+  };
   // ✅ Logout function
   const logout = () => {
     localStorage.removeItem("token");

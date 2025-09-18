@@ -10,6 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.87.4",
+    "@tanstack/react-query-devtools": "^5.87.4",
+    "@tanstack/react-table": "^8.21.3",
     "apexcharts": "^5.3.4",
     "axios": "^1.11.0",
     "chart.js": "^4.5.0",

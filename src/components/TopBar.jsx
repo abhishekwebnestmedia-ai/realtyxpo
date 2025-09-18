@@ -41,11 +41,11 @@ const TopBar = ({ toggleSidebar }) => {
             className="flex items-center space-x-2"
             onClick={() => setIsOpen(!isOpen)}
           >
-            <img
-              src="https://via.placeholder.com/40"
+            {/* <img
+              src=""
               alt="Profile"
               className="w-10 h-10 rounded-full border"
-            />
+            /> */}
             <div className="flex flex-col">
               <span className="font-medium">{user.name}</span>
               <span className="font-medium truncate w-32">

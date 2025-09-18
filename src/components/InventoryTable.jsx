@@ -1,620 +1,240 @@
-import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import Pagination from "./Pagination";
-import { ChevronDown, ListFilter, Pencil, Trash2 } from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { Pencil, Trash2 } from "lucide-react";
+import api from "../api/api"; // ✅ axios instance
 
-const Table = () => {
-  const [dropdownOpen, setDropdownOpen] = useState(null);
-  const [typologyDropdownOpen, setTypologyDropdownOpen] = useState(null);
+const InventoryTable = ({ data = [], onDeleteSuccess }) => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 7;
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [deletingId, setDeletingId] = useState(null);
+  const [localData, setLocalData] = useState(data); // ✅ maintain local copy
 
-  // ✅ Data
-  const buyersData = [
-    {
-      id: 1,
-      sellerName: "John Doe",
-      sector: "45",
-      unit: "12",
-      tower: "A",
-      typology: "3BHK",
-      size: "1500 sq.ft",
-      demand: "₹75L",
-      contact: ["9876543210", "9876500000"],
-      email: "john@example.com",
-      paymentStatus: "Partial",
-      registerTransferred: "Registered",
-      requirement: "High floor",
-      date: "2025-08-25",
-      capturedBy: "Agent 1",
-      assignedTo: "Agent 2",
-      transferTo: "Agent 3",
-      followupDate: "2025-09-01",
-      source: "Website",
-      loanStatus: "Pending",
-      remarks: "Follow up",
-    },
-    {
-      id: 2,
-      sellerName: "Jane Smith",
-      sector: "23",
-      unit: "9",
-      tower: "B",
-      typology: "2BHK",
-      size: "1100 sq.ft",
-      demand: "₹55L",
-      contact: ["8765432109"],
-      email: "jane@example.com",
-      paymentStatus: "Complete",
-      registerTransferred: "Transferred",
-      requirement: "Park facing",
-      date: "2025-08-20",
-      capturedBy: "Agent 4",
-      assignedTo: "Agent 5",
-      transferTo: "Agent 6",
-      followupDate: "2025-08-30",
-      source: "Referral",
-      loanStatus: "Approved",
-      remarks: "Confirmed",
-    },
-    {
-      id: 3,
-      sellerName: "John Doe",
-      sector: "45",
-      unit: "12",
-      tower: "A",
-      typology: "3BHK",
-      size: "1500 sq.ft",
-      demand: "₹75L",
-      contact: ["9876543210", "9876500000"],
-      email: "john@example.com",
-      paymentStatus: "Partial",
-      registerTransferred: "Registered",
-      requirement: "High floor",
-      date: "2025-08-25",
-      capturedBy: "Agent 1",
-      assignedTo: "Agent 2",
-      transferTo: "Agent 3",
-      followupDate: "2025-09-01",
-      source: "Website",
-      loanStatus: "Pending",
-      remarks: "Follow up",
-    },
-    {
-      id: 4,
-      sellerName: "Jane Smith",
-      sector: "23",
-      unit: "9",
-      tower: "B",
-      typology: "2BHK",
-      size: "1100 sq.ft",
-      demand: "₹55L",
-      contact: ["8765432109"],
-      email: "jane@example.com",
-      paymentStatus: "Complete",
-      registerTransferred: "Transferred",
-      requirement: "Park facing",
-      date: "2025-08-20",
-      capturedBy: "Agent 4",
-      assignedTo: "Agent 5",
-      transferTo: "Agent 6",
-      followupDate: "2025-08-30",
-      source: "Referral",
-      loanStatus: "Approved",
-      remarks: "Confirmed",
-    },
-    {
-      id: 5,
-      sellerName: "John Doe",
-      sector: "45",
-      unit: "12",
-      tower: "A",
-      typology: "3BHK",
-      size: "1500 sq.ft",
-      demand: "₹75L",
-      contact: ["9876543210", "9876500000"],
-      email: "john@example.com",
-      paymentStatus: "Partial",
-      registerTransferred: "Registered",
-      requirement: "High floor",
-      date: "2025-08-25",
-      capturedBy: "Agent 1",
-      assignedTo: "Agent 2",
-      transferTo: "Agent 3",
-      followupDate: "2025-09-01",
-      source: "Website",
-      loanStatus: "Pending",
-      remarks: "Follow up",
-    },
-    {
-      id: 6,
-      sellerName: "Jane Smith",
-      sector: "23",
-      unit: "9",
-      tower: "B",
-      typology: "2BHK",
-      size: "1100 sq.ft",
-      demand: "₹55L",
-      contact: ["8765432109"],
-      email: "jane@example.com",
-      paymentStatus: "Complete",
-      registerTransferred: "Transferred",
-      requirement: "Park facing",
-      date: "2025-08-20",
-      capturedBy: "Agent 4",
-      assignedTo: "Agent 5",
-      transferTo: "Agent 6",
-      followupDate: "2025-08-30",
-      source: "Referral",
-      loanStatus: "Approved",
-      remarks: "Confirmed",
-    },
-    {
-      id: 7,
-      sellerName: "John Doe",
-      sector: "45",
-      unit: "12",
-      tower: "A",
-      typology: "3BHK",
-      size: "1500 sq.ft",
-      demand: "₹75L",
-      contact: ["9876543210", "9876500000"],
-      email: "john@example.com",
-      paymentStatus: "Partial",
-      registerTransferred: "Registered",
-      requirement: "High floor",
-      date: "2025-08-25",
-      capturedBy: "Agent 1",
-      assignedTo: "Agent 2",
-      transferTo: "Agent 3",
-      followupDate: "2025-09-01",
-      source: "Website",
-      loanStatus: "Pending",
-      remarks: "Follow up",
-    },
-    {
-      id: 8,
-      sellerName: "Jane Smith",
-      sector: "23",
-      unit: "9",
-      tower: "B",
-      typology: "2BHK",
-      size: "1100 sq.ft",
-      demand: "₹55L",
-      contact: ["8765432109"],
-      email: "jane@example.com",
-      paymentStatus: "Complete",
-      registerTransferred: "Transferred",
-      requirement: "Park facing",
-      date: "2025-08-20",
-      capturedBy: "Agent 4",
-      assignedTo: "Agent 5",
-      transferTo: "Agent 6",
-      followupDate: "2025-08-30",
-      source: "Referral",
-      loanStatus: "Approved",
-      remarks: "Confirmed",
-    },
-    {
-      id: 9,
-      sellerName: "John Doe",
-      sector: "45",
-      unit: "12",
-      tower: "A",
-      typology: "3BHK",
-      size: "1500 sq.ft",
-      demand: "₹75L",
-      contact: ["9876543210", "9876500000"],
-      email: "john@example.com",
-      paymentStatus: "Partial",
-      registerTransferred: "Registered",
-      requirement: "High floor",
-      date: "2025-08-25",
-      capturedBy: "Agent 1",
-      assignedTo: "Agent 2",
-      transferTo: "Agent 3",
-      followupDate: "2025-09-01",
-      source: "Website",
-      loanStatus: "Pending",
-      remarks: "Follow up",
-    },
-    {
-      id: 10,
-      sellerName: "Jane Smith",
-      sector: "23",
-      unit: "9",
-      tower: "B",
-      typology: "2BHK",
-      size: "1100 sq.ft",
-      demand: "₹55L",
-      contact: ["8765432109"],
-      email: "jane@example.com",
-      paymentStatus: "Complete",
-      registerTransferred: "Transferred",
-      requirement: "Park facing",
-      date: "2025-08-20",
-      capturedBy: "Agent 4",
-      assignedTo: "Agent 5",
-      transferTo: "Agent 6",
-      followupDate: "2025-08-30",
-      source: "Referral",
-      loanStatus: "Approved",
-      remarks: "Confirmed",
-    },
-    {
-      id: 11,
-      sellerName: "John Doe",
-      sector: "45",
-      unit: "12",
-      tower: "A",
-      typology: "3BHK",
-      size: "1500 sq.ft",
-      demand: "₹75L",
-      contact: ["9876543210", "9876500000"],
-      email: "john@example.com",
-      paymentStatus: "Partial",
-      registerTransferred: "Registered",
-      requirement: "High floor",
-      date: "2025-08-25",
-      capturedBy: "Agent 1",
-      assignedTo: "Agent 2",
-      transferTo: "Agent 3",
-      followupDate: "2025-09-01",
-      source: "Website",
-      loanStatus: "Pending",
-      remarks: "Follow up",
-    },
-    {
-      id: 12,
-      sellerName: "Jane Smith",
-      sector: "23",
-      unit: "9",
-      tower: "B",
-      typology: "2BHK",
-      size: "1100 sq.ft",
-      demand: "₹55L",
-      contact: ["8765432109"],
-      email: "jane@example.com",
-      paymentStatus: "Complete",
-      registerTransferred: "Transferred",
-      requirement: "Park facing",
-      date: "2025-08-20",
-      capturedBy: "Agent 4",
-      assignedTo: "Agent 5",
-      transferTo: "Agent 6",
-      followupDate: "2025-08-30",
-      source: "Referral",
-      loanStatus: "Approved",
-      remarks: "Confirmed",
-    },
-    {
-      id: 13,
-      sellerName: "John Doe",
-      sector: "45",
-      unit: "12",
-      tower: "A",
-      typology: "3BHK",
-      size: "1500 sq.ft",
-      demand: "₹75L",
-      contact: ["9876543210", "9876500000"],
-      email: "john@example.com",
-      paymentStatus: "Partial",
-      registerTransferred: "Registered",
-      requirement: "High floor",
-      date: "2025-08-25",
-      capturedBy: "Agent 1",
-      assignedTo: "Agent 2",
-      transferTo: "Agent 3",
-      followupDate: "2025-09-01",
-      source: "Website",
-      loanStatus: "Pending",
-      remarks: "Follow up",
-    },
-    {
-      id: 14,
-      sellerName: "Jane Smith",
-      sector: "23",
-      unit: "9",
-      tower: "B",
-      typology: "2BHK",
-      size: "1100 sq.ft",
-      demand: "₹55L",
-      contact: ["8765432109"],
-      email: "jane@example.com",
-      paymentStatus: "Complete",
-      registerTransferred: "Transferred",
-      requirement: "Park facing",
-      date: "2025-08-20",
-      capturedBy: "Agent 4",
-      assignedTo: "Agent 5",
-      transferTo: "Agent 6",
-      followupDate: "2025-08-30",
-      source: "Referral",
-      loanStatus: "Approved",
-      remarks: "Confirmed",
-    },
-    {
-      id: 15,
-      sellerName: "John Doe",
-      sector: "45",
-      unit: "12",
-      tower: "A",
-      typology: "3BHK",
-      size: "1500 sq.ft",
-      demand: "₹75L",
-      contact: ["9876543210", "9876500000"],
-      email: "john@example.com",
-      paymentStatus: "Partial",
-      registerTransferred: "Registered",
-      requirement: "High floor",
-      date: "2025-08-25",
-      capturedBy: "Agent 1",
-      assignedTo: "Agent 2",
-      transferTo: "Agent 3",
-      followupDate: "2025-09-01",
-      source: "Website",
-      loanStatus: "Pending",
-      remarks: "Follow up",
-    },
-    {
-      id: 16,
-      sellerName: "Jane Smith",
-      sector: "23",
-      unit: "9",
-      tower: "B",
-      typology: "2BHK",
-      size: "1100 sq.ft",
-      demand: "₹55L",
-      contact: ["8765432109"],
-      email: "jane@example.com",
-      paymentStatus: "Complete",
-      registerTransferred: "Transferred",
-      requirement: "Park facing",
-      date: "2025-08-20",
-      capturedBy: "Agent 4",
-      assignedTo: "Agent 5",
-      transferTo: "Agent 6",
-      followupDate: "2025-08-30",
-      source: "Referral",
-      loanStatus: "Approved",
-      remarks: "Confirmed",
-    },
-  ];
+  // ✅ Sync localData when parent updates data
+  React.useEffect(() => {
+    setLocalData(data);
+  }, [data]);
 
-  const rentalData = [...buyersData];
-  const [activeTab, setActiveTab] = useState("buyers");
-  const data = activeTab === "buyers" ? buyersData : rentalData;
+  // ✅ Search filter
+  const filteredData = useMemo(() => {
+    if (!searchTerm) return localData;
+    return localData.filter((row) =>
+      Object.values(row)
+        .join(" ")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
+    );
+  }, [localData, searchTerm]);
 
-  // ✅ Pagination logic
-  const totalPages = Math.ceil(data.length / rowsPerPage);
-  const startIndex = (currentPage - 1) * rowsPerPage;
-  const paginatedData = data.slice(startIndex, startIndex + rowsPerPage);
+  // ✅ Sorting
+  const sortedData = useMemo(() => {
+    if (!sortConfig.key) return filteredData;
+    return [...filteredData].sort((a, b) => {
+      const valA = a[sortConfig.key] ?? "";
+      const valB = b[sortConfig.key] ?? "";
+      if (valA < valB) return sortConfig.direction === "asc" ? -1 : 1;
+      if (valA > valB) return sortConfig.direction === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [filteredData, sortConfig]);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [activeTab]);
+  // ✅ Pagination
+  const totalPages = Math.ceil(sortedData.length / rowsPerPage);
+  const paginatedData = useMemo(() => {
+    const start = (currentPage - 1) * rowsPerPage;
+    return sortedData.slice(start, start + rowsPerPage);
+  }, [sortedData, currentPage, rowsPerPage]);
 
-  const handleDropdownToggle = (id) => {
-    setDropdownOpen(dropdownOpen === id ? null : id);
-    setTypologyDropdownOpen(null);
+  // ✅ Sort handler
+  const handleSort = (key) => {
+    if (key === "action") return;
+    let direction = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
   };
 
-  const handleTypologyDropdownToggle = (id) => {
-    setTypologyDropdownOpen(typologyDropdownOpen === id ? null : id);
-    setDropdownOpen(null);
-  };
+  // ✅ Delete handler (optimistic update)
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this record?")) return;
+    try {
+      setDeletingId(id);
 
-  // ✅ Close dropdown on outside click using event.target.closest()
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        !event.target.closest(".payment-dropdown") &&
-        !event.target.closest(".typology-dropdown") &&
-        !event.target.closest(".dropdown-button")
-      ) {
-        setDropdownOpen(null);
-        setTypologyDropdownOpen(null);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+      // Optimistically remove row from UI
+      setLocalData((prev) => prev.filter((row) => row._id !== id));
+
+      await api.delete(`/inventry/delete/${id}`);
+
+      if (onDeleteSuccess) onDeleteSuccess(id);
+    } catch (error) {
+      console.error("Delete failed:", error);
+      alert("Failed to delete item. Please try again.");
+
+      // Rollback UI if delete failed
+      setLocalData(data);
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   return (
-    <div className="w-full h-full rounded-2xl ">
-      {/* ✅ Header with Tab and Buttons */}
-      <div className="flex flex-row items-center justify-between mb-4">
-        <div className="relative flex p-1 mt-6 bg-white rounded-full w-72">
-          <motion.div
-            layout
-            transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className="absolute top-1 bottom-1 w-[calc(50%-0.25rem)] rounded-full bg-[#000D55]"
-            style={{
-              left: activeTab === "buyers" ? "0.25rem" : "calc(50% + 0.1rem)",
-            }}
-          />
-          <button
-            onClick={() => setActiveTab("buyers")}
-            className={`relative z-10 flex-1 text-center py-2 font-medium rounded-full ${
-              activeTab === "buyers" ? "text-white" : "text-gray-700"
-            }`}
-          >
-            Sale
-          </button>
-          <button
-            onClick={() => setActiveTab("rental")}
-            className={`relative z-10 flex-1 text-center py-2 font-medium rounded-full ${
-              activeTab === "rental" ? "text-white" : "text-gray-700"
-            }`}
-          >
-            Rent
-          </button>
-        </div>
-        <div className="flex flex-row items-center justify-center gap-3 text-sm text-gray-600">
-          <button className="flex items-center gap-1 transition hover:text-cyan-600">
-            View All <ChevronDown size={16} />
-          </button>
-          <button className="flex items-center gap-1 transition hover:text-cyan-600">
-            Filter <ListFilter size={16} />
-          </button>
-        </div>
+    <div className="bg-white shadow rounded-lg p-4">
+      {/* ✅ Controls */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-2 mb-4">
+        <input
+          type="text"
+          placeholder="Search..."
+          className="border px-3 py-2 rounded-md w-full sm:w-64"
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setCurrentPage(1);
+          }}
+        />
+        <select
+          value={rowsPerPage}
+          onChange={(e) => {
+            setRowsPerPage(Number(e.target.value));
+            setCurrentPage(1);
+          }}
+          className="border px-2 py-1 rounded-md"
+        >
+          {[5, 10, 20, 50].map((n) => (
+            <option key={n} value={n}>
+              {n} rows
+            </option>
+          ))}
+        </select>
       </div>
 
-      {/* ✅ Scrollable Table */}
-      <div className="h-full mt-5 overflow-x-auto rounded-xl scrollbar-hidden">
-        <table className="min-w-[180rem] text-sm ">
-          <thead className="text-gray-700 bg-[#FAFBFC] border-b">
+      {/* ✅ Table */}
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse text-sm">
+          <thead className="bg-gray-100 text-gray-600 uppercase text-xs sticky top-0 z-10">
             <tr>
-              <th className="py-6 min-w-[4rem]">
+              <th className="px-4 py-2">
                 <input type="checkbox" />
               </th>
-              <th className="py-6 px-4 min-w-[10rem] text-left">Seller Name</th>
-              <th className="py-6 px-4 min-w-[8rem]">Sector No.</th>
-              <th className="py-6 px-4 min-w-[6rem] text-left">Unit</th>
-              <th className="py-6 px-4 min-w-[6rem] text-left">Tower</th>
-              <th className="py-6 px-4 min-w-[8rem] text-left">Typology</th>
-              <th className="py-6 px-4 min-w-[10rem] text-left">Size</th>
-              <th className="py-6 px-4 min-w-[10rem] text-left">Demand</th>
-              <th className="py-6 px-4 min-w-[12rem] text-left">Contact No.</th>
-              <th className="py-6 px-4 min-w-[14rem] text-left">Email</th>
-              <th className="py-6 px-4 min-w-[12rem] text-left">
-                Payment Status
-              </th>
-              <th className="py-6 px-4 min-w-[14rem] text-left">
-                Register/Transferred
-              </th>
-              <th className="py-6 px-4 min-w-[14rem] text-left">Requirement</th>
-              <th className="py-6 px-4 min-w-[14rem] text-left">Date</th>
-              <th className="py-6 px-4 min-w-[14rem] text-left">Captured By</th>
-              <th className="py-6 px-4 min-w-[14rem] text-left">Assigned To</th>
-              <th className="py-6 px-4 min-w-[14rem] text-left">Transfer To</th>
-              <th className="py-6 px-4 min-w-[14rem] text-left">
-                Follow-up Date
-              </th>
-              <th className="py-6 px-4 min-w-[14rem] text-left">Source</th>
-              <th className="py-6 px-4 min-w-[12rem] text-left">Loan Status</th>
-              <th className="py-6 px-4 min-w-[12rem] text-left">Remarks</th>
-              <th className="py-6 px-4 min-w-[8rem] text-left">Action</th>
+              {[
+                "sellerName",
+                "project",
+                "sectorNo",
+                "unitNo",
+                "towerNo",
+                "typology",
+                "size",
+                "demand",
+                "contactNumbers",
+                "email",
+                "paymentStatus",
+                "registryType",
+                "requirement",
+                "date",
+                "capturedBy",
+                "assignTo",
+                "transferTo",
+                "followUpDate",
+                "source",
+                "loanStatus",
+                "remarks",
+                "action",
+              ].map((key) => (
+                <th
+                  key={key}
+                  className="px-4 py-2 cursor-pointer hover:bg-gray-200 whitespace-nowrap"
+                  onClick={() => handleSort(key)}
+                >
+                  {key.replace(/([A-Z])/g, " $1")}
+                  {sortConfig.key === key
+                    ? sortConfig.direction === "asc"
+                      ? " ▲"
+                      : " ▼"
+                    : ""}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
-            {paginatedData.map((row) => (
-              <tr
-                key={row.id}
-                className="relative bg-white border-b hover:bg-gray-50"
-              >
-                <td className="text-center">
-                  <input type="checkbox" />
+            {paginatedData.length > 0 ? (
+              paginatedData.map((row) => (
+                <tr
+                  key={row._id}
+                  className="border-b hover:bg-gray-50 transition-colors"
+                >
+                  <td className="px-4 py-2">
+                    <input type="checkbox" />
+                  </td>
+                  <td className="px-4 py-2">{row.sellerName}</td>
+                  <td className="px-4 py-2">{row.project}</td>
+                  <td className="px-4 py-2">{row.sectorNo}</td>
+                  <td className="px-4 py-2">{row.unitNo}</td>
+                  <td className="px-4 py-2">{row.towerNo}</td>
+                  <td className="px-4 py-2">{row.typology}</td>
+                  <td className="px-4 py-2">{row.size}</td>
+                  <td className="px-4 py-2">{row.demand}</td>
+                  <td className="px-4 py-2">{row.contactNumbers}</td>
+                  <td className="px-4 py-2">{row.email}</td>
+                  <td className="px-4 py-2">{row.paymentStatus}</td>
+                  <td className="px-4 py-2">{row.registryType}</td>
+                  <td className="px-4 py-2">{row.requirement}</td>
+                  <td className="px-4 py-2">{row.date}</td>
+                  <td className="px-4 py-2">{row.capturedBy}</td>
+                  <td className="px-4 py-2">{row.assignTo}</td>
+                  <td className="px-4 py-2">{row.transferTo}</td>
+                  <td className="px-4 py-2">{row.followUpDate}</td>
+                  <td className="px-4 py-2">{row.source}</td>
+                  <td className="px-4 py-2">{row.loanStatus}</td>
+                  <td className="px-4 py-2">{row.remarks}</td>
+                  <td className="flex gap-2 px-4 py-2">
+                    <button className="text-blue-600 hover:text-blue-800">
+                      <Pencil size={16} />
+                    </button>
+                    <button
+                      className="text-red-600 hover:text-red-800 disabled:opacity-50"
+                      disabled={deletingId === row._id}
+                      onClick={() => handleDelete(row._id)}
+                    >
+                      {deletingId === row._id ? "..." : <Trash2 size={16} />}
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={22} className="text-center py-6 text-gray-500">
+                  No data found
                 </td>
-                <td className="px-4 py-3">{row.sellerName}</td>
-                <td className="px-4 py-3 text-center">{row.sector}</td>
-                <td className="px-4 py-3">{row.unit}</td>
-                <td className="px-4 py-3">{row.tower}</td>
-
-                {/* ✅ Typology Dropdown */}
-                <td className="relative px-4 py-3">
-                  <button
-                    onClick={() => handleTypologyDropdownToggle(row.id)}
-                    className="flex flex-row items-center justify-center gap-2 px-4 dropdown-button"
-                  >
-                    {row.typology}
-                    <ChevronDown size={14} />
-                  </button>
-                  {typologyDropdownOpen === row.id && (
-                    <div className="absolute left-0 z-50 w-48 mt-2 bg-white border rounded shadow-lg top-full typology-dropdown">
-                      <ul>
-                        <li className="p-2 cursor-pointer hover:bg-gray-100">
-                          1BHK
-                        </li>
-                        <li className="p-2 cursor-pointer hover:bg-gray-100">
-                          2BHK
-                        </li>
-                        <li className="p-2 cursor-pointer hover:bg-gray-100">
-                          3BHK
-                        </li>
-                        <li className="p-2 cursor-pointer hover:bg-gray-100">
-                          4BHK
-                        </li>
-                      </ul>
-                    </div>
-                  )}
-                </td>
-
-                <td className="px-4 py-3">{row.size}</td>
-                <td className="px-4 py-3">{row.demand}</td>
-
-                {/* ✅ Multiple Contacts */}
-                <td className="px-4 py-3 text-[#051226]">
-                  {row.contact.map((num, index) => (
-                    <div key={index}>{num}</div>
-                  ))}
-                </td>
-
-                <td className="px-4 py-3 text-[#051226]">{row.email}</td>
-
-                {/* ✅ Payment Status Dropdown */}
-                <td className="relative px-4 py-3">
-                  <button
-                    onClick={() => handleDropdownToggle(row.id)}
-                    className="flex flex-row items-center justify-center gap-2 px-4 dropdown-button"
-                  >
-                    {row.paymentStatus}
-                    <ChevronDown size={14} />
-                  </button>
-                  {dropdownOpen === row.id && (
-                    <div className="absolute left-0 z-50 w-48 mt-2 bg-white border rounded shadow-lg top-full payment-dropdown">
-                      <ul>
-                        <li className="p-2 cursor-pointer hover:bg-gray-100">
-                          Partial Payment - ₹30L Pending
-                        </li>
-                        <li className="p-2 cursor-pointer hover:bg-gray-100">
-                          Full Payment
-                        </li>
-                        <li className="p-2 cursor-pointer hover:bg-gray-100">
-                          Cancel Payment
-                        </li>
-                      </ul>
-                    </div>
-                  )}
-                </td>
-
-                <td className="px-4 py-3">{row.registerTransferred}</td>
-                <td className="px-4 py-3">{row.requirement}</td>
-                <td className="px-4 py-3">{row.date}</td>
-                <td className="px-4 py-3">{row.capturedBy}</td>
-                <td className="px-4 py-3">{row.assignedTo}</td>
-                <td className="px-4 py-3">{row.transferTo}</td>
-                <td className="px-4 py-3">{row.followupDate}</td>
-                <td className="px-4 py-3">{row.source}</td>
-                <td className="px-4 py-3">{row.loanStatus}</td>
-                <td className="px-4 py-3">{row.remarks}</td>
-                <td className="px-4 py-3">
-  <div className="flex items-center justify-center gap-2">
-    <button className="text-[#00E029] hover:underline">
-      <Pencil size={16} />
-    </button>
-    <button className="text-red-500">
-      <Trash2 size={16} />
-    </button>
-  </div>
-</td>
-
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
 
-      {/* ✅ Pagination Component */}
-      <div className="pb-8">
-        <Pagination
-        totalPages={totalPages}
-        currentPage={currentPage}
-        onPageChange={setCurrentPage}
-      />
+      {/* ✅ Pagination */}
+      <div className="flex justify-between items-center mt-4">
+        <p className="text-sm text-gray-600">
+          Page {currentPage} of {totalPages || 1}
+        </p>
+        <div className="flex gap-2">
+          <button
+            className="px-3 py-1 border rounded disabled:opacity-50"
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((p) => p - 1)}
+          >
+            Prev
+          </button>
+          <button
+            className="px-3 py-1 border rounded disabled:opacity-50"
+            disabled={currentPage === totalPages || totalPages === 0}
+            onClick={() => setCurrentPage((p) => p + 1)}
+          >
+            Next
+          </button>
+        </div>
       </div>
     </div>
   );
 };
 
-export default Table;
+export default InventoryTable;

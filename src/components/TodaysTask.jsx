@@ -35,7 +35,7 @@ const TodaysTask = ({ rowsPerPage = 4, showPagination = true, maxRows = null }) 
       evening: { commitment: "Evening Achievements", portal: 20, whatsapp: 32, buyers: 9, sellers: 20, met: 12 },
     }),
   ];
-
+ 
   const [currentPage, setCurrentPage] = useState(1);
 
   const displayData = maxRows ? data.slice(0, maxRows) : data;
@@ -57,10 +57,10 @@ const TodaysTask = ({ rowsPerPage = 4, showPagination = true, maxRows = null }) 
         <table className="relative w-full text-sm border-collapse min-w-max">
           <thead>
             <tr className="bg-[#FAFBFC] text-gray-700">
-              <th className="w-10 text-center sticky left-0 z-30 bg-[#FAFBFC] p-4">
+              <th className="w-10 text-center  z-30 bg-[#FAFBFC] p-4">
                 <CheckSquare size={18} />
               </th>
-              <th className="text-left sticky left-[40px] z-30 bg-[#FAFBFC] px-4 py-6">Name</th>
+              <th className="text-left  z-30 bg-[#FAFBFC] px-4 py-6">Name</th>
               <th className="px-10 py-6 text-sm text-left">Promises</th>
               <th className="px-10 py-6 text-sm text-left">Online Portal Checked</th>
               <th className="px-10 py-6 text-sm text-left">Whatsapp Status/ Post in Group</th>
@@ -70,17 +70,17 @@ const TodaysTask = ({ rowsPerPage = 4, showPagination = true, maxRows = null }) 
               <th className="px-10 py-6 text-sm text-left">Add More</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="">
             {currentRows.map((person, idx) => (
               <React.Fragment key={idx}>
-                <tr className="bg-[#FFF4BD] border-b">
-                  <td className="sticky left-0 z-20 p-4 text-center bg-white" rowSpan={2}>
+                <tr className="bg-[#FFF4BD] border-b ">
+                  <td className="sticky  z-20 p-4 text-center bg-white" rowSpan={2}>
                     <CheckSquare size={18} className="text-blue-500" />
                   </td>
-                  <td className="px-3 sticky left-[40px] z-20 bg-white" rowSpan={2}>
+                  <td className="px-3  z-20 bg-white" rowSpan={2}>
                     {person.name}
                   </td>
-                  <td className="px-6 py-4 font-medium">{person.morning.commitment}</td>
+                  <td className="px-6 py-4 font-medium ">{person.morning.commitment}</td>
                   <td className="px-6 py-4">{person.morning.portal}</td>
                   <td className="px-6 py-4 font-semibold">{person.morning.whatsapp}</td>
                   <td className="px-6 py-4">{person.morning.buyers}</td>
@@ -122,7 +122,7 @@ const TodaysTask = ({ rowsPerPage = 4, showPagination = true, maxRows = null }) 
       )}
 
       {/* Hide scrollbar style */}
-      <style jsx>{`
+      <style>{`
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
         }
