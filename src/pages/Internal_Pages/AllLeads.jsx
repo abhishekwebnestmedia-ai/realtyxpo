@@ -2,73 +2,106 @@
 import React, { useState, useMemo } from "react";
 import { useLeads } from "../../hooks/useLeads";
 import ScrollableLeadsTable from "../../components/ScrollableLeads";
-import { Link } from "react-router-dom";
-const AllLeads = () => {
-  const { data: leadsRaw, isLoading, error } = useLeads();
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
-  // Normalize possible response shapes: array OR { data: [...] } OR undefined
+const AllLeads = () => {
+  const navigate = useNavigate();
+  const { data: leadsRaw, isLoading, error } = useLeads();
+  // console.log("Leads fetched:", leadsRaw);
+  // Normalize possible response shapes
   const leads = useMemo(() => {
     if (Array.isArray(leadsRaw)) return leadsRaw;
     if (leadsRaw && Array.isArray(leadsRaw.data)) return leadsRaw.data;
     return [];
   }, [leadsRaw]);
 
-  const [filter, setFilter] = useState("buyers"); // buyers | rental | dead
+  const [filter, setFilter] = useState("buyers");
 
-  // helper to detect dead leads (case-insensitive)
-  const isDead = (lead) => typeof lead?.status === "string" && /dead/i.test(lead.status);
+  const isDead = (lead) =>
+    typeof lead?.status === "string" && /dead/i.test(lead.status);
 
-  // ✅ Apply filter
   const filteredLeads = useMemo(() => {
     if (!Array.isArray(leads)) return [];
-    if (filter === "buyers") return leads.filter((l) => l?.leadType === "Buyer" && !isDead(l));
-    if (filter === "rental") return leads.filter((l) => l?.leadType === "Rental" && !isDead(l));
+    if (filter === "buyers")
+      return leads.filter((l) => l?.leadType === "Buyer" && !isDead(l));
+    if (filter === "rental")
+      return leads.filter((l) => l?.leadType === "Rental" && !isDead(l));
     if (filter === "dead") return leads.filter((l) => isDead(l));
-    // default: exclude dead leads
     return leads.filter((l) => !isDead(l));
   }, [leads, filter]);
 
   if (isLoading) return <p className="p-4">Loading leads...</p>;
   if (error) return <p className="p-4 text-red-500">Error loading leads</p>;
 
+  // Helper for background slide position
+  const getTranslateX = () => {
+    if (filter === "buyers") return "0%";
+    if (filter === "rental") return "100%";
+    if (filter === "dead") return "200%";
+  };
+
   return (
-    <div className="p-4">
-      {/* ✅ Toggle buttons */}
+    <div className="p-1">
       <div className="flex flex-row justify-between">
         <h2 className="text-2xl">All Leads</h2>
         <div className="flex gap-4">
           <button className="btn">Add Bulk Lead</button>
-          <button className="btn">Add Lead</button>
+          <button
+            className="btn"
+            onClick={() => navigate("/all-leads/addLead")}
+          >
+            Add Lead
+          </button>
         </div>
       </div>
-      <div className="flex gap-3 mb-4 mt-4">
+
+      {/* Switch-like Tab Selector */}
+      <div className="relative flex w-[49%] mb-4 mt-4 bg-white rounded-full p-1 overflow-hidden">
+        {/* Highlight */}
+        <div
+          className="absolute top-1 bottom-1 left-0 w-1/3 bg-[#000D55] rounded-full transition-transform duration-300 ease-in-out"
+          style={{
+            transform:
+              filter === "buyers"
+                ? "translateX(0%)"
+                : filter === "rental"
+                ? "translateX(100%)"
+                : "translateX(200%)",
+          }}
+        />
+
+        {/* Buyers */}
         <button
           onClick={() => setFilter("buyers")}
-          className={`px-4 py-2 rounded ${
-            filter === "buyers" ? "bg-blue-600 text-white" : "bg-gray-200"
+          className={`relative flex-1 px-3 py-[0.65rem] text-sm font-medium transition-colors  z-10 ${
+            filter === "buyers" ? "text-white" : "text-gray-700"
           }`}
         >
-          All Buyers
+          <span className="relative z-10">All Buyers</span>
         </button>
+
+        {/* Rental */}
         <button
           onClick={() => setFilter("rental")}
-          className={`px-4 py-2 rounded ${
-            filter === "rental" ? "bg-blue-600 text-white" : "bg-gray-200"
+          className={`relative flex-1 px-3 py-[0.65rem] text-sm font-medium transition-colors z-10 ${
+            filter === "rental" ? "text-white" : "text-gray-700"
           }`}
         >
-          Rental Business
+          <span className="relative z-10">Rental Business</span>
         </button>
+
+        {/* Dead */}
         <button
           onClick={() => setFilter("dead")}
-          className={`px-4 py-2 rounded ${
-            filter === "dead" ? "bg-blue-600 text-white" : "bg-gray-200"
+          className={`relative flex-1 px-3 py-[0.65rem] text-sm font-medium transition-colors z-10 ${
+            filter === "dead" ? "text-white" : "text-gray-700"
           }`}
         >
-          Dead Leads
+          <span className="relative z-10">Dead Leads</span>
         </button>
       </div>
 
-      {/* ✅ Pass filtered leads */}
       <ScrollableLeadsTable data={filteredLeads} />
     </div>
   );

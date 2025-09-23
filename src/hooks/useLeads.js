@@ -4,10 +4,10 @@ import api from "../api/api"; // your axios instance
 
 const fetchLeads = async () => {
   const { data } = await api.get("/realtleads/getlead");
-  console.log('Fetched leads data:', data); // Debug log
+  // console.log('Fetched leads data:', data); 
   return data;
 };
-
+ 
 export const useLeads = () => {
   return useQuery({
     queryKey: ["leads"],   // unique cache key

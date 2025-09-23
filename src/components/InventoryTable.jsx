@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import api from "../api/api"; // ✅ axios instance
+import ConfirmDeleteButton from "../notifications/ConfirmDelete"; // adjust path
 
 const InventoryTable = ({ data = [], onDeleteSuccess }) => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -79,13 +80,13 @@ const InventoryTable = ({ data = [], onDeleteSuccess }) => {
   };
 
   return (
-    <div className="bg-white shadow rounded-lg p-4">
+    <div className=" rounded-lg">
       {/* ✅ Controls */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-2 mb-4">
         <input
           type="text"
           placeholder="Search..."
-          className="border px-3 py-2 rounded-md w-full sm:w-64"
+          className="border px-3 py-2 rounded-full w-full sm:w-64"
           value={searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value);
@@ -109,50 +110,247 @@ const InventoryTable = ({ data = [], onDeleteSuccess }) => {
       </div>
 
       {/* ✅ Table */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto bg-white rounded-tr-3xl rounded-tl-3xl ">
         <table className="w-full border-collapse text-sm">
           <thead className="bg-gray-100 text-gray-600 uppercase text-xs sticky top-0 z-10">
             <tr>
               <th className="px-4 py-2">
                 <input type="checkbox" />
               </th>
-              {[
-                "sellerName",
-                "project",
-                "sectorNo",
-                "unitNo",
-                "towerNo",
-                "typology",
-                "size",
-                "demand",
-                "contactNumbers",
-                "email",
-                "paymentStatus",
-                "registryType",
-                "requirement",
-                "date",
-                "capturedBy",
-                "assignTo",
-                "transferTo",
-                "followUpDate",
-                "source",
-                "loanStatus",
-                "remarks",
-                "action",
-              ].map((key) => (
-                <th
-                  key={key}
-                  className="px-4 py-2 cursor-pointer hover:bg-gray-200 whitespace-nowrap"
-                  onClick={() => handleSort(key)}
-                >
-                  {key.replace(/([A-Z])/g, " $1")}
-                  {sortConfig.key === key
-                    ? sortConfig.direction === "asc"
-                      ? " ▲"
-                      : " ▼"
-                    : ""}
-                </th>
-              ))}
+              <th
+                className="min-w-40 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left "
+                onClick={() => handleSort("sellerName")}
+              >
+                Seller Name{" "}
+                {sortConfig.key === "sellerName"
+                  ? sortConfig.direction === "asc"
+                    ? " ▲"
+                    : " ▼"
+                  : ""}
+              </th>
+              <th
+                className="min-w-32 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                onClick={() => handleSort("project")}
+              >
+                Project{" "}
+                {sortConfig.key === "project"
+                  ? sortConfig.direction === "asc"
+                    ? " ▲"
+                    : " ▼"
+                  : ""}
+              </th>
+              <th
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                onClick={() => handleSort("sectorNo")}
+              >
+                Sector No{" "}
+                {sortConfig.key === "sectorNo"
+                  ? sortConfig.direction === "asc"
+                    ? " ▲"
+                    : " ▼"
+                  : ""}
+              </th>
+              <th
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                onClick={() => handleSort("unitNo")}
+              >
+                Unit No{" "}
+                {sortConfig.key === "unitNo"
+                  ? sortConfig.direction === "asc"
+                    ? " ▲"
+                    : " ▼"
+                  : ""}
+              </th>
+              <th
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                onClick={() => handleSort("towerNo")}
+              >
+                Tower No{" "}
+                {sortConfig.key === "towerNo"
+                  ? sortConfig.direction === "asc"
+                    ? " ▲"
+                    : " ▼"
+                  : ""}
+              </th>
+              <th
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                onClick={() => handleSort("typology")}
+              >
+                Typology{" "}
+                {sortConfig.key === "typology"
+                  ? sortConfig.direction === "asc"
+                    ? " ▲"
+                    : " ▼"
+                  : ""}
+              </th>
+              <th
+                className="min-w-28 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                onClick={() => handleSort("size")}
+              >
+                Size{" "}
+                {sortConfig.key === "size"
+                  ? sortConfig.direction === "asc"
+                    ? " ▲"
+                    : " ▼"
+                  : ""}
+              </th>
+              <th
+                className="min-w-40 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                onClick={() => handleSort("demand")}
+              >
+                Demand{" "}
+                {sortConfig.key === "demand"
+                  ? sortConfig.direction === "asc"
+                    ? " ▲"
+                    : " ▼"
+                  : ""}
+              </th>
+              <th
+                className="min-w-40 px-4 py-2 cursor-pointer hover:bg-gray-200 whitespace-nowrap theading"
+                onClick={() => handleSort("contactNumbers")}
+              >
+                Contact Numbers{" "}
+                {sortConfig.key === "contactNumbers"
+                  ? sortConfig.direction === "asc"
+                    ? " ▲"
+                    : " ▼"
+                  : ""}
+              </th>
+              <th
+                className="min-w-40 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                onClick={() => handleSort("email")}
+              >
+                Email{" "}
+                {sortConfig.key === "email"
+                  ? sortConfig.direction === "asc"
+                    ? " ▲"
+                    : " ▼"
+                  : ""}
+              </th>
+              <th
+                className="min-w-40 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                onClick={() => handleSort("paymentStatus")}
+              >
+                Payment Status{" "}
+                {sortConfig.key === "paymentStatus"
+                  ? sortConfig.direction === "asc"
+                    ? " ▲"
+                    : " ▼"
+                  : ""}
+              </th>
+              <th
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                onClick={() => handleSort("registryType")}
+              >
+                Registry Type{" "}
+                {sortConfig.key === "registryType"
+                  ? sortConfig.direction === "asc"
+                    ? " ▲"
+                    : " ▼"
+                  : ""}
+              </th>
+              <th
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                onClick={() => handleSort("requirement")}
+              >
+                Requirement{" "}
+                {sortConfig.key === "requirement"
+                  ? sortConfig.direction === "asc"
+                    ? " ▲"
+                    : " ▼"
+                  : ""}
+              </th>
+              <th
+                className="min-w-28 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                onClick={() => handleSort("date")}
+              >
+                Date{" "}
+                {sortConfig.key === "date"
+                  ? sortConfig.direction === "asc"
+                    ? " ▲"
+                    : " ▼"
+                  : ""}
+              </th>
+              <th
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                onClick={() => handleSort("capturedBy")}
+              >
+                Captured By{" "}
+                {sortConfig.key === "capturedBy"
+                  ? sortConfig.direction === "asc"
+                    ? " ▲"
+                    : " ▼"
+                  : ""}
+              </th>
+              <th
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                onClick={() => handleSort("assignTo")}
+              >
+                Assign To{" "}
+                {sortConfig.key === "assignTo"
+                  ? sortConfig.direction === "asc"
+                    ? " ▲"
+                    : " ▼"
+                  : ""}
+              </th>
+              <th
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                onClick={() => handleSort("transferTo")}
+              >
+                Transfer To{" "}
+                {sortConfig.key === "transferTo"
+                  ? sortConfig.direction === "asc"
+                    ? " ▲"
+                    : " ▼"
+                  : ""}
+              </th>
+              <th
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                onClick={() => handleSort("followUpDate")}
+              >
+                Follow-up Date{" "}
+                {sortConfig.key === "followUpDate"
+                  ? sortConfig.direction === "asc"
+                    ? " ▲"
+                    : " ▼"
+                  : ""}
+              </th>
+              <th
+                className="min-w-28 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                onClick={() => handleSort("source")}
+              >
+                Source{" "}
+                {sortConfig.key === "source"
+                  ? sortConfig.direction === "asc"
+                    ? " ▲"
+                    : " ▼"
+                  : ""}
+              </th>
+              <th
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                onClick={() => handleSort("loanStatus")}
+              >
+                Loan Status{" "}
+                {sortConfig.key === "loanStatus"
+                  ? sortConfig.direction === "asc"
+                    ? " ▲"
+                    : " ▼"
+                  : ""}
+              </th>
+              <th
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                onClick={() => handleSort("remarks")}
+              >
+                Remarks{" "}
+                {sortConfig.key === "remarks"
+                  ? sortConfig.direction === "asc"
+                    ? " ▲"
+                    : " ▼"
+                  : ""}
+              </th>
+              <th className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left">
+                Action
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -162,41 +360,71 @@ const InventoryTable = ({ data = [], onDeleteSuccess }) => {
                   key={row._id}
                   className="border-b hover:bg-gray-50 transition-colors"
                 >
-                  <td className="px-4 py-2">
+                  <td className="px-4 py-4">
                     <input type="checkbox" />
                   </td>
-                  <td className="px-4 py-2">{row.sellerName}</td>
-                  <td className="px-4 py-2">{row.project}</td>
-                  <td className="px-4 py-2">{row.sectorNo}</td>
-                  <td className="px-4 py-2">{row.unitNo}</td>
-                  <td className="px-4 py-2">{row.towerNo}</td>
-                  <td className="px-4 py-2">{row.typology}</td>
-                  <td className="px-4 py-2">{row.size}</td>
-                  <td className="px-4 py-2">{row.demand}</td>
-                  <td className="px-4 py-2">{row.contactNumbers}</td>
-                  <td className="px-4 py-2">{row.email}</td>
-                  <td className="px-4 py-2">{row.paymentStatus}</td>
-                  <td className="px-4 py-2">{row.registryType}</td>
-                  <td className="px-4 py-2">{row.requirement}</td>
-                  <td className="px-4 py-2">{row.date}</td>
-                  <td className="px-4 py-2">{row.capturedBy}</td>
-                  <td className="px-4 py-2">{row.assignTo}</td>
-                  <td className="px-4 py-2">{row.transferTo}</td>
-                  <td className="px-4 py-2">{row.followUpDate}</td>
-                  <td className="px-4 py-2">{row.source}</td>
-                  <td className="px-4 py-2">{row.loanStatus}</td>
-                  <td className="px-4 py-2">{row.remarks}</td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    {row.sellerName}
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">{row.Project}</td>
+                  <td className="px-4 py-4 whitespace-nowrap">{row.sector}</td>
+                  <td className="px-4 py-4 whitespace-nowrap">{row.unitNo}</td>
+                  <td className="px-4 py-4 whitespace-nowrap">{row.towerNo}</td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    {row.typology}
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">{row.size}</td>
+                  <td className="px-4 py-4 whitespace-nowrap">{row.demand}</td>
+                  <td className="px-4 py-4 whitespace-nowrap flex flex-wrap gap-1">
+                    {Array.isArray(row.contactNumbers) &&
+                      row.contactNumbers.map((num, idx) => (
+                        <span
+                          key={idx}
+                          className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-sm"
+                        >
+                          {num}
+                        </span>
+                      ))}
+                  </td>
+
+                  <td className="px-4 py-4 whitespace-nowrap">{row.email}</td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    {row.paymentStatus}
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    {row.registryType}
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    {row.requirement}
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">{row.date}</td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    {row.capturedBy}
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    {row.assignTo}
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    {row.transferTo}
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    {row.followUpDate}
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">{row.source}</td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    {row.loanStatus}
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">{row.remarks}</td>
                   <td className="flex gap-2 px-4 py-2">
                     <button className="text-blue-600 hover:text-blue-800">
                       <Pencil size={16} />
                     </button>
-                    <button
-                      className="text-red-600 hover:text-red-800 disabled:opacity-50"
-                      disabled={deletingId === row._id}
-                      onClick={() => handleDelete(row._id)}
-                    >
-                      {deletingId === row._id ? "..." : <Trash2 size={16} />}
-                    </button>
+                    <td className="flex gap-2 px-4 py-2">
+                      <ConfirmDeleteButton
+                        onConfirm={() => handleDelete(row._id)}
+                        disabled={deletingId === row._id}
+                      />
+                    </td>
                   </td>
                 </tr>
               ))

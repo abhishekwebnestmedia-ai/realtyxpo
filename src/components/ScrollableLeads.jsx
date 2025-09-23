@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api";
+import ConfirmDeleteButton from "../notifications/ConfirmDelete";
 const LeadsTable = ({ data = [], onEdit, onDelete }) => {
   const [search, setSearch] = useState("");
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
@@ -9,7 +10,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [localData, setLocalData] = useState(data);
   const navigate = useNavigate();
-  
+
   // Keep localData in sync when parent prop changes
   useEffect(() => {
     setLocalData(data);
@@ -52,32 +53,32 @@ const LeadsTable = ({ data = [], onEdit, onDelete }) => {
     });
   };
   // 🗑️ Handle delete with API
-const handleDelete = async (row) => {
-  // Optimistic remove from UI
-  const prev = localData;
-  setLocalData((d) => d.filter((r) => r._id !== row._id));
+  const handleDelete = async (row) => {
+    // Optimistic remove from UI
+    const prev = localData;
+    setLocalData((d) => d.filter((r) => r._id !== row._id));
 
-  try {
-    await api.delete(`/realtleads/delete/${row._id}`);
-    // success: notify parent
-    onDelete?.(row);
-    alert("Lead deleted successfully ✅");
-  } catch (error) {
-    // revert on failure
-    console.error("Delete error:", error);
-    setLocalData(prev);
-    alert("Failed to delete lead ❌");
-  }
-};
+    try {
+      await api.delete(`/realtleads/delete/${row._id}`);
+      // success: notify parent
+      onDelete?.(row);
+      alert("Lead deleted successfully ✅");
+    } catch (error) {
+      // revert on failure
+      console.error("Delete error:", error);
+      setLocalData(prev);
+      alert("Failed to delete lead ❌");
+    }
+  };
 
   return (
-    <div className="p-4 bg-white rounded-lg shadow-md">
+    <div className="  rounded-lg ">
       {/* 🔍 Search + Rows per page */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-3">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-3 ">
         <input
           type="text"
           placeholder="Search..."
-          className="border px-3 py-2 rounded w-full md:w-1/3"
+          className="border px-3 py-2 rounded-full w-full md:w-1/3"
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
@@ -101,76 +102,153 @@ const handleDelete = async (row) => {
       </div>
 
       {/* 📊 Table */}
-      <div className="overflow-x-auto scrollbar-hidden">
+      <div className="overflow-x-auto scrollbar-hidden bg-white rounded-tr-3xl rounded-tl-3xl ">
         <table className="w-full border-collapse">
           <thead className="bg-gray-100 text-gray-600 uppercase text-xs sticky top-0 z-10">
             <tr>
               <th className="px-4 py-2">
                 <input type="checkbox" />
               </th>
-              {[
-                { key: "customerName", label: "Customer Name" },
-                { key: "email", label: "Email" },
-                { key: "status", label: "Status" },
-                { key: "followUpDate", label: "Follow-up Date" },
-                { key: "requirement", label: "Requirement" },
-                { key: "remark", label: "Remark" },
-                { key: "date", label: "Date" },
-                { key: "capturedBy", label: "Captured" },
-                { key: "assignedTo", label: "Assigned To" },
-                { key: "transferTo", label: "Transfer To" },
-                { key: "source", label: "Source" },
-              ].map(({ key, label }) => (
-                <th
-                  key={key}
-                  className="px-4 py-2 cursor-pointer select-none whitespace-nowrap"
-                  onClick={() => handleSort(key)}
-                >
-                  {label}{" "}
-                  {sortConfig.key === key &&
-                    (sortConfig.direction === "asc" ? "▲" : "▼")}
-                </th>
-              ))}
-              <th className="px-4 py-2">Action</th>
+              <th
+                className="min-w-42 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading"
+                onClick={() => handleSort("customerName")}
+              >
+                Customer Name{" "}
+                {sortConfig.key === "customerName" &&
+                  (sortConfig.direction === "asc" ? "▲" : "▼")}
+              </th>
+              <th
+                className="min-w-40 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                onClick={() => handleSort("email")}
+              >
+                Email{" "}
+                {sortConfig.key === "email" &&
+                  (sortConfig.direction === "asc" ? "▲" : "▼")}
+              </th>
+              <th
+                className="min-w-32 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                onClick={() => handleSort("status")}
+              >
+                Status{" "}
+                {sortConfig.key === "status" &&
+                  (sortConfig.direction === "asc" ? "▲" : "▼")}
+              </th>
+              <th
+                className="min-w-32 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading"
+                onClick={() => handleSort("followUpDate")}
+              >
+                Follow-up Date{" "}
+                {sortConfig.key === "followUpDate" &&
+                  (sortConfig.direction === "asc" ? "▲" : "▼")}
+              </th>
+              <th
+                className="min-w-80 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                onClick={() => handleSort("requirement")}
+              >
+                Requirement{" "}
+                {sortConfig.key === "requirement" &&
+                  (sortConfig.direction === "asc" ? "▲" : "▼")}
+              </th>
+              <th
+                className="min-w-80 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                onClick={() => handleSort("remark")}
+              >
+                Remark{" "}
+                {sortConfig.key === "remark" &&
+                  (sortConfig.direction === "asc" ? "▲" : "▼")}
+              </th>
+              <th
+                className="min-w-32 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                onClick={() => handleSort("date")}
+              >
+                Date{" "}
+                {sortConfig.key === "date" &&
+                  (sortConfig.direction === "asc" ? "▲" : "▼")}
+              </th>
+              <th
+                className="min-w-40 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                onClick={() => handleSort("capturedBy")}
+              >
+                Captured{" "}
+                {sortConfig.key === "capturedBy" &&
+                  (sortConfig.direction === "asc" ? "▲" : "▼")}
+              </th>
+              <th
+                className="min-w-40 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                onClick={() => handleSort("assignedTo")}
+              >
+                Assigned To{" "}
+                {sortConfig.key === "assignedTo" &&
+                  (sortConfig.direction === "asc" ? "▲" : "▼")}
+              </th>
+              <th
+                className="min-w-40 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                onClick={() => handleSort("transferTo")}
+              >
+                Transfer To{" "}
+                {sortConfig.key === "transferTo" &&
+                  (sortConfig.direction === "asc" ? "▲" : "▼")}
+              </th>
+              <th
+                className="min-w-32 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                onClick={() => handleSort("source")}
+              >
+                Source{" "}
+                {sortConfig.key === "source" &&
+                  (sortConfig.direction === "asc" ? "▲" : "▼")}
+              </th>
+              <th className="px-4 py-2 theading">Action</th>
             </tr>
           </thead>
           <tbody>
             {paginatedData.map((row, idx) => (
               <tr
-                key={idx}
+                key={row._id ?? row.id ?? idx}
                 className="border-b hover:bg-gray-50 transition"
               >
                 <td className="px-4 py-2">
                   <input type="checkbox" />
                 </td>
-                <td className="px-4 py-2">{row.customerName}</td>
-                <td className="px-4 py-2">{row.email}</td>
-                <td className="px-4 py-2">{row.status}</td>
-                <td className="px-4 py-2">{row.followUp}</td>
-                <td className="px-4 py-2">{row.requirement}</td>
-                <td className="px-4 py-2">{row.remark}</td>
-                <td className="px-4 py-2">{row.date}</td>
-                <td className="px-4 py-2">{row.capturedBy}</td>
-                <td className="px-4 py-2">{row.assignTo}</td>
+                <td className="px-4 py-4">{row.customerName}</td>
+                <td className="px-4 py-4">{row.email}</td>
+                <td className="px-4 py-4">{row.status}</td>
+                <td className="px-4 py-4">{row.followUp}</td>
+                <td className="px-4 py-4">{row.requirement}</td>
+                <td className="px-4 py-4">{row.remark}</td>
+                <td className="px-4 py-4">{row.date}</td>
+                <td className="px-4 py-4">{row.capturedBy}</td>
+                <td className="px-4 py-4">
+                  {row.assignTo ? `${row.assignTo.name} ` : " "}{" "}
+                </td>
                 <td className="px-4 py-2">{row.transferTo}</td>
                 <td className="px-4 py-2">{row.source}</td>
-                <td className="px-4 py-2 flex gap-2">
+                <td className="px-4 py-2 flex gap-2 items-center justify-between">
                   <button
                     onClick={() => {
+                      // keep callback for any parent behavior
                       onEdit?.(row);
-                      // navigate to EditLead page under Add_Delete_Pages and pass the lead in state
-                      navigate('/Add_Delete_Pages/EditLead', { state: { lead: row } });
+                      // navigate to the route that App.jsx exposes: /all-leads/:id
+                      const id = row?.id ?? row?._id ?? row?.leadId;
+                      // console.log('Edit click, id:', id, 'row:', row);
+                      if (id) {
+                        navigate(`/all-leads/${id}`, { state: { lead: row } });
+                      } else {
+                        // fallback: navigate to list and pass state
+                        navigate("/all-leads", { state: { lead: row } });
+                      }
                     }}
                     className="text-blue-600 hover:text-blue-800"
                   >
                     <Pencil size={16} />
                   </button>
-                  <button
-                onClick={() => handleDelete(row)}
-                className="text-red-600 hover:text-red-800"
-              >
-                <Trash2 size={16} />
-              </button>
+                  
+                    <ConfirmDeleteButton
+                      onConfirm={() => handleDelete(row)}
+                      disabled={row.deleting} // optional, if you track deleting state
+                      label={<Trash2 size={16} />} // optional: shows your icon inside button
+                      className="text-red-600 hover:text-red-800"
+                    />
+                  
                 </td>
               </tr>
             ))}

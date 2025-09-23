@@ -3,8 +3,6 @@
 @tailwind components;
 @tailwind utilities;
 
-
-
 @layer utilities {
   /* Hide scrollbar for Chrome, Safari and Opera */
   .scrollbar-hidden::-webkit-scrollbar {
@@ -17,9 +15,18 @@
   }
 }
 .btn {
-  @apply rounded border border-cyan-600 bg-[#5169F3] text-white px-3 py-1 text-sm 
-         hover:bg-cyan-600;
+  @apply rounded-md border border-[#5169F3] bg-[#5169F3] text-white hover:text-[#5169F3] px-3 py-1 text-base  transition-colors duration-300
+         hover:bg-transparent;
 }
+  /* inverted of .btn: white by default, blue on hover */
 .white-btn {
-  @apply rounded border border-[#5169F3] bg-white text-[#5169F3] px-3 py-1 text-sm hover:bg-gray-100 
+  /* inverted of .btn: white by default, blue on hover */
+  @apply rounded-md border border-[#5169F3] bg-white text-[#5169F3] px-3 py-1 text-base transition-colors duration-300 
+         hover:bg-[#5169F3] hover:text-white;
+}
+.theading{
+  @apply text-[#656972] text-sm font-normal;
+}
+td{
+  @apply text-sm leading-[100%] 
 }

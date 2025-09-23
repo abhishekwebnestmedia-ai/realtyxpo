@@ -14,6 +14,9 @@ import LearnGrow from "./pages/Internal_Pages/LearnGrow";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import EditLead from "./pages/Add_delete_pages/EditLead";
+import AddLead from "./pages/Add_delete_pages/AddLead";
+import AddInventry from "./pages/Add_delete_pages/AddInventry";
+import { ToastContainer } from "react-toastify";
 
 const App = () => {
 
@@ -33,20 +36,24 @@ const App = () => {
               </ProtectedRoute>
             }
           >
+          
+
           <Route index element={<OverviewDashboard />} />
           <Route path="daily-plan" element={<DailyPlan />} />
           <Route path="all-leads" element={<AllLeads />} />
+          <Route path="all-leads/addLead" element={<AddLead />} />
+          <Route path="all-leads/:id" element={<EditLead />} />
           <Route path="inventory" element={<Inventory />} />
+          <Route path="inventory/addInventory" element={<AddInventry/>}></Route>
           <Route path="projects-working" element={<ProjectsWorking />} />
           <Route path="brokers-requirements" element={<BrokersRequirements />} />
           <Route path="my-team" element={<MyTeam />} />
           <Route path="find-opportunity" element={<FindOpportunity />} />
           <Route path="learn-grow" element={<LearnGrow />} />
-          {/* Add route for EditLead so /Add_Delete_Pages/EditLead is matched */}
-          <Route path="Add_Delete_Pages/EditLead" element={<EditLead />} />
         </Route>
       </Routes>
     </Router>
+       <ToastContainer />
     </AuthProvider>
   );
 };

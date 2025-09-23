@@ -12,7 +12,7 @@ const OverviewDashboard = () => {
 
   return (
     <div className="bg-white p-4 rounded shadow-md flex justify-between">
-      <div className="flex flex-col items-center justify-center">
+      <div className="flex flex-col items-c enter justify-center">
         <Doughnut data={data} />
         <span className="text-2xl font-bold mt-2">29</span>
         <span>Total Leads</span>
