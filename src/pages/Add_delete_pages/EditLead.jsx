@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useLocation, useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import api from '../../api/api'
 
 const EditLead = () => {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [form, setForm] = useState({
     customerName: '',
@@ -88,6 +90,35 @@ const EditLead = () => {
     setForm((prev) => ({ ...prev, [name]: value }))
   }
 
+  const handleUpdate = async () => {
+    if (!id) {
+      alert('No lead ID found')
+      return
+    }
+
+    setLoading(true)
+    try {
+      const payload = {
+        status: form.status,
+        leadType: form.leadType,
+        remark: form.remark
+      }
+
+      await api.put(`/realtleads/update/${id}`, payload)
+      
+      // Invalidate and refetch leads cache to reflect changes immediately
+      queryClient.invalidateQueries({ queryKey: ['leads'] })
+      
+      alert('Lead updated successfully!')
+      navigate('/all-leads')
+    } catch (error) {
+      console.error('Update failed:', error)
+      alert('Failed to update lead. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div>
       <h2 className='text-2xl font-medium'>Edit Lead</h2>
@@ -123,6 +154,15 @@ const EditLead = () => {
               </select>
             </div>
             <div>
+              <label htmlFor="leadType" className='block mb-1 font-medium'>Lead Type</label>
+              <select name="leadType" value={form.leadType} onChange={handleChange} id="leadType" className='w-full border border-gray-300  bg-[#FAFBFC] rounded px-3 py-2'>
+                <option value="">Select Lead Type</option>
+                <option value="Rental">Rental</option>
+                <option value="Sale">Sale</option>
+                <option value="Buyer">Buyer</option>
+              </select>
+            </div>
+            <div>
               <label htmlFor="followUp" className='block mb-1 font-medium'>Follow-up Date</label>
               <input name="followUp" value={form.followUp} onChange={handleChange} type="date" id='followUp' className='w-full border border-gray-300  bg-[#FAFBFC] rounded px-3 py-2' />
             </div>
@@ -150,7 +190,9 @@ const EditLead = () => {
 
           <div className="mt-6 flex gap-3">
             <button type="button" onClick={() => navigate(-1)} className="btn px-4 py-2">Cancel</button>
-            <button type="button" onClick={() => navigate('/all-leads')} className="btn px-4 py-2">Done</button>
+            <button type="button" onClick={handleUpdate} disabled={loading} className="btn px-4 py-2">
+              {loading ? 'Updating...' : 'Done'}
+            </button>
           </div>
         </form>
       )}

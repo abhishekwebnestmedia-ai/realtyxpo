@@ -1,125 +1,351 @@
-import React, { useState } from "react";
-import { CheckSquare, Filter, Download, ExternalLink, PlusCircle } from "lucide-react";
-import Pagination from "./pagination";
+import React, { useState, useMemo } from "react";
+import { CheckSquare, Filter, Download, ExternalLink, PlusCircle, Search } from "lucide-react";
+import { useDailyTasks } from "../hooks/useDailyTasks";
 
-const TodaysTask = ({ rowsPerPage = 4, showPagination = true, maxRows = null }) => {
-  const data = [
-    {
-      name: "Abhishek Singh", 
-      morning: { commitment: "Morning Commitment", portal: 32, whatsapp: 54, buyers: "-", sellers: 53, met: 53 },
-      evening: { commitment: "Evening Achievements", portal: 28, whatsapp: 60, buyers: "-", sellers: 53, met: 53 },
-    },
-    {
-      name: "Rahul Sharma",
-      morning: { commitment: "Morning Commitment", portal: 20, whatsapp: 45, buyers: 10, sellers: 23, met: 12 },
-      evening: { commitment: "Evening Achievements", portal: 25, whatsapp: 48, buyers: 15, sellers: 28, met: 14 },
-    },
-    {
-      name: "Priya Mehta",
-      morning: { commitment: "Morning Commitment", portal: 30, whatsapp: 60, buyers: 12, sellers: 30, met: 18 },
-      evening: { commitment: "Evening Achievements", portal: 33, whatsapp: 62, buyers: 14, sellers: 32, met: 20 },
-    },
-    {
-      name: "Rohit Verma",
-      morning: { commitment: "Morning Commitment", portal: 18, whatsapp: 40, buyers: 8, sellers: 20, met: 10 },
-      evening: { commitment: "Evening Achievements", portal: 21, whatsapp: 42, buyers: 9, sellers: 22, met: 11 },
-    },
-    {
-      name: "Neha Kapoor",
-      morning: { commitment: "Morning Commitment", portal: 40, whatsapp: 70, buyers: 20, sellers: 35, met: 25 },
-      evening: { commitment: "Evening Achievements", portal: 42, whatsapp: 72, buyers: 21, sellers: 36, met: 26 },
-    },
-    ...Array(10).fill({
-      name: "Sample User",
-      morning: { commitment: "Morning Commitment", portal: 15, whatsapp: 30, buyers: 8, sellers: 18, met: 10 },
-      evening: { commitment: "Evening Achievements", portal: 20, whatsapp: 32, buyers: 9, sellers: 20, met: 12 },
-    }),
-  ];
- 
+const TodaysTask = ({ isDashboard = false }) => {
+  const { data: dailyTasksData = [], isLoading, isError } = useDailyTasks();
   const [currentPage, setCurrentPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
+  const [rowsPerPage, setRowsPerPage] = useState(4);
 
-  const displayData = maxRows ? data.slice(0, maxRows) : data;
+  // Transform API data to match the expected format
+  const transformedData = dailyTasksData.map(task => ({
+    name: task.name,
+    morning: {
+      commitment: "Morning Commitment",
+      portal: task.morningCommitment?.onlinePortalChecked || 0,
+      whatsapp: task.morningCommitment?.whatsappStatus || 0,
+      buyers: task.morningCommitment?.buyersWorking || "-",
+      sellers: task.morningCommitment?.sellersWorking || "-",
+      met: task.meetingVisits || 0,
+      email: task.morningCommitment?.emailWorking || 0
+    },
+    evening: {
+      commitment: "Evening Achievements",
+      portal: task.eveningAchievements?.onlinePortalChecked || 0,
+      whatsapp: task.eveningAchievements?.whatsappStatus || 0,
+      buyers: task.eveningAchievements?.buyersWorking || "-",
+      sellers: task.eveningAchievements?.sellersWorking || "-",
+      met: task.meetingVisits || 0,
+      email: task.eveningAchievements?.emailWorking || 0
+    },
+    date: task.date,
+    notes: task.addNotes,
+    id: task._id || task.id
+  }));
 
+  const data = useMemo(() => {
+    return transformedData.length > 0 ? transformedData : [];
+  }, [transformedData]);
+
+  // 🔍 Filtering
+  const filteredData = useMemo(() => {
+    if (isDashboard) return data; // Skip filtering for dashboard
+    
+    return data.filter((task) => {
+      const searchableValues = [
+        task.name,
+        task.date,
+        task.notes || "",
+        String(task.morning.portal),
+        String(task.morning.whatsapp),
+        String(task.morning.email),
+        String(task.evening.portal),
+        String(task.evening.whatsapp),
+        String(task.evening.email)
+      ];
+      
+      return searchableValues.some(value => 
+        String(value).toLowerCase().includes(search.toLowerCase())
+      );
+    });
+  }, [data, search, isDashboard]);
+
+  // ✅ Sorting
+  const sortedData = useMemo(() => {
+    if (isDashboard || !sortConfig.key) return filteredData;
+    
+    return [...filteredData].sort((a, b) => {
+      let valA, valB;
+      
+      // Handle nested properties like 'morning.portal'
+      if (sortConfig.key.includes('.')) {
+        const [section, field] = sortConfig.key.split('.');
+        valA = String(a[section]?.[field] ?? "").toLowerCase();
+        valB = String(b[section]?.[field] ?? "").toLowerCase();
+      } else {
+        valA = String(a[sortConfig.key] ?? "").toLowerCase();
+        valB = String(b[sortConfig.key] ?? "").toLowerCase();
+      }
+      
+      if (valA < valB) return sortConfig.direction === "asc" ? -1 : 1;
+      if (valA > valB) return sortConfig.direction === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [filteredData, sortConfig, isDashboard]);
+
+  // 📄 Pagination
+  const displayData = isDashboard ? sortedData.slice(0, 4) : sortedData;
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-  const currentRows = showPagination
-    ? displayData.slice(indexOfFirstRow, indexOfLastRow)
-    : displayData;
+  const currentRows = isDashboard 
+    ? displayData
+    : displayData.slice(indexOfFirstRow, indexOfLastRow);
 
-  const totalPages = Math.ceil(displayData.length / rowsPerPage);
+  // 📌 Sorting handler
+  const handleSort = (key) => {
+    setSortConfig((prev) => {
+      if (prev.key === key) {
+        return { key, direction: prev.direction === "asc" ? "desc" : "asc" };
+      }
+      return { key, direction: "asc" };
+    });
+  };
+
+
+
+
+
+  // Handle loading state
+  if (!isDashboard && isLoading) {
+    return (
+      <section className="rounded-lg p-6">
+        <div className="flex justify-center items-center h-32">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <span className="ml-2 text-gray-600">Loading daily tasks...</span>
+        </div>
+      </section>
+    );
+  }
+
+  // Handle error state
+  if (!isDashboard && isError) {
+    return (
+      <section className="rounded-lg p-6">
+        <div className="text-center text-red-600">
+          <p className="font-medium">Failed to load daily tasks</p>
+          <p className="text-sm text-gray-500 mt-1">Please try refreshing the page</p>
+        </div>
+      </section>
+    );
+  }
+
+  // Empty state for full page - only when no data at all AND no search term
+  if (!isDashboard && data.length === 0 && !search.trim()) {
+    return (
+      <section className="rounded-lg">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-semibold text-gray-900">Today's Tasks</h2>
+        </div>
+        
+        <div className="text-center py-12">
+          <CheckSquare size={48} className="mx-auto text-gray-400 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No tasks found</h3>
+          <p className="text-gray-500">No daily tasks available at the moment</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="rounded-lg">
-      {/* Header */}
+      {/* Header - Always show, but button only on full page */}
+     <div className="flex justify-between items-center mb-4">
+          <h2 className="font-semibold text-2xl cursor-pointer">
+            Today's Task
+          </h2>
+          <div className="flex gap-4 text-sm text-gray-600">
+            <button className="flex items-center gap-1 hover:text-cyan-600">
+              View All <ExternalLink size={16} />
+            </button>
+            <button className="flex items-center gap-1 hover:text-cyan-600">
+              Filter <Filter size={16} />
+            </button>
+            <button className="flex items-center gap-1 hover:text-cyan-600">
+              Download PDF <Download size={16} />
+            </button>
+          </div>
+        </div>
+
+      
+
+      {/* Conditional Search and Filter Controls - Only show on full page */}
+      {!isDashboard && (
+        <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-3">
+          <div className="relative w-full md:w-1/3">
+            <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search tasks..."
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setCurrentPage(1);
+              }}
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <select
+              className="border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              value={rowsPerPage}
+              onChange={(e) => {
+                setRowsPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+            >
+              {[4, 8, 12, 20].map((n) => (
+                <option key={n} value={n}>
+                  {n} rows
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
    
       {/* Table */}
       <div className="overflow-x-auto scrollbar-hide rounded-2xl">
         <table className="relative w-full text-sm border-collapse min-w-max">
-          <thead>
-            <tr className="bg-[#FAFBFC] text-gray-700">
-              <th className="w-10 text-center  z-30 bg-[#FAFBFC] p-4">
-                <CheckSquare size={18} />
-              </th>
-              <th className="text-left  z-30 bg-[#FAFBFC] px-4 py-6">Name</th>
-              <th className="px-10 py-6 text-sm text-left">Promises</th>
-              <th className="px-10 py-6 text-sm text-left">Online Portal Checked</th>
-              <th className="px-10 py-6 text-sm text-left">Whatsapp Status/ Post in Group</th>
-              <th className="px-10 py-6 text-sm text-left">Buyers Working</th>
-              <th className="px-10 py-6 text-sm text-left">Sellers Working</th>
-              <th className="px-10 py-6 text-sm text-left">Meeting</th>
-              <th className="px-10 py-6 text-sm text-left">Add More</th>
-            </tr>
-          </thead>
+          {/* Conditional Table Header - Only show on full page */}
+        
+            <thead>
+              <tr className="bg-[#FAFBFC] text-gray-700">
+                <th className="w-10 text-center z-30 bg-[#FAFBFC] p-4">
+                  <CheckSquare size={18} />
+                </th>
+                <th 
+                  className="text-left z-30 bg-[#FAFBFC] px-4 py-6 cursor-pointer select-none hover:bg-gray-200 transition-colors"
+                  onClick={() => handleSort('name')}
+                >
+                  Name {sortConfig.key === 'name' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
+                </th>
+                <th className="px-10 py-6 text-sm text-left">Promises</th>
+                <th 
+                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors"
+                  onClick={() => handleSort('morning.portal')}
+                >
+                  Online Portal Checked {sortConfig.key === 'morning.portal' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
+                </th>
+                <th 
+                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors"
+                  onClick={() => handleSort('morning.whatsapp')}
+                >
+                  Whatsapp Status/ Post in Group {sortConfig.key === 'morning.whatsapp' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
+                </th>
+                <th 
+                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors"
+                  onClick={() => handleSort('morning.email')}
+                >
+                  Email Working {sortConfig.key === 'morning.email' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
+                </th>
+                <th 
+                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors"
+                  onClick={() => handleSort('morning.buyers')}
+                >
+                  Buyers Working {sortConfig.key === 'morning.buyers' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
+                </th>
+                <th 
+                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors"
+                  onClick={() => handleSort('morning.sellers')}
+                >
+                  Sellers Working {sortConfig.key === 'morning.sellers' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
+                </th>
+                <th 
+                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors"
+                  onClick={() => handleSort('morning.met')}
+                >
+                  Meeting {sortConfig.key === 'morning.met' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
+                </th>
+                <th className="px-10 py-6 text-sm text-left">Add More</th>
+              </tr>
+            </thead>
+          
           <tbody className="">
-            {currentRows.map((person, idx) => (
-              <React.Fragment key={idx}>
-                <tr className="bg-[#FFF4BD] border-b ">
-                  <td className="sticky  z-20 p-4 text-center bg-white" rowSpan={2}>
-                    <CheckSquare size={18} className="text-blue-500" />
-                  </td>
-                  <td className="px-3  z-20 bg-white" rowSpan={2}>
-                    {person.name}
-                  </td>
-                  <td className="px-6 py-4 font-medium ">{person.morning.commitment}</td>
-                  <td className="px-6 py-4">{person.morning.portal}</td>
-                  <td className="px-6 py-4 font-semibold">{person.morning.whatsapp}</td>
-                  <td className="px-6 py-4">{person.morning.buyers}</td>
-                  <td className="px-6 py-4">{person.morning.sellers}</td>
-                  <td className="px-6 py-4">{person.morning.met}</td>
-                  <td className="p-2 text-center">
-                    <button className="text-blue-500 hover:text-blue-700">
-                      <PlusCircle size={18} />
-                    </button>
-                  </td>
-                </tr>
+            {currentRows.length === 0 ? (
+              <tr>
+                <td colSpan={isDashboard ? 10 : 10} className="px-6 py-12 text-center">
+                  <div className="flex flex-col items-center">
+                    <CheckSquare size={48} className="text-gray-400 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      {search.trim() ? 'No matching tasks found' : 'No tasks found'}
+                    </h3>
+                    <p className="text-gray-500">
+                      {search.trim() ? `Try adjusting your search term "${search}"` : 'Get started by adding your first daily task'}
+                    </p>
+                  </div>
+                </td>
+              </tr>
+            ) : (
+              currentRows.map((person, idx) => (
+                <React.Fragment key={idx}>
+                  <tr className="bg-[#FFF4BD] border-b ">
+                    <td className="sticky  z-20 p-4 text-center bg-white" rowSpan={2}>
+                      <CheckSquare size={18} className="text-blue-500" />
+                    </td>
+                    <td className="px-3  z-20 bg-white" rowSpan={2}>
+                      {person.name}
+                    </td>
+                    <td className="px-6 py-4 font-medium ">{person.morning.commitment}</td>
+                    <td className="px-6 py-4">{person.morning.portal}</td>
+                    <td className="px-6 py-4 font-semibold">{person.morning.whatsapp}</td>
+                    <td className="px-6 py-4">{person.morning.email}</td>
+                    <td className="px-6 py-4">{person.morning.buyers}</td>
+                    <td className="px-6 py-4">{person.morning.sellers}</td>
+                    <td className="px-6 py-4">{person.morning.met}</td>
+                    <td className="px-6 py-4 text-center">
+                      <PlusCircle size={18} className="text-blue-500" />
+                    </td>
+                  </tr>
 
-                <tr className="bg-[#FFC6C7] border-b">
-                  <td className="px-6 py-4 font-medium">{person.evening.commitment}</td>
-                  <td className="px-6 py-4">{person.evening.portal}</td>
-                  <td className="px-6 py-4 font-semibold">{person.evening.whatsapp}</td>
-                  <td className="px-6 py-4">{person.evening.buyers}</td>
-                  <td className="px-6 py-4">{person.evening.sellers}</td>
-                  <td className="px-6 py-4">{person.evening.met}</td>
-                  <td className="py-4 text-center">
-                    <button className="text-blue-500 hover:text-blue-700">
-                      <PlusCircle size={18} />
-                    </button>
-                  </td>
-                </tr>
-              </React.Fragment>
-            ))}
+                  <tr className="bg-[#FFC6C7] border-b">
+                    <td className="px-6 py-4 font-medium">{person.evening.commitment}</td>
+                    <td className="px-6 py-4">{person.evening.portal}</td>
+                    <td className="px-6 py-4 font-semibold">{person.evening.whatsapp}</td>
+                    <td className="px-6 py-4">{person.evening.email}</td>
+                    <td className="px-6 py-4">{person.evening.buyers}</td>
+                    <td className="px-6 py-4">{person.evening.sellers}</td>
+                    <td className="px-6 py-4">{person.evening.met}</td>
+                    <td className="px-6 py-4 text-center">
+                      <PlusCircle size={18} className="text-blue-500" />
+                    </td>
+                  </tr>
+                </React.Fragment>
+              ))
+            )}
           </tbody>
         </table>
       </div>
 
-      {/* Pagination */}
-      {showPagination && (
-        <Pagination
-          totalPages={totalPages}
-          currentPage={currentPage}
-          onPageChange={(num) => setCurrentPage(num)}
-        />
+      {/* Conditional Pagination - Only show on full page */}
+      {!isDashboard && (
+        <div className="flex justify-between items-center mt-4 text-sm text-gray-600">
+          <span>
+            Showing {Math.min((currentPage - 1) * rowsPerPage + 1, displayData.length)} -{" "}
+            {Math.min(currentPage * rowsPerPage, displayData.length)} of{" "}
+            {displayData.length}
+          </span>
+          <div className="flex gap-2">
+            <button
+              className="px-3 py-1 border rounded disabled:opacity-50"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => p - 1)}
+            >
+              Prev
+            </button>
+            <button
+              className="px-3 py-1 border rounded disabled:opacity-50"
+              disabled={currentPage * rowsPerPage >= displayData.length}
+              onClick={() => setCurrentPage((p) => p + 1)}
+            >
+              Next
+            </button>
+          </div>
+        </div>
       )}
+
+
 
       {/* Hide scrollbar style */}
       <style>{`

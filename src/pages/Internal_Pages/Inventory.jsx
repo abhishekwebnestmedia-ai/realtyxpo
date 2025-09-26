@@ -3,6 +3,7 @@ import React, { useState, useMemo } from "react";
 import { useInventory } from "../../hooks/useInventory";
 import InventoryTable from "../../components/InventoryTable";
 import { useNavigate } from "react-router-dom";
+import AddBulkInventry from "../../notifications/popups/AddBulkInventry";
 
 // Reusable ToggleSwitch component (framer-motion sliding rounded background)
 const ToggleSwitch = ({ viewType, setViewType }) => (
@@ -42,6 +43,7 @@ const InventoryPage = () => {
   const navigate = useNavigate();
   const { data: allInventory = [], isLoading, isError } = useInventory();
   const [viewType, setViewType] = useState("Sales");
+  const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
 console.log('All inventory data:', allInventory); // Debug log
   // Memoized filter - recalculates only when dependencies change
   const filteredData = useMemo(() => {
@@ -68,7 +70,12 @@ console.log('All inventory data:', allInventory); // Debug log
       <div className="flex flex-row justify-between mb-4">
         <h2 className="text-2xl font-medium"> Inventory</h2>
         <div className="flex flex-row gap-4">
-          <button className="btn">Add Bulk Inventory</button>
+          <button 
+            className="btn"
+            onClick={() => setIsBulkUploadOpen(true)}
+          >
+            Add Bulk Inventory
+          </button>
           <button className="btn" onClick={()=>{
             navigate('/inventory/addInventory');
           }}>Add Inventory</button>
@@ -84,6 +91,12 @@ console.log('All inventory data:', allInventory); // Debug log
           No {viewType.toLowerCase()} inventory found.
         </p>
       )}
+
+      {/* Bulk Upload Popup */}
+      <AddBulkInventry 
+        isOpen={isBulkUploadOpen} 
+        onClose={() => setIsBulkUploadOpen(false)} 
+      />
     </div>
   );
 };

@@ -2,8 +2,9 @@
 import React, { useState, useMemo } from "react";
 import { useLeads } from "../../hooks/useLeads";
 import ScrollableLeadsTable from "../../components/ScrollableLeads";
-import { motion } from "framer-motion";
+
 import { useNavigate } from "react-router-dom";
+import AddBulkLead from "../../notifications/popups/AddBulkLead";
 
 const AllLeads = () => {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ const AllLeads = () => {
   }, [leadsRaw]);
 
   const [filter, setFilter] = useState("buyers");
+  const [showBulkUploadPopup, setShowBulkUploadPopup] = useState(false);
 
   const isDead = (lead) =>
     typeof lead?.status === "string" && /dead/i.test(lead.status);
@@ -35,18 +37,19 @@ const AllLeads = () => {
   if (error) return <p className="p-4 text-red-500">Error loading leads</p>;
 
   // Helper for background slide position
-  const getTranslateX = () => {
-    if (filter === "buyers") return "0%";
-    if (filter === "rental") return "100%";
-    if (filter === "dead") return "200%";
-  };
+
 
   return (
     <div className="p-1">
       <div className="flex flex-row justify-between">
         <h2 className="text-2xl">All Leads</h2>
         <div className="flex gap-4">
-          <button className="btn">Add Bulk Lead</button>
+          <button 
+            className="btn" 
+            onClick={() => setShowBulkUploadPopup(true)}
+          >
+            Add Bulk Lead
+          </button>
           <button
             className="btn"
             onClick={() => navigate("/all-leads/addLead")}
@@ -103,6 +106,12 @@ const AllLeads = () => {
       </div>
 
       <ScrollableLeadsTable data={filteredLeads} />
+
+      {/* Bulk Upload Popup */}
+      <AddBulkLead 
+        isOpen={showBulkUploadPopup} 
+        onClose={() => setShowBulkUploadPopup(false)} 
+      />
     </div>
   );
 };

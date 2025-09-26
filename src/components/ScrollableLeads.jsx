@@ -3,6 +3,48 @@ import { Pencil, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api";
 import ConfirmDeleteButton from "../notifications/ConfirmDelete";
+
+// Function to get status styling
+const getStatusStyles = (status) => {
+  switch (status?.toLowerCase()) {
+    case 'hot':
+      return {
+        backgroundColor: '#FFF5F5',
+        color: '#FF3737',
+        borderColor: '#FFB5B5'
+      };
+    case 'not connected':
+      return {
+        backgroundColor: '#F7F9FA',
+        color: '#588EA5',
+        borderColor: '#A8C4D3'
+      };
+    case 'serious':
+      return {
+        backgroundColor: '#F2FCF7',
+        color: '#00BF63',
+        borderColor: '#80E5B1'
+      };
+    case 'futuristic':
+      return {
+        backgroundColor: '#FFF8FC',
+        color: '#FF6CC6',
+        borderColor: '#FFB6E3'
+      };
+    case 'potential':
+      return {
+        backgroundColor: '#F8F9FF',
+        color: '#748DFF',
+        borderColor: '#BAC6FF'
+      };
+    default:
+      return {
+        backgroundColor: '#F9FAFB',
+        color: '#6B7280',
+        borderColor: '#D1D5DB'
+      };
+  }
+};
 const LeadsTable = ({ data = [], onEdit, onDelete }) => {
   const [search, setSearch] = useState("");
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
@@ -110,7 +152,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete }) => {
                 <input type="checkbox" />
               </th>
               <th
-                className="min-w-42 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading"
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading"
                 onClick={() => handleSort("customerName")}
               >
                 Customer Name{" "}
@@ -118,7 +160,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete }) => {
                   (sortConfig.direction === "asc" ? "▲" : "▼")}
               </th>
               <th
-                className="min-w-40 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
                 onClick={() => handleSort("email")}
               >
                 Email{" "}
@@ -126,7 +168,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete }) => {
                   (sortConfig.direction === "asc" ? "▲" : "▼")}
               </th>
               <th
-                className="min-w-32 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
                 onClick={() => handleSort("status")}
               >
                 Status{" "}
@@ -134,7 +176,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete }) => {
                   (sortConfig.direction === "asc" ? "▲" : "▼")}
               </th>
               <th
-                className="min-w-32 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading"
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading"
                 onClick={() => handleSort("followUpDate")}
               >
                 Follow-up Date{" "}
@@ -142,7 +184,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete }) => {
                   (sortConfig.direction === "asc" ? "▲" : "▼")}
               </th>
               <th
-                className="min-w-80 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
                 onClick={() => handleSort("requirement")}
               >
                 Requirement{" "}
@@ -150,7 +192,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete }) => {
                   (sortConfig.direction === "asc" ? "▲" : "▼")}
               </th>
               <th
-                className="min-w-80 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
                 onClick={() => handleSort("remark")}
               >
                 Remark{" "}
@@ -158,7 +200,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete }) => {
                   (sortConfig.direction === "asc" ? "▲" : "▼")}
               </th>
               <th
-                className="min-w-32 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
                 onClick={() => handleSort("date")}
               >
                 Date{" "}
@@ -166,7 +208,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete }) => {
                   (sortConfig.direction === "asc" ? "▲" : "▼")}
               </th>
               <th
-                className="min-w-40 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
                 onClick={() => handleSort("capturedBy")}
               >
                 Captured{" "}
@@ -174,7 +216,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete }) => {
                   (sortConfig.direction === "asc" ? "▲" : "▼")}
               </th>
               <th
-                className="min-w-40 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
                 onClick={() => handleSort("assignedTo")}
               >
                 Assigned To{" "}
@@ -182,7 +224,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete }) => {
                   (sortConfig.direction === "asc" ? "▲" : "▼")}
               </th>
               <th
-                className="min-w-40 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
                 onClick={() => handleSort("transferTo")}
               >
                 Transfer To{" "}
@@ -190,7 +232,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete }) => {
                   (sortConfig.direction === "asc" ? "▲" : "▼")}
               </th>
               <th
-                className="min-w-32 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
                 onClick={() => handleSort("source")}
               >
                 Source{" "}
@@ -209,20 +251,31 @@ const LeadsTable = ({ data = [], onEdit, onDelete }) => {
                 <td className="px-4 py-2">
                   <input type="checkbox" />
                 </td>
-                <td className="px-4 py-4">{row.customerName}</td>
-                <td className="px-4 py-4">{row.email}</td>
-                <td className="px-4 py-4">{row.status}</td>
-                <td className="px-4 py-4">{row.followUp}</td>
-                <td className="px-4 py-4">{row.requirement}</td>
-                <td className="px-4 py-4">{row.remark}</td>
-                <td className="px-4 py-4">{row.date}</td>
-                <td className="px-4 py-4">{row.capturedBy}</td>
-                <td className="px-4 py-4">
+                <td className="px-4 py-4  whitespace-nowrap ">{row.customerName}</td>
+                <td className="px-4 py-4 whitespace-nowrap ">{row.email}</td>
+                <td className="px-4 py-4 whitespace-nowrap">
+                  <span 
+                    className="px-10 py-1 rounded-3xl text-sm font-medium border flex  items-center"
+                    style={{
+                      backgroundColor: getStatusStyles(row.status).backgroundColor,
+                      color: getStatusStyles(row.status).color,
+                      borderColor: getStatusStyles(row.status).borderColor
+                    }}
+                  >
+                    {row.status}
+                  </span>
+                </td>
+                <td className="px-4 py-4 whitespace-nowrap ">{row.followUp}</td>
+                <td className="px-4 py-4 whitespace-nowrap ">{row.requirement}</td>
+                <td className="px-4 py-4 whitespace-nowrap ">{row.remark}</td>
+                <td className="px-4 py-4 whitespace-nowrap ">{row.date}</td>
+                <td className="px-4 py-4 whitespace-nowrap ">{row.capturedBy}</td>
+                <td className="px-4 py-4 whitespace-nowrap ">
                   {row.assignTo ? `${row.assignTo.name} ` : " "}{" "}
                 </td>
-                <td className="px-4 py-2">{row.transferTo}</td>
-                <td className="px-4 py-2">{row.source}</td>
-                <td className="px-4 py-2 flex gap-2 items-center justify-between">
+                <td className="px-4 py-2 whitespace-nowrap ">{row.transferTo}</td>
+                <td className="px-4 py-2 whitespace-nowrap ">{row.source}</td>
+                <td className="px-4 py-2 whitespace-nowrap ">
                   <button
                     onClick={() => {
                       // keep callback for any parent behavior
@@ -237,7 +290,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete }) => {
                         navigate("/all-leads", { state: { lead: row } });
                       }
                     }}
-                    className="text-blue-600 hover:text-blue-800"
+                    className="text-blue-600 hover:text-blue-800 mr-2"
                   >
                     <Pencil size={16} />
                   </button>

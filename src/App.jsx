@@ -17,18 +17,22 @@ import EditLead from "./pages/Add_delete_pages/EditLead";
 import AddLead from "./pages/Add_delete_pages/AddLead";
 import AddInventry from "./pages/Add_delete_pages/AddInventry";
 import { ToastContainer } from "react-toastify";
-
+import Step3EmployeeDetails from "./pages/Add_delete_pages/Stepperformedit/Step3EmployeeDetails";
+import Step2ProjectDetails from "./pages/Add_delete_pages/Stepperformedit/Step2ProjectDetails";
+import Step1SellerDetails from "./pages/Add_delete_pages/Stepperformedit/Step1SellerDetails";
+import "react-toastify/dist/ReactToastify.css";
+import ScrollToTop from "./components/ScrollToTop";
 const App = () => {
-
   return (
     <AuthProvider>
-    <Router>
-      <Routes>
-        {/* Login Route */}
-        <Route path="/login" element={<Login />} />
+      <Router>
+        <ScrollToTop />
+        <Routes>
+          {/* Login Route */}
+          <Route path="/login" element={<Login />} />
 
-        {/* Protected Dashboard Routes */}
-           <Route
+          {/* Protected Dashboard Routes */}
+          <Route
             path="/"
             element={
               <ProtectedRoute>
@@ -36,24 +40,40 @@ const App = () => {
               </ProtectedRoute>
             }
           >
-          
-
-          <Route index element={<OverviewDashboard />} />
-          <Route path="daily-plan" element={<DailyPlan />} />
-          <Route path="all-leads" element={<AllLeads />} />
-          <Route path="all-leads/addLead" element={<AddLead />} />
-          <Route path="all-leads/:id" element={<EditLead />} />
-          <Route path="inventory" element={<Inventory />} />
-          <Route path="inventory/addInventory" element={<AddInventry/>}></Route>
-          <Route path="projects-working" element={<ProjectsWorking />} />
-          <Route path="brokers-requirements" element={<BrokersRequirements />} />
-          <Route path="my-team" element={<MyTeam />} />
-          <Route path="find-opportunity" element={<FindOpportunity />} />
-          <Route path="learn-grow" element={<LearnGrow />} />
-        </Route>
-      </Routes>
-    </Router>
-       <ToastContainer />
+            <Route index element={<OverviewDashboard />} />
+            <Route path="daily-plan" element={<DailyPlan />} />
+            <Route path="all-leads" element={<AllLeads />} />
+            <Route path="all-leads/addLead" element={<AddLead />} />
+            <Route path="all-leads/:id" element={<EditLead />} />
+            <Route path="inventory" element={<Inventory />} />
+            <Route
+              path="inventory/seller-details/:id"
+              element={<Step1SellerDetails />}
+            />
+            <Route
+              path="inventory/project-details/:id"
+              element={<Step2ProjectDetails />}
+            />
+            <Route
+              path="inventory/employee-details/:id"
+              element={<Step3EmployeeDetails />}
+            />
+            <Route
+              path="inventory/addInventory"
+              element={<AddInventry />}
+            ></Route>
+            <Route path="projects-working" element={<ProjectsWorking />} />
+            <Route
+              path="brokers-requirements"
+              element={<BrokersRequirements />}
+            />
+            <Route path="my-team" element={<MyTeam />} />
+            <Route path="find-opportunity" element={<FindOpportunity />} />
+            <Route path="learn-grow" element={<LearnGrow />} />
+          </Route>
+        </Routes>
+      </Router>
+      <ToastContainer />
     </AuthProvider>
   );
 };

@@ -32,6 +32,7 @@ export const AuthProvider = ({ children }) => {
       // rely on api defaults if Authorization header is set
       const res = await api.get("/auth/profile");
       setUser(res.data); // Set full user profile
+      console.log(res.data);
     } catch (error) {
       console.error(
         "Failed to fetch user profile:",
@@ -76,6 +77,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const res = await api.post("/auth/login", { email, password });
+
       const token = res.data.token;
 
       localStorage.setItem("token", token);

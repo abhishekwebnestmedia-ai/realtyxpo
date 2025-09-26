@@ -52,23 +52,8 @@ const OverviewDashboard = () => {
       <TeamLeadsAssigned />
 
       <section className="mt-9">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="font-semibold text-2xl cursor-pointer">
-            Today's Task
-          </h2>
-          <div className="flex gap-4 text-sm text-gray-600">
-            <button className="flex items-center gap-1 hover:text-cyan-600">
-              View All <ExternalLink size={16} />
-            </button>
-            <button className="flex items-center gap-1 hover:text-cyan-600">
-              Filter <Filter size={16} />
-            </button>
-            <button className="flex items-center gap-1 hover:text-cyan-600">
-              Download PDF <Download size={16} />
-            </button>
-          </div>
-        </div>
-        <TodaysTask rowsPerPage={4} showPagination={false} maxRows={4} />
+        
+        <TodaysTask isDashboard={true} />
       </section>
       <FreshLeads />
     </div>

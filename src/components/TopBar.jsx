@@ -14,7 +14,7 @@ const TopBar = ({ toggleSidebar }) => {
   };
 
   return (
-    <header className="flex justify-between items-center px-5 py-[6px] bg-white shadow sticky top-0 z-50">
+    <header className="flex justify-between items-center px-5 py-[6px] bg-white sticky top-0 z-50">
       {/* Left side */}
       <div className="flex items-center space-x-4">
         <div className="cursor-pointer " onClick={toggleSidebar}>

@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import api from "../../api/api";
 import showToast from "../../notifications/AddSuccess"; // adjust path
 
 const AddLead = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [form, setForm] = useState({
     customerName: "",
     contactNumber: "",
@@ -72,6 +74,9 @@ const AddLead = () => {
       };
 
       await api.post("/realtleads/create", payload);
+
+      // Invalidate leads cache to show new lead immediately
+      queryClient.invalidateQueries({ queryKey: ["leads"] });
 
       // ✅ success toast
       showToast({ message: "Lead created successfully!", type: "success" });

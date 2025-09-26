@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import api from "../api/api"; // ✅ axios instance
 import ConfirmDeleteButton from "../notifications/ConfirmDelete"; // adjust path
-
+import EditOptionsPopup from "../notifications/popups/EditInventry"; // adjust path
 const InventoryTable = ({ data = [], onDeleteSuccess }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
@@ -10,11 +10,15 @@ const InventoryTable = ({ data = [], onDeleteSuccess }) => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [deletingId, setDeletingId] = useState(null);
   const [localData, setLocalData] = useState(data); // ✅ maintain local copy
-
+  const [editingRowId, setEditingRowId] = useState(null); // ✅ Track specific row being edited
   // ✅ Sync localData when parent updates data
   React.useEffect(() => {
     setLocalData(data);
-  }, [data]);
+    // Close any open popup when data changes (e.g., after delete/update)
+    if (editingRowId && !data.find(row => row._id === editingRowId)) {
+      setEditingRowId(null);
+    }
+  }, [data, editingRowId]);
 
   // ✅ Search filter
   const filteredData = useMemo(() => {
@@ -40,7 +44,6 @@ const InventoryTable = ({ data = [], onDeleteSuccess }) => {
   }, [filteredData, sortConfig]);
 
   // ✅ Pagination
-  const totalPages = Math.ceil(sortedData.length / rowsPerPage);
   const paginatedData = useMemo(() => {
     const start = (currentPage - 1) * rowsPerPage;
     return sortedData.slice(start, start + rowsPerPage);
@@ -58,7 +61,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess }) => {
 
   // ✅ Delete handler (optimistic update)
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this record?")) return;
+   
     try {
       setDeletingId(id);
 
@@ -77,6 +80,20 @@ const InventoryTable = ({ data = [], onDeleteSuccess }) => {
     } finally {
       setDeletingId(null);
     }
+  };
+
+  // ✅ Production-level popup management
+  const handleEditClick = (rowId) => {
+    // Close any existing popup first, then open the new one
+    if (editingRowId === rowId) {
+      setEditingRowId(null); // Toggle close if same row
+    } else {
+      setEditingRowId(rowId); // Open popup for specific row
+    }
+  };
+
+  const handleEditClose = () => {
+    setEditingRowId(null);
   };
 
   return (
@@ -108,7 +125,6 @@ const InventoryTable = ({ data = [], onDeleteSuccess }) => {
           ))}
         </select>
       </div>
-
       {/* ✅ Table */}
       <div className="overflow-x-auto bg-white rounded-tr-3xl rounded-tl-3xl ">
         <table className="w-full border-collapse text-sm">
@@ -118,7 +134,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess }) => {
                 <input type="checkbox" />
               </th>
               <th
-                className="min-w-40 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left "
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left "
                 onClick={() => handleSort("sellerName")}
               >
                 Seller Name{" "}
@@ -195,7 +211,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess }) => {
                   : ""}
               </th>
               <th
-                className="min-w-40 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
                 onClick={() => handleSort("demand")}
               >
                 Demand{" "}
@@ -380,7 +396,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess }) => {
                       row.contactNumbers.map((num, idx) => (
                         <span
                           key={idx}
-                          className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-sm"
+                          className=" text-gray-700 px-2 rounded-full text-sm"
                         >
                           {num}
                         </span>
@@ -415,16 +431,28 @@ const InventoryTable = ({ data = [], onDeleteSuccess }) => {
                     {row.loanStatus}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">{row.remarks}</td>
-                  <td className="flex gap-2 px-4 py-2">
-                    <button className="text-blue-600 hover:text-blue-800">
-                      <Pencil size={16} />
-                    </button>
-                    <td className="flex gap-2 px-4 py-2">
+                  <td className="flex gap-2 px-4 py-2 items-center">
+                    <div>
+                      <button
+                        onClick={() => handleEditClick(row._id)}
+                        className="p-1 hover:bg-gray-100 rounded transition-colors"
+                        title={`Edit ${row.sellerName}`}
+                      >
+                        <Pencil size={16}/>
+                      </button>
+
+                      <EditOptionsPopup
+                        isOpen={editingRowId === row._id}
+                        onClose={handleEditClose}
+                        id={row._id}
+                      />
+                    </div>
+                    <div className="">
                       <ConfirmDeleteButton
                         onConfirm={() => handleDelete(row._id)}
                         disabled={deletingId === row._id}
                       />
-                    </td>
+                    </div>
                   </td>
                 </tr>
               ))
@@ -438,12 +466,13 @@ const InventoryTable = ({ data = [], onDeleteSuccess }) => {
           </tbody>
         </table>
       </div>
-
       {/* ✅ Pagination */}
-      <div className="flex justify-between items-center mt-4">
-        <p className="text-sm text-gray-600">
-          Page {currentPage} of {totalPages || 1}
-        </p>
+      <div className="flex justify-between items-center mt-4 text-sm text-gray-600">
+        <span>
+          Showing {Math.min((currentPage - 1) * rowsPerPage + 1, sortedData.length)} -{" "}
+          {Math.min(currentPage * rowsPerPage, sortedData.length)} of{" "}
+          {sortedData.length}
+        </span>
         <div className="flex gap-2">
           <button
             className="px-3 py-1 border rounded disabled:opacity-50"
@@ -454,13 +483,14 @@ const InventoryTable = ({ data = [], onDeleteSuccess }) => {
           </button>
           <button
             className="px-3 py-1 border rounded disabled:opacity-50"
-            disabled={currentPage === totalPages || totalPages === 0}
+            disabled={currentPage * rowsPerPage >= sortedData.length}
             onClick={() => setCurrentPage((p) => p + 1)}
           >
             Next
           </button>
         </div>
       </div>
+
     </div>
   );
 };

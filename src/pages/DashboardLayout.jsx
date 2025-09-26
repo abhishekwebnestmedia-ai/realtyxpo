@@ -5,8 +5,7 @@ import SidebarMenu from "../components/Sidebar";
 import TopBar from "../components/TopBar";
 
 const DashboardLayout = () => {
-  
-     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const toggleSidebar = () => {
     setIsSidebarOpen((prev) => !prev);
@@ -27,12 +26,12 @@ const DashboardLayout = () => {
 
       {/* Main Content */}
       <main
-        className={`flex flex-col flex-1 m-5 overflow-hidden text-gray-900 transition-all duration-300 ease-in-out bg-white rounded-3xl ${
+        className={`flex flex-col flex-1 m-3  overflow-hidden text-gray-900 transition-all duration-300 ease-in-out bg-white rounded-3xl ${
           isSidebarOpen ? "ml-0" : "ml-0"
         }`}
       >
         {/* Top Bar */}
-<TopBar toggleSidebar={toggleSidebar} />
+        <TopBar toggleSidebar={toggleSidebar} />
 
         {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto px-5 pt-5 pb-5 bg-[#F4F6FF] scrollbar-hidden">

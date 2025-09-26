@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -14,19 +13,36 @@
     scrollbar-width: none;  /* Firefox */
   }
 }
+
+@layer base {
+  /* Apply smooth scrolling globally */
+  html {
+    scroll-behavior: smooth;
+  }
+  /* Ensure body doesn't interfere with smooth scrolling */
+  body {
+    margin: 0;
+    padding: 0;
+  }
+}
+
 .btn {
   @apply rounded-md border border-[#5169F3] bg-[#5169F3] text-white hover:text-[#5169F3] px-3 py-1 text-base  transition-colors duration-300
          hover:bg-transparent;
 }
-  /* inverted of .btn: white by default, blue on hover */
+
+/* inverted of .btn: white by default, blue on hover */
 .white-btn {
-  /* inverted of .btn: white by default, blue on hover */
   @apply rounded-md border border-[#5169F3] bg-white text-[#5169F3] px-3 py-1 text-base transition-colors duration-300 
          hover:bg-[#5169F3] hover:text-white;
 }
+
 .theading{
   @apply text-[#656972] text-sm font-normal;
 }
+
 td{
   @apply text-sm leading-[100%] 
 }
+
+/* Remove the old .html class - not needed */
