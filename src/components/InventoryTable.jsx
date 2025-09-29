@@ -11,6 +11,12 @@ const InventoryTable = ({ data = [], onDeleteSuccess }) => {
   const [deletingId, setDeletingId] = useState(null);
   const [localData, setLocalData] = useState(data); // ✅ maintain local copy
   const [editingRowId, setEditingRowId] = useState(null); // ✅ Track specific row being edited
+  
+  // ✅ Popup state management
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [selectedInventory, setSelectedInventory] = useState(null);
+  const [inventoryDetails, setInventoryDetails] = useState(null);
+  const [loading, setLoading] = useState(false);
   // ✅ Sync localData when parent updates data
   React.useEffect(() => {
     setLocalData(data);
@@ -94,6 +100,27 @@ const InventoryTable = ({ data = [], onDeleteSuccess }) => {
 
   const handleEditClose = () => {
     setEditingRowId(null);
+  };
+
+  // ✅ Fetch inventory details from API
+  const fetchInventoryDetails = async (inventoryId) => {
+    try {
+      setLoading(true);
+      const response = await api.get(`/inventry/inventrylist/${inventoryId}`);
+      setInventoryDetails(response.data);
+    } catch (error) {
+      console.error("Failed to fetch inventory details:", error);
+      setInventoryDetails(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ Handle row click to open popup
+  const handleRowClick = (inventory) => {
+    setSelectedInventory(inventory);
+    setIsPopupOpen(true);
+    fetchInventoryDetails(inventory._id);
   };
 
   return (
@@ -374,7 +401,8 @@ const InventoryTable = ({ data = [], onDeleteSuccess }) => {
               paginatedData.map((row) => (
                 <tr
                   key={row._id}
-                  className="border-b hover:bg-gray-50 transition-colors"
+                  className="border-b hover:bg-gray-50 transition-colors cursor-pointer"
+                  onClick={() => handleRowClick(row)}
                 >
                   <td className="px-4 py-4">
                     <input type="checkbox" />
@@ -431,10 +459,14 @@ const InventoryTable = ({ data = [], onDeleteSuccess }) => {
                     {row.loanStatus}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">{row.remarks}</td>
-                  <td className="flex gap-2 px-4 py-2 items-center">
-                    <div>
+                  <td className=" px-4 py-2 align-middle ">
+                    <div className="flex gap-2 justify-center items-center">
+                      <div>
                       <button
-                        onClick={() => handleEditClick(row._id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditClick(row._id);
+                        }}
                         className="p-1 hover:bg-gray-100 rounded transition-colors"
                         title={`Edit ${row.sellerName}`}
                       >
@@ -447,11 +479,12 @@ const InventoryTable = ({ data = [], onDeleteSuccess }) => {
                         id={row._id}
                       />
                     </div>
-                    <div className="">
+                    <div className="" onClick={(e) => e.stopPropagation()}>
                       <ConfirmDeleteButton
                         onConfirm={() => handleDelete(row._id)}
                         disabled={deletingId === row._id}
                       />
+                    </div>
                     </div>
                   </td>
                 </tr>
@@ -490,6 +523,174 @@ const InventoryTable = ({ data = [], onDeleteSuccess }) => {
           </button>
         </div>
       </div>
+
+      {/* ✅ Inventory Details Popup Modal */}
+      {isPopupOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            {/* ✅ Header */}
+            <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
+              <h2 className="text-xl font-semibold">
+                Property Details - {selectedInventory?.sellerName || 'N/A'}
+              </h2>
+              <button
+                onClick={() => {
+                  setIsPopupOpen(false);
+                  setSelectedInventory(null);
+                  setInventoryDetails(null);
+                }}
+                className="text-gray-500 hover:text-gray-700 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* ✅ Content */}
+            <div className="p-6">
+              {loading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                  <p className="text-gray-600 mt-4">Loading property details...</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* ✅ Basic Property Information */}
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h3 className="text-lg font-medium mb-3 text-gray-800">Property Information</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Seller Name</span>
+                        <p className="text-gray-800">{inventoryDetails?.sellerName || selectedInventory?.sellerName || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Project</span>
+                        <p className="text-gray-800">{inventoryDetails?.Project || selectedInventory?.Project || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Sector</span>
+                        <p className="text-gray-800">{inventoryDetails?.sector || selectedInventory?.sector || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Unit No</span>
+                        <p className="text-gray-800">{inventoryDetails?.unitNo || selectedInventory?.unitNo || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Tower No</span>
+                        <p className="text-gray-800">{inventoryDetails?.towerNo || selectedInventory?.towerNo || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Typology</span>
+                        <p className="text-gray-800">{inventoryDetails?.typology || selectedInventory?.typology || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Size</span>
+                        <p className="text-gray-800">{inventoryDetails?.size || selectedInventory?.size || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Demand</span>
+                        <p className="text-gray-800">{inventoryDetails?.demand || selectedInventory?.demand || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Date</span>
+                        <p className="text-gray-800">{inventoryDetails?.date || selectedInventory?.date || 'N/A'}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ✅ Contact Information */}
+                  <div className="bg-blue-50 rounded-lg p-4">
+                    <h3 className="text-lg font-medium mb-3 text-gray-800">Contact Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Contact Numbers</span>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {(inventoryDetails?.contactNumbers || selectedInventory?.contactNumbers || []).map((num, idx) => (
+                            <span key={idx} className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
+                              {num}
+                            </span>
+                          ))}
+                          {(!inventoryDetails?.contactNumbers && !selectedInventory?.contactNumbers) && (
+                            <p className="text-gray-800">N/A</p>
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Email</span>
+                        <p className="text-gray-800">{inventoryDetails?.email || selectedInventory?.email || 'N/A'}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ✅ Financial Information */}
+                  <div className="bg-green-50 rounded-lg p-4">
+                    <h3 className="text-lg font-medium mb-3 text-gray-800">Financial Information</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Payment Status</span>
+                        <p className="text-gray-800">{inventoryDetails?.paymentStatus || selectedInventory?.paymentStatus || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Registry Type</span>
+                        <p className="text-gray-800">{inventoryDetails?.registryType || selectedInventory?.registryType || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Loan Status</span>
+                        <p className="text-gray-800">{inventoryDetails?.loanStatus || selectedInventory?.loanStatus || 'N/A'}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ✅ Assignment & Tracking */}
+                  <div className="bg-yellow-50 rounded-lg p-4">
+                    <h3 className="text-lg font-medium mb-3 text-gray-800">Assignment & Tracking</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Captured By</span>
+                        <p className="text-gray-800">{inventoryDetails?.capturedBy || selectedInventory?.capturedBy || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Assigned To</span>
+                        <p className="text-gray-800">{inventoryDetails?.assignTo || selectedInventory?.assignTo || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Transfer To</span>
+                        <p className="text-gray-800">{inventoryDetails?.transferTo || selectedInventory?.transferTo || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Follow-up Date</span>
+                        <p className="text-gray-800">{inventoryDetails?.followUpDate || selectedInventory?.followUpDate || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Source</span>
+                        <p className="text-gray-800">{inventoryDetails?.source || selectedInventory?.source || 'N/A'}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ✅ Requirements & Remarks */}
+                  <div className="bg-purple-50 rounded-lg p-4">
+                    <h3 className="text-lg font-medium mb-3 text-gray-800">Requirements & Remarks</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Requirements</span>
+                        <p className="text-gray-800 bg-white p-3 rounded border">
+                          {inventoryDetails?.requirement || selectedInventory?.requirement || 'No requirements specified'}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Remarks</span>
+                        <p className="text-gray-800 bg-white p-3 rounded border">
+                          {inventoryDetails?.remarks || selectedInventory?.remarks || 'No remarks available'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

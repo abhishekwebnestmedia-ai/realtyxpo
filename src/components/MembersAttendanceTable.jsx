@@ -279,7 +279,7 @@ const MembersAttendanceTable = ({ isDashboard = true, onClose = null }) => {
               <thead className="text-gray-600 uppercase text-xs">
                 <tr>
                   <th className="px-4 py-3 w-16">Status</th>
-                  <th className="px-4 py-3 min-w-[150px]">Name</th>
+                  <th className="px-4 py-3 whitespace-nowrap">Name</th>
                   <th className="px-4 py-3 min-w-[200px]">Email</th>
                   {!isDashboard && <th className="px-4 py-3 min-w-[140px]">Phone No.</th>}
                   {!isDashboard && <th className="px-4 py-3 min-w-[120px]">Department</th>}
@@ -294,9 +294,9 @@ const MembersAttendanceTable = ({ isDashboard = true, onClose = null }) => {
                       className="border-t border-gray-200 hover:bg-gray-100 transition"
                     >
                       <td className="px-4 py-3 self-center">{statusIcons[member.status]}</td>
-                      <td className="px-4 py-3 font-medium">{member.name}</td>
+                      <td className="px-4 py-3 font-medium whitespace-nowrap">{member.name}</td>
                       <td
-                        className="px-4 py-3 truncate max-w-[200px] text-gray-600"
+                        className="px-4 py-3 truncate  text-gray-600"
                         title={member.email}
                       >
                         {member.email}

@@ -48,10 +48,48 @@ const getStatusStyles = (status) => {
 const LeadsTable = ({ data = [], onEdit, onDelete }) => {
   const [search, setSearch] = useState("");
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [selectedLead, setSelectedLead] = useState(null);
+  const [leadDetails, setLeadDetails] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [localData, setLocalData] = useState(data);
   const navigate = useNavigate();
+
+  // Function to fetch lead details
+  const fetchLeadDetails = async (leadId) => {
+    setLoading(true);
+    try {
+      const response = await api.get(`/realtleads/getlead/${leadId}`);
+      // Handle different possible response structures
+      let leadData = response.data;
+      if (response.data && response.data.lead) {
+        leadData = response.data.lead;
+      } else if (response.data && response.data.data) {
+        leadData = response.data.data;
+      }
+      setLeadDetails(leadData);
+    } catch (error) {
+      console.error('Error fetching lead details:', error);
+      alert(`Failed to fetch lead details: ${error.response?.data?.message || error.message}`);
+      setLeadDetails(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Function to handle row click
+  const handleRowClick = (row) => {
+    const leadId = row?._id || row?.id || row?.leadId;
+    if (leadId) {
+      setSelectedLead(row);
+      setIsPopupOpen(true);
+      fetchLeadDetails(leadId);
+    } else {
+      alert('Unable to fetch lead details: No valid ID found');
+    }
+  };
 
   // Keep localData in sync when parent prop changes
   useEffect(() => {
@@ -246,7 +284,8 @@ const LeadsTable = ({ data = [], onEdit, onDelete }) => {
             {paginatedData.map((row, idx) => (
               <tr
                 key={row._id ?? row.id ?? idx}
-                className="border-b hover:bg-gray-50 transition"
+                className="border-b hover:bg-gray-50 transition cursor-pointer"
+                onClick={() => handleRowClick(row)}
               >
                 <td className="px-4 py-2">
                   <input type="checkbox" />
@@ -275,33 +314,36 @@ const LeadsTable = ({ data = [], onEdit, onDelete }) => {
                 </td>
                 <td className="px-4 py-2 whitespace-nowrap ">{row.transferTo}</td>
                 <td className="px-4 py-2 whitespace-nowrap ">{row.source}</td>
-                <td className="px-4 py-2 whitespace-nowrap ">
-                  <button
-                    onClick={() => {
-                      // keep callback for any parent behavior
-                      onEdit?.(row);
-                      // navigate to the route that App.jsx exposes: /all-leads/:id
-                      const id = row?.id ?? row?._id ?? row?.leadId;
-                      // console.log('Edit click, id:', id, 'row:', row);
-                      if (id) {
-                        navigate(`/all-leads/${id}`, { state: { lead: row } });
-                      } else {
-                        // fallback: navigate to list and pass state
-                        navigate("/all-leads", { state: { lead: row } });
-                      }
-                    }}
-                    className="text-blue-600 hover:text-blue-800 mr-2"
-                  >
-                    <Pencil size={16} />
-                  </button>
-                  
-                    <ConfirmDeleteButton
-                      onConfirm={() => handleDelete(row)}
-                      disabled={row.deleting} // optional, if you track deleting state
-                      label={<Trash2 size={16} />} // optional: shows your icon inside button
-                      className="text-red-600 hover:text-red-800"
-                    />
-                  
+                <td className="px-4 py-2 whitespace-nowrap text-center align-middle">
+                  <div className="flex items-center justify-center gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent row click
+                        // keep callback for any parent behavior
+                        onEdit?.(row);
+                        // navigate to the route that App.jsx exposes: /all-leads/:id
+                        const id = row?.id ?? row?._id ?? row?.leadId;
+                        if (id) {
+                          navigate(`/all-leads/${id}`, { state: { lead: row } });
+                        } else {
+                          // fallback: navigate to list and pass state
+                          navigate("/all-leads", { state: { lead: row } });
+                        }
+                      }}
+                      className="text-blue-600 hover:text-blue-800"
+                    >
+                      <Pencil size={16} />
+                    </button>
+                    
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <ConfirmDeleteButton
+                        onConfirm={() => handleDelete(row)}
+                        disabled={row.deleting} // optional, if you track deleting state
+                        label={<Trash2 size={16} />} // optional: shows your icon inside button
+                        className="text-red-600 hover:text-red-800"
+                      />
+                    </div>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -333,6 +375,194 @@ const LeadsTable = ({ data = [], onEdit, onDelete }) => {
           </button>
         </div>
       </div>
+
+      {/* Lead Details Popup Modal */}
+      {isPopupOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex justify-between items-center p-6 border-b sticky top-0 bg-white z-10">
+              <h2 className="text-2xl font-bold text-gray-800">
+                Lead Details - {selectedLead?.customerName}
+              </h2>
+              <button
+                onClick={() => {
+                  setIsPopupOpen(false);
+                  setSelectedLead(null);
+                  setLeadDetails(null);
+                }}
+                className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6">
+              {loading ? (
+                <div className="flex items-center justify-center h-32">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <span className="ml-2 text-gray-600">Loading lead details...</span>
+                </div>
+              ) : leadDetails ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Basic Information */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Basic Information</h3>
+                    <div className="space-y-3">
+                      <div>
+                        <span className="font-medium text-gray-600">Name:</span>
+                        <p className="text-gray-800">{leadDetails.customerName || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Email:</span>
+                        <p className="text-gray-800">{leadDetails.email || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Phone:</span>
+                        <p className="text-gray-800">{leadDetails.phone || leadDetails.mobile || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Status:</span>
+                        <span 
+                          className="inline-block px-3 py-1 rounded-full text-sm font-medium border ml-2"
+                          style={{
+                            backgroundColor: getStatusStyles(leadDetails.status).backgroundColor,
+                            color: getStatusStyles(leadDetails.status).color,
+                            borderColor: getStatusStyles(leadDetails.status).borderColor
+                          }}
+                        >
+                          {leadDetails.status || 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Contact & Assignment */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Assignment & Tracking</h3>
+                    <div className="space-y-3">
+                      <div>
+                        <span className="font-medium text-gray-600">Captured By:</span>
+                        <p className="text-gray-800">{leadDetails.capturedBy || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Assigned To:</span>
+                        <p className="text-gray-800">
+                          {leadDetails.assignTo?.name || leadDetails.assignedTo || 'N/A'}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Transfer To:</span>
+                        <p className="text-gray-800">{leadDetails.transferTo || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Source:</span>
+                        <p className="text-gray-800">{leadDetails.source || 'N/A'}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Requirements & Details */}
+                  <div className="bg-gray-50 p-4 rounded-lg md:col-span-2">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Requirements & Details</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <span className="font-medium text-gray-600">Requirement:</span>
+                        <p className="text-gray-800 mt-1">{leadDetails.requirement || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Budget:</span>
+                        <p className="text-gray-800 mt-1">{leadDetails.budget || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Location Preference:</span>
+                        <p className="text-gray-800 mt-1">{leadDetails.location || leadDetails.preferredLocation || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Property Type:</span>
+                        <p className="text-gray-800 mt-1">{leadDetails.propertyType || 'N/A'}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Remarks & Follow-up */}
+                  <div className="bg-gray-50 p-4 rounded-lg md:col-span-2">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Remarks & Follow-up</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <span className="font-medium text-gray-600">Remarks:</span>
+                        <p className="text-gray-800 mt-1">{leadDetails.remark || leadDetails.remarks || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Follow-up Date:</span>
+                        <p className="text-gray-800 mt-1">{leadDetails.followUp || leadDetails.followUpDate || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Created Date:</span>
+                        <p className="text-gray-800 mt-1">
+                          {leadDetails.date || leadDetails.createdAt ? 
+                            new Date(leadDetails.date || leadDetails.createdAt).toLocaleDateString() : 'N/A'
+                          }
+                        </p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Last Updated:</span>
+                        <p className="text-gray-800 mt-1">
+                          {leadDetails.updatedAt ? 
+                            new Date(leadDetails.updatedAt).toLocaleDateString() : 'N/A'
+                          }
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Additional Information */}
+                  {leadDetails.additionalInfo && (
+                    <div className="bg-gray-50 p-4 rounded-lg md:col-span-2">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-4">Additional Information</h3>
+                      <p className="text-gray-800">{leadDetails.additionalInfo}</p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center text-gray-600 h-32 flex items-center justify-center">
+                  Failed to load lead details. Please try again.
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex justify-end gap-3 p-6 border-t bg-gray-50">
+              <button
+                onClick={() => {
+                  setIsPopupOpen(false);
+                  setSelectedLead(null);
+                  setLeadDetails(null);
+                }}
+                className="px-4 py-2 text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+              >
+                Close
+              </button>
+              {selectedLead && (
+                <button
+                  onClick={() => {
+                    onEdit?.(selectedLead);
+                    const id = selectedLead?.id ?? selectedLead?._id ?? selectedLead?.leadId;
+                    if (id) {
+                      navigate(`/all-leads/${id}`, { state: { lead: selectedLead } });
+                    }
+                    setIsPopupOpen(false);
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                >
+                  Edit Lead
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

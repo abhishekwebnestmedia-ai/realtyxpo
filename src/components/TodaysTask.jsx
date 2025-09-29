@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { CheckSquare, Filter, Download, ExternalLink, PlusCircle, Search } from "lucide-react";
+import { CheckSquare, Filter, Download, ExternalLink, PlusCircle, Search, NotebookPen } from "lucide-react";
 import { useDailyTasks } from "../hooks/useDailyTasks";
 
 const TodaysTask = ({ isDashboard = false }) => {
@@ -207,58 +207,58 @@ const TodaysTask = ({ isDashboard = false }) => {
    
       {/* Table */}
       <div className="overflow-x-auto scrollbar-hide rounded-2xl">
-        <table className="relative w-full text-sm border-collapse min-w-max">
+        <table className="w-full text-sm">
           {/* Conditional Table Header - Only show on full page */}
         
             <thead>
               <tr className="bg-[#FAFBFC] text-gray-700">
-                <th className="w-10 text-center z-30 bg-[#FAFBFC] p-4">
+                <th className="px-6 py-6 text-sm text-center whitespace-nowrap">
                   <CheckSquare size={18} />
                 </th>
                 <th 
-                  className="text-left z-30 bg-[#FAFBFC] px-4 py-6 cursor-pointer select-none hover:bg-gray-200 transition-colors"
+                  className="px-6 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap"
                   onClick={() => handleSort('name')}
                 >
                   Name {sortConfig.key === 'name' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                 </th>
-                <th className="px-10 py-6 text-sm text-left">Promises</th>
+                <th className="px-10 py-6 text-sm text-left whitespace-nowrap">Promises</th>
                 <th 
-                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors"
+                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap"
                   onClick={() => handleSort('morning.portal')}
                 >
                   Online Portal Checked {sortConfig.key === 'morning.portal' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                 </th>
                 <th 
-                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors"
+                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap"
                   onClick={() => handleSort('morning.whatsapp')}
                 >
                   Whatsapp Status/ Post in Group {sortConfig.key === 'morning.whatsapp' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                 </th>
                 <th 
-                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors"
+                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap"
                   onClick={() => handleSort('morning.email')}
                 >
                   Email Working {sortConfig.key === 'morning.email' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                 </th>
                 <th 
-                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors"
+                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap"
                   onClick={() => handleSort('morning.buyers')}
                 >
                   Buyers Working {sortConfig.key === 'morning.buyers' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                 </th>
                 <th 
-                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors"
+                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap"
                   onClick={() => handleSort('morning.sellers')}
                 >
                   Sellers Working {sortConfig.key === 'morning.sellers' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                 </th>
                 <th 
-                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors"
+                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap"
                   onClick={() => handleSort('morning.met')}
                 >
                   Meeting {sortConfig.key === 'morning.met' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                 </th>
-                <th className="px-10 py-6 text-sm text-left">Add More</th>
+                <th className="px-10 py-6 text-sm text-left whitespace-nowrap">Notes</th>
               </tr>
             </thead>
           
@@ -280,35 +280,35 @@ const TodaysTask = ({ isDashboard = false }) => {
             ) : (
               currentRows.map((person, idx) => (
                 <React.Fragment key={idx}>
-                  <tr className="bg-[#FFF4BD] border-b ">
-                    <td className="sticky  z-20 p-4 text-center bg-white" rowSpan={2}>
+                  <tr className="bg-[#FFF4BD] border-b">
+                    <td className="px-6 py-4 text-center whitespace-nowrap" rowSpan={2}>
                       <CheckSquare size={18} className="text-blue-500" />
                     </td>
-                    <td className="px-3  z-20 bg-white" rowSpan={2}>
-                      {person.name}
+                    <td className="px-6 py-4 font-medium text-gray-800 whitespace-nowrap" rowSpan={2}>
+                      <span className="block truncate">{person.name}</span>
                     </td>
-                    <td className="px-6 py-4 font-medium ">{person.morning.commitment}</td>
-                    <td className="px-6 py-4">{person.morning.portal}</td>
-                    <td className="px-6 py-4 font-semibold">{person.morning.whatsapp}</td>
-                    <td className="px-6 py-4">{person.morning.email}</td>
-                    <td className="px-6 py-4">{person.morning.buyers}</td>
-                    <td className="px-6 py-4">{person.morning.sellers}</td>
-                    <td className="px-6 py-4">{person.morning.met}</td>
-                    <td className="px-6 py-4 text-center">
-                      <PlusCircle size={18} className="text-blue-500" />
+                    <td className="px-6 py-4 font-medium whitespace-nowrap">{person.morning.commitment}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{person.morning.portal}</td>
+                    <td className="px-6 py-4 font-semibold whitespace-nowrap">{person.morning.whatsapp}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{person.morning.email}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{person.morning.buyers}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{person.morning.sellers}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{person.morning.met}</td>
+                    <td className="px-6 py-4 text-center whitespace-nowrap place-items-center">
+                      <NotebookPen size={18} className="text-blue-500" />
                     </td>
                   </tr>
 
                   <tr className="bg-[#FFC6C7] border-b">
-                    <td className="px-6 py-4 font-medium">{person.evening.commitment}</td>
-                    <td className="px-6 py-4">{person.evening.portal}</td>
-                    <td className="px-6 py-4 font-semibold">{person.evening.whatsapp}</td>
-                    <td className="px-6 py-4">{person.evening.email}</td>
-                    <td className="px-6 py-4">{person.evening.buyers}</td>
-                    <td className="px-6 py-4">{person.evening.sellers}</td>
-                    <td className="px-6 py-4">{person.evening.met}</td>
-                    <td className="px-6 py-4 text-center">
-                      <PlusCircle size={18} className="text-blue-500" />
+                    <td className="px-6 py-4 font-medium whitespace-nowrap">{person.evening.commitment}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{person.evening.portal}</td>
+                    <td className="px-6 py-4 font-semibold whitespace-nowrap">{person.evening.whatsapp}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{person.evening.email}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{person.evening.buyers}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{person.evening.sellers}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{person.evening.met}</td>
+                    <td className="px-6 py-4 text-center whitespace-nowrap place-items-center">
+                      <NotebookPen size={18} className="text-blue-500" />
                     </td>
                   </tr>
                 </React.Fragment>
