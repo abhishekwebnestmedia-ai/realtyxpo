@@ -1,27 +1,25 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Login from "./pages/Login";
-import DashboardLayout from "./pages/DashboardLayout";
-import OverviewDashboard from "./components/OverviewDashboard";
-import DailyPlan from "./pages/Internal_Pages/DailyPlan";
-import AllLeads from "./pages/Internal_Pages/AllLeads";
-import Inventory from "./pages/Internal_Pages/Inventory";
-import ProjectsWorking from "./pages/Internal_Pages/ProjectsWorking";
-import BrokersRequirements from "./pages/Internal_Pages/BrokersRequirements";
-import MyTeam from "./pages/Internal_Pages/MyTeam";
-import FindOpportunity from "./pages/Internal_Pages/FindOpportunity";
-import LearnGrow from "./pages/Internal_Pages/LearnGrow";
+import { Login } from "./pages/auth";
+import { DashboardLayout } from "./pages/dashboard";
+import { OverviewDashboard } from "./components/dashboard";
+import DailyPlan from "./pages/team/DailyPlan";
+import { AllLeads } from "./pages/leads";
+import Inventory from "./pages/inventory/Inventory";
+import { ProjectsWorking } from "./pages/projects";
+import BrokersRequirements from "./pages/resources/BrokersRequirements";
+import MyTeam from "./pages/team/MyTeam";
+import FindOpportunity from "./pages/resources/FindOpportunity";
+import LearnGrow from "./pages/resources/LearnGrow";
 import { AuthProvider } from "./context/AuthContext";
-import ProtectedRoute from "./components/ProtectedRoute";
-import EditLead from "./pages/Add_delete_pages/EditLead";
-import AddLead from "./pages/Add_delete_pages/AddLead";
-import AddInventry from "./pages/Add_delete_pages/AddInventry";
+import { ProtectedRoute } from "./components/layout";
+import { EditLead, AddLead, AddInventry } from "./pages/forms";
 import { ToastContainer } from "react-toastify";
-import Step3EmployeeDetails from "./pages/Add_delete_pages/Stepperformedit/Step3EmployeeDetails";
-import Step2ProjectDetails from "./pages/Add_delete_pages/Stepperformedit/Step2ProjectDetails";
-import Step1SellerDetails from "./pages/Add_delete_pages/Stepperformedit/Step1SellerDetails";
+import Step3EmployeeDetails from "./pages/forms/components/Stepperformedit/Step3EmployeeDetails";
+import Step2ProjectDetails from "./pages/forms/components/Stepperformedit/Step2ProjectDetails";
+import Step1SellerDetails from "./pages/forms/components/Stepperformedit/Step1SellerDetails";
 import "react-toastify/dist/ReactToastify.css";
-import ScrollToTop from "./components/ScrollToTop";
+import { ScrollToTop } from "./components/ui";
 const App = () => {
   return (
     <AuthProvider>

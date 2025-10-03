@@ -40,7 +40,9 @@
 .theading{
   @apply text-[#656972] text-sm font-normal;
 }
-
+.pageheading{
+  @apply text-2xl font-semibold text-black;
+}
 td{
   @apply text-sm leading-[100%] 
 }

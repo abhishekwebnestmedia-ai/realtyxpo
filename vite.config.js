@@ -6,6 +6,14 @@ export default defineConfig({
   server: {
     host: true,          // exposes to LAN
     port: 3000,          
-    historyApiFallback: true, 
+    historyApiFallback: true,
+    proxy: {
+      '/api': {
+        target: 'https://backend.realtyxpo.in',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/api/, '/api')
+      }
+    }
   },
 })

@@ -1,0 +1,90 @@
+/* AnimatedFolder.css */
+.animated-folder-wrapper {
+  /* CSS Custom Properties */
+  --transition: 350ms;
+  --folder-W: 60px;
+  --folder-H: 40px;
+}
+
+.animated-folder-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 5px;
+  background: linear-gradient(135deg, #6dd5ed, #2193b0);
+  border-radius: 8px;
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+  height: calc(var(--folder-H) * 1.4);
+  width: calc(var(--folder-W) * 1.3);
+  position: relative;
+}
+
+.animated-folder {
+  position: absolute;
+  top: -10px;
+  left: calc(50% - 30px);
+  animation: float 2.5s infinite ease-in-out;
+  transition: transform var(--transition) ease;
+}
+
+.animated-folder:hover {
+  transform: scale(1.05);
+}
+
+.folder-front-side,
+.folder-back-side {
+  position: absolute;
+  transition: transform var(--transition);
+  transform-origin: bottom center;
+}
+
+.folder-back-side::before,
+.folder-back-side::after {
+  content: "";
+  display: block;
+  background-color: white;
+  opacity: 0.5;
+  z-index: 0;
+  width: var(--folder-W);
+  height: var(--folder-H);
+  position: absolute;
+  transform-origin: bottom center;
+  border-radius: 8px;
+  transition: transform 350ms;
+}
+
+.animated-folder-container:hover .folder-back-side::before {
+  transform: rotateX(-5deg) skewX(5deg);
+}
+
+.animated-folder-container:hover .folder-back-side::after {
+  transform: rotateX(-15deg) skewX(12deg);
+}
+
+.folder-front-side {
+  z-index: 1;
+}
+
+.animated-folder-container:hover .folder-front-side {
+  transform: rotateX(-40deg) skewX(15deg);
+}
+
+.folder-tip {
+  background: linear-gradient(135deg, #ff9a56, #ff6f56);
+  width: 40px;
+  height: 10px;
+  border-radius: 6px 6px 0 0;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  position: absolute;
+  top: -5px;
+  z-index: 2;
+}
+
+.folder-cover {
+  background: linear-gradient(135deg, #ffe563, #ffc663);
+  width: var(--folder-W);
+  height: var(--folder-H);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+  border-radius: 5px;
+}
