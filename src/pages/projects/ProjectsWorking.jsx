@@ -3,6 +3,7 @@ import { Home, ChevronRight, Folder, File, Building2 } from 'lucide-react';
 
 // Custom Components
 import { ToggleSwitch } from '../../components/ui';
+import AnimatedFolder from '../../components/ui/AnimatedFolder';
 
 /**
  * ProjectsWorking Component - Static Version
@@ -115,17 +116,39 @@ const ProjectsWorking = () => {
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case 'vacant':
-        return 'bg-white border-2 border-gray-400 text-gray-800';
+        return {
+          containerColor: 'linear-gradient(135deg, #f8f9fa, #e9ecef)',
+          tipColor: 'linear-gradient(135deg, #dee2e6, #adb5bd)',
+          coverColor: 'linear-gradient(135deg, #ffffff, #f8f9fa)'
+        };
       case 'rental':
-        return 'bg-green-500 text-white';
+        return {
+          containerColor: 'linear-gradient(135deg, #6dd5ed, #2193b0)',
+          tipColor: 'linear-gradient(135deg, #28a745, #20c997)',
+          coverColor: 'linear-gradient(135deg, #40e0d0, #48cae4)'
+        };
       case 'interested in selling':
-        return 'bg-red-500 text-white';
+        return {
+          containerColor: 'linear-gradient(135deg, #ff6b6b, #ee5a24)',
+          tipColor: 'linear-gradient(135deg, #dc3545, #c82333)',
+          coverColor: 'linear-gradient(135deg, #ff7979, #fd79a8)'
+        };
       case 'self occupied':
-        return 'bg-yellow-500 text-gray-800';
+        return {
+          containerColor: 'linear-gradient(135deg, #ffd93d, #f39c12)',
+          tipColor: 'linear-gradient(135deg, #f39c12, #e67e22)',
+          coverColor: 'linear-gradient(135deg, #ffe563, #ffc663)'
+        };
       default:
-        return 'bg-gray-400 text-white'; // No status assigned
+        return {
+          containerColor: 'linear-gradient(135deg, #9ca3af, #6b7280)',
+          tipColor: 'linear-gradient(135deg, #6b7280, #4b5563)',
+          coverColor: 'linear-gradient(135deg, #d1d5db, #9ca3af)'
+        };
     }
   };
+
+
 
   // Get current level data
   const getCurrentLevelData = () => {
@@ -287,34 +310,7 @@ const ProjectsWorking = () => {
         </div>
       )}
 
-      {/* Status Legend for Units */}
-      {currentLevel === 'units' && (
-        <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-          <h3 className="text-sm font-medium text-gray-700 mb-3">Unit Status Legend:</h3>
-          <div className="flex flex-wrap gap-4 text-xs">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-white border-2 border-gray-400 rounded"></div>
-              <span>Vacant</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-green-500 rounded"></div>
-              <span>Rental</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-red-500 rounded"></div>
-              <span>Interested in Selling</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-yellow-500 rounded"></div>
-              <span>Self Occupied</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-gray-400 rounded"></div>
-              <span>No Status</span>
-            </div>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 
@@ -368,7 +364,7 @@ const ProjectsWorking = () => {
     }
 
     return (
-      <div className="flex flex-wrap gap-4">
+      <div className="flex flex-wrap gap-4 mt-6">
         {currentLevelData.map((item) => (
           <div
             key={item._id}
@@ -382,41 +378,36 @@ const ProjectsWorking = () => {
               }
             }}
           >
-            <div className="flex flex-col items-center justify-center text-center space-y-1 h-full p-2">
+            <div className="flex flex-col items-center justify-center text-center space-y-4 h-full p-2">
               {currentLevel === 'units' ? (
-                <div className={`w-16 h-12 rounded ${getStatusColor(item.status)} flex items-center justify-center`}>
-                  <span className="text-xs font-medium">
-                    {item.unitNumber}
-                  </span>
+                <div className="w-16 h-12 flex items-center justify-center">
+                  <AnimatedFolder 
+                    containerColor={getStatusColor(item.status).containerColor}
+                    tipColor={getStatusColor(item.status).tipColor}
+                    coverColor={getStatusColor(item.status).coverColor}
+                  />
                 </div>
               ) : currentLevel === 'cities' ? (
                 <img 
                   src={getProjectIcon()} 
                   alt={`${filters.projectType} ${filters.constructionStatus} icon`}
-                  className="h-8 w-8 object-contain"
+                  className=""
                   onError={(e) => {
                     e.target.style.display = 'none';
                     e.target.nextSibling.style.display = 'block';
                   }}
                 />
               ) : (
-                <div className="w-16 h-12 bg-blue-100 border-2 border-blue-300 rounded flex items-center justify-center">
-                  <Folder className="h-6 w-6 text-blue-600" />
+                // AnimatedFolder for divisions, sectors, projects, towers
+                <div className="w-16 h-12 flex items-center justify-center">
+                  <AnimatedFolder />
                 </div>
               )}
               <Folder className="h-6 w-6 text-blue-500" style={{display: 'none'}} />
 
-              <h3 className="font-medium text-center text-gray-900 text-xl leading-tight truncate max-w-full">
-                {levelConfig.getItemName(item)}
+              <h3 className="font-medium text-center text-gray-900 text-xl leading-tight min-h-12">
+                {currentLevel === 'units' ? item.unitNumber : levelConfig.getItemName(item)}
               </h3>
-
-              {currentLevel === 'units' && (
-                <div className="text-xs text-gray-600 mt-1 space-y-0.5 text-center">
-                  <p className="truncate">Owner: {item.ownerName}</p>
-                  <p className="truncate">Status: {item.status}</p>
-                  <p className="truncate">Email: {item.email}</p>
-                </div>
-              )}
             </div>
           </div>
         ))}
@@ -430,7 +421,7 @@ const ProjectsWorking = () => {
       {renderFilterSection()}
       {currentLevel !== 'cities' && renderBreadcrumbs()}
 
-      <div className="flex flex-row">
+      <div className="flex flex-row ">
         {renderItemGrid()}
       </div>
     </div>
