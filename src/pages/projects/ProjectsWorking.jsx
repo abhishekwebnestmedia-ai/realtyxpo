@@ -1,18 +1,21 @@
 ﻿import React, { useState } from 'react';
-import { Home, ChevronRight, Folder, File, Building2 } from 'lucide-react';
+import { Home, ChevronRight, Folder, File, Building2, Plus } from 'lucide-react';
 
 // Custom Components
 import { ToggleSwitch } from '../../components/ui';
 import AnimatedFolder from '../../components/ui/AnimatedFolder';
+import { ProjectModal } from '../../components/modals';
+import { toast } from 'react-hot-toast';
+import useProjects from '../../hooks/useProjects';
 
 /**
- * ProjectsWorking Component - Static Version
+ * ProjectsWorking Component - Dynamic Version
  * 
  * Features:
- * - Static hierarchical project display
+ * - Dynamic hierarchical project display from API
  * - Filter by project type and construction status
- * - Static navigation
- * - Responsive design
+ * - Real-time data fetching
+ * - Responsive design with loading states
  */
 const ProjectsWorking = () => {
   // State Management
@@ -23,162 +26,103 @@ const ProjectsWorking = () => {
 
   const [currentPath, setCurrentPath] = useState([]);
   const [currentLevel, setCurrentLevel] = useState('cities');
+  
+  // Use custom hook for data fetching
+  const { data: projectData, loading, error, refresh } = useProjects(filters);
 
-  // Static data structure
-  const staticData = {
-    'Commercial-ReadyToMove': {
-      cities: [
-        { _id: '1', name: 'Mumbai', cityName: 'Mumbai' },
-        { _id: '2', name: 'Delhi', cityName: 'Delhi' },
-        { _id: '3', name: 'Bangalore', cityName: 'Bangalore' },
-        { _id: '4', name: 'Pune', cityName: 'Pune' }
-      ],
-      divisions: {
-        '1': [
-          { _id: 'd1', name: 'Central Mumbai', divisionName: 'Central Mumbai' },
-          { _id: 'd2', name: 'South Mumbai', divisionName: 'South Mumbai' }
-        ]
-      },
-      sectors: {
-        'd1': [
-          { _id: 's1', name: 'BKC', sectorName: 'BKC' },
-          { _id: 's2', name: 'Lower Parel', sectorName: 'Lower Parel' }
-        ]
-      },
-      projects: {
-        's1': [
-          { _id: 'p1', name: 'BKC Tower', projectName: 'BKC Tower' },
-          { _id: 'p2', name: 'Commercial Hub', projectName: 'Commercial Hub' }
-        ]
-      },
-      towers: {
-        'p1': [
-          { _id: 't1', name: 'Tower A', towerName: 'Tower A' },
-          { _id: 't2', name: 'Tower B', towerName: 'Tower B' }
-        ]
-      },
-      units: {
-        't1': [
-          { _id: 'u1', unitNumber: '101', ownerName: 'John Doe', status: 'vacant', email: 'john@example.com' },
-          { _id: 'u2', unitNumber: '102', ownerName: 'Jane Smith', status: 'rental', email: 'jane@example.com' },
-          { _id: 'u3', unitNumber: '103', ownerName: 'Bob Wilson', status: 'interested in selling', email: 'bob@example.com' },
-          { _id: 'u4', unitNumber: '104', ownerName: 'Alice Brown', status: 'self occupied', email: 'alice@example.com' },
-          { _id: 'u5', unitNumber: '105', ownerName: 'Tom Davis', status: '', email: 'tom@example.com' }
-        ]
-      }
-    },
-    'Residential-UnderConstruction': {
-      cities: [
-        { _id: '5', name: 'Gurgaon', cityName: 'Gurgaon' },
-        { _id: '6', name: 'Noida', cityName: 'Noida' },
-        { _id: '7', name: 'Hyderabad', cityName: 'Hyderabad' }
-      ],
-      divisions: {
-        '5': [
-          { _id: 'd3', name: 'Sector 49', divisionName: 'Sector 49' },
-          { _id: 'd4', name: 'Golf Course Road', divisionName: 'Golf Course Road' }
-        ]
-      },
-      sectors: {
-        'd3': [
-          { _id: 's3', name: 'Phase 1', sectorName: 'Phase 1' },
-          { _id: 's4', name: 'Phase 2', sectorName: 'Phase 2' }
-        ]
-      },
-      projects: {
-        's3': [
-          { _id: 'p3', name: 'Residential Heights', projectName: 'Residential Heights' },
-          { _id: 'p4', name: 'Green Valley', projectName: 'Green Valley' }
-        ]
-      },
-      towers: {
-        'p3': [
-          { _id: 't3', name: 'Block A', towerName: 'Block A' },
-          { _id: 't4', name: 'Block B', towerName: 'Block B' }
-        ]
-      },
-      units: {
-        't3': [
-          { _id: 'u6', unitNumber: '201', ownerName: 'Mike Johnson', status: 'vacant', email: 'mike@example.com' },
-          { _id: 'u7', unitNumber: '202', ownerName: 'Sarah Wilson', status: 'rental', email: 'sarah@example.com' },
-          { _id: 'u8', unitNumber: '203', ownerName: 'David Chen', status: 'interested in selling', email: 'david@example.com' },
-          { _id: 'u9', unitNumber: '204', ownerName: 'Lisa Park', status: 'self occupied', email: 'lisa@example.com' },
-          { _id: 'u10', unitNumber: '205', ownerName: 'Ryan Miller', status: '', email: 'ryan@example.com' }
-        ]
-      }
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Get current path for pre-filling modal
+  const getCurrentPath = () => {
+    const pathData = {
+      // Always include current filters
+      category: filters.projectType,
+      projectcategory: filters.constructionStatus
+    };
+    
+    // Add path-specific data based on current level
+    if (currentPath.length > 0) {
+      if (currentPath[0]) pathData.cityName = currentPath[0].name;
+      if (currentPath[1]) pathData.divisionName = currentPath[1].name;
+      if (currentPath[2]) pathData.sectorName = currentPath[2].name;
+      if (currentPath[3]) pathData.projectName = currentPath[3].name;
+      if (currentPath[4]) pathData.towerName = currentPath[4].name;
     }
+    
+    return pathData;
   };
 
-  // Get current data key
-  const getDataKey = () => `${filters.projectType}-${filters.constructionStatus}`;
+  // Event Handlers
+  const handleProjectTypeChange = (value) => {
+    setFilters(prev => ({ ...prev, projectType: value }));
+    setCurrentPath([]);
+    setCurrentLevel('cities');
+  };
 
-  // Get status color for units
+  const handleConstructionStatusChange = (value) => {
+    setFilters(prev => ({ ...prev, constructionStatus: value }));
+    setCurrentPath([]);
+    setCurrentLevel('cities');
+  };
+
+  // Get status color for units only
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case 'vacant':
         return {
-          containerColor: 'linear-gradient(135deg, #f8f9fa, #e9ecef)',
-          tipColor: 'linear-gradient(135deg, #dee2e6, #adb5bd)',
-          coverColor: 'linear-gradient(135deg, #ffffff, #f8f9fa)'
+          tipColor: '#4b5563',
+          coverColor: '#4b5563'
         };
       case 'rental':
         return {
-          containerColor: 'linear-gradient(135deg, #6dd5ed, #2193b0)',
-          tipColor: 'linear-gradient(135deg, #28a745, #20c997)',
-          coverColor: 'linear-gradient(135deg, #40e0d0, #48cae4)'
+          tipColor: '#22c55e',
+          coverColor: '#22c55e'
         };
       case 'interested in selling':
         return {
-          containerColor: 'linear-gradient(135deg, #ff6b6b, #ee5a24)',
-          tipColor: 'linear-gradient(135deg, #dc3545, #c82333)',
-          coverColor: 'linear-gradient(135deg, #ff7979, #fd79a8)'
+          tipColor: '#ef4444',
+          coverColor: '#ef4444'
         };
       case 'self occupied':
         return {
-          containerColor: 'linear-gradient(135deg, #ffd93d, #f39c12)',
-          tipColor: 'linear-gradient(135deg, #f39c12, #e67e22)',
-          coverColor: 'linear-gradient(135deg, #ffe563, #ffc663)'
+          tipColor: '#eab308',
+          coverColor: '#eab308'
         };
       default:
         return {
-          containerColor: 'linear-gradient(135deg, #9ca3af, #6b7280)',
-          tipColor: 'linear-gradient(135deg, #6b7280, #4b5563)',
-          coverColor: 'linear-gradient(135deg, #d1d5db, #9ca3af)'
+          tipColor: '#6b7280',
+          coverColor: '#6b7280'
         };
     }
   };
 
-
-
   // Get current level data
   const getCurrentLevelData = () => {
-    const dataKey = getDataKey();
-    const data = staticData[dataKey];
-    
-    if (!data) return [];
+    if (!projectData) return [];
 
     switch (currentLevel) {
       case 'cities':
-        return data.cities || [];
+        return projectData.cities || [];
       case 'divisions': {
         const cityId = currentPath[0]?.id;
-        return data.divisions?.[cityId] || [];
+        return projectData.divisions?.[cityId] || [];
       }
       case 'sectors': {
         const divisionId = currentPath[1]?.id;
-        return data.sectors?.[divisionId] || [];
+        return projectData.sectors?.[divisionId] || [];
       }
       case 'projects': {
         const sectorId = currentPath[2]?.id;
-        return data.projects?.[sectorId] || [];
+        return projectData.projects?.[sectorId] || [];
       }
       case 'towers': {
         const projectId = currentPath[3]?.id;
-        return data.towers?.[projectId] || [];
+        return projectData.towers?.[projectId] || [];
       }
       case 'units': {
         const towerId = currentPath[4]?.id;
-        return data.units?.[towerId] || [];
+        return projectData.units?.[towerId] || [];
       }
       default:
         return [];
@@ -231,19 +175,6 @@ const ProjectsWorking = () => {
       }
     };
     return configs[currentLevel] || configs.cities;
-  };
-
-  // Event Handlers
-  const handleProjectTypeChange = (value) => {
-    setFilters(prev => ({ ...prev, projectType: value }));
-    setCurrentPath([]);
-    setCurrentLevel('cities');
-  };
-
-  const handleConstructionStatusChange = (value) => {
-    setFilters(prev => ({ ...prev, constructionStatus: value }));
-    setCurrentPath([]);
-    setCurrentLevel('cities');
   };
 
   const handleNavigateBack = (index) => {
@@ -351,6 +282,35 @@ const ProjectsWorking = () => {
     const currentLevelData = getCurrentLevelData();
     const levelConfig = getLevelConfig();
 
+    // Loading state
+    if (loading) {
+      return (
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Loading Projects...</h3>
+          <p className="text-gray-500">Fetching data from server</p>
+        </div>
+      );
+    }
+
+    // Error state
+    if (error) {
+      return (
+        <div className="text-center py-12">
+          <Building2 className="h-12 w-12 text-red-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Error Loading Data</h3>
+          <p className="text-gray-500 mb-4">{error}</p>
+          <button
+            onClick={refresh}
+            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      );
+    }
+
+    // No data state
     if (currentLevelData.length === 0) {
       return (
         <div className="text-center py-12">
@@ -365,11 +325,25 @@ const ProjectsWorking = () => {
 
     return (
       <div className="flex flex-wrap gap-4 mt-6">
+        {/* Plus Icon for Adding New Items */}
+        <div
+          onClick={() => setIsModalOpen(true)}
+          className="w-32 h-40 rounded-lg cursor-pointer flex flex-col items-center justify-center"
+          role="button"
+          tabIndex={0}
+        >
+          <div className="w-24 h-20 flex items-center justify-center mb-2">
+            <img src="/public/AddIcon.svg" alt="" className="w-22 h-22" />
+          </div>
+          <h3 className='text-xl text-center font-medium leading-tight min-h-12'>Add New Project</h3>
+        </div>
+
+        {/* Existing Items */}
         {currentLevelData.map((item) => (
           <div
             key={item._id}
             onDoubleClick={() => handleNavigateToItem(item)}
-            className="w-32  rounded-lg cursor-pointer transition-colors group hover:bg-gray-50 "
+            className="w-32 h-40 rounded-lg cursor-pointer transition-colors flex flex-col items-center justify-center"
             role="button"
             tabIndex={0}
             onKeyDown={(e) => {
@@ -378,37 +352,36 @@ const ProjectsWorking = () => {
               }
             }}
           >
-            <div className="flex flex-col items-center justify-center text-center space-y-4 h-full p-2">
-              {currentLevel === 'units' ? (
-                <div className="w-16 h-12 flex items-center justify-center">
-                  <AnimatedFolder 
-                    containerColor={getStatusColor(item.status).containerColor}
-                    tipColor={getStatusColor(item.status).tipColor}
-                    coverColor={getStatusColor(item.status).coverColor}
-                  />
-                </div>
-              ) : currentLevel === 'cities' ? (
+            {currentLevel === 'units' ? (
+              <div className="w-24 h-20 flex items-center justify-center mb-2">
+                <AnimatedFolder 
+                  tipColor={getStatusColor(item.status).tipColor}
+                  coverColor={getStatusColor(item.status).coverColor}
+                />
+              </div>
+            ) : currentLevel === 'cities' ? (
+              <div className="w-24 h-20 flex items-center justify-center mb-2">
                 <img 
                   src={getProjectIcon()} 
                   alt={`${filters.projectType} ${filters.constructionStatus} icon`}
-                  className=""
+                  className="w-22 h-22"
                   onError={(e) => {
                     e.target.style.display = 'none';
                     e.target.nextSibling.style.display = 'block';
                   }}
                 />
-              ) : (
-                // AnimatedFolder for divisions, sectors, projects, towers
-                <div className="w-16 h-12 flex items-center justify-center">
-                  <AnimatedFolder />
-                </div>
-              )}
-              <Folder className="h-6 w-6 text-blue-500" style={{display: 'none'}} />
+              </div>
+            ) : (
+              // AnimatedFolder for divisions, sectors, projects, towers
+              <div className="w-24 h-20 flex items-center justify-center mb-2">
+                <AnimatedFolder />
+              </div>
+            )}
+            <Folder className="h-6 w-6 text-blue-500" style={{display: 'none'}} />
 
-              <h3 className="font-medium text-center text-gray-900 text-xl leading-tight min-h-12">
-                {currentLevel === 'units' ? item.unitNumber : levelConfig.getItemName(item)}
-              </h3>
-            </div>
+            <h3 className="font-medium text-center text-gray-900 text-xl leading-tight min-h-12">
+              {currentLevel === 'units' ? item.unitNumber : levelConfig.getItemName(item)}
+            </h3>
           </div>
         ))}
       </div>
@@ -424,6 +397,20 @@ const ProjectsWorking = () => {
       <div className="flex flex-row ">
         {renderItemGrid()}
       </div>
+
+      {/* Project Modal */}
+      <ProjectModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        currentLevel={currentLevel}
+        currentPath={getCurrentPath()}
+        onSuccess={() => {
+          // Refresh data after successful project creation
+          refresh();
+          setIsModalOpen(false);
+          toast.success('Project created successfully!');
+        }}
+      />
     </div>
   );
 };

@@ -3,14 +3,17 @@ import { Pencil, Trash2 } from "lucide-react";
 import api from "../../api/api"; // ✅ axios instance
 import ConfirmDeleteButton from "../ui/notifications/ConfirmDelete"; // adjust path
 import EditOptionsPopup from "../modals/EditInventry"; // adjust path
-const InventoryTable = ({ data = [], onDeleteSuccess }) => {
+const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, externalSearch = "", externalRowsPerPage = 10 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [deletingId, setDeletingId] = useState(null);
   const [localData, setLocalData] = useState(data); // ✅ maintain local copy
   const [editingRowId, setEditingRowId] = useState(null); // ✅ Track specific row being edited
+  
+  // Use external search and rows per page when provided
+  const activeSearch = hideSearch ? externalSearch : searchTerm;
+  const activeRowsPerPage = externalRowsPerPage;
   
   // ✅ Popup state management
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -28,14 +31,14 @@ const InventoryTable = ({ data = [], onDeleteSuccess }) => {
 
   // ✅ Search filter
   const filteredData = useMemo(() => {
-    if (!searchTerm) return localData;
+    if (!activeSearch) return localData;
     return localData.filter((row) =>
       Object.values(row)
         .join(" ")
         .toLowerCase()
-        .includes(searchTerm.toLowerCase())
+        .includes(activeSearch.toLowerCase())
     );
-  }, [localData, searchTerm]);
+  }, [localData, activeSearch]);
 
   // ✅ Sorting
   const sortedData = useMemo(() => {
@@ -51,9 +54,9 @@ const InventoryTable = ({ data = [], onDeleteSuccess }) => {
 
   // ✅ Pagination
   const paginatedData = useMemo(() => {
-    const start = (currentPage - 1) * rowsPerPage;
-    return sortedData.slice(start, start + rowsPerPage);
-  }, [sortedData, currentPage, rowsPerPage]);
+    const start = (currentPage - 1) * activeRowsPerPage;
+    return sortedData.slice(start, start + activeRowsPerPage);
+  }, [sortedData, currentPage, activeRowsPerPage]);
 
   // ✅ Sort handler
   const handleSort = (key) => {
@@ -127,30 +130,18 @@ const InventoryTable = ({ data = [], onDeleteSuccess }) => {
     <div className=" rounded-lg">
       {/* ✅ Controls */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-2 mb-4">
-        <input
-          type="text"
-          placeholder="Search..."
-          className="border px-3 py-2 rounded-full w-full sm:w-64"
-          value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-            setCurrentPage(1);
-          }}
-        />
-        <select
-          value={rowsPerPage}
-          onChange={(e) => {
-            setRowsPerPage(Number(e.target.value));
-            setCurrentPage(1);
-          }}
-          className="border px-2 py-1 rounded-md"
-        >
-          {[5, 10, 20, 50].map((n) => (
-            <option key={n} value={n}>
-              {n} rows
-            </option>
-          ))}
-        </select>
+        {!hideSearch && (
+          <input
+            type="text"
+            placeholder="Search..."
+            className="border px-3 py-2 rounded-full w-full sm:w-64"
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+          />
+        )}
       </div>
       {/* ✅ Table */}
       <div className="overflow-x-auto bg-white rounded-tr-3xl rounded-tl-3xl ">
@@ -502,8 +493,8 @@ const InventoryTable = ({ data = [], onDeleteSuccess }) => {
       {/* ✅ Pagination */}
       <div className="flex justify-between items-center mt-4 text-sm text-gray-600">
         <span>
-          Showing {Math.min((currentPage - 1) * rowsPerPage + 1, sortedData.length)} -{" "}
-          {Math.min(currentPage * rowsPerPage, sortedData.length)} of{" "}
+          Showing {Math.min((currentPage - 1) * activeRowsPerPage + 1, sortedData.length)} -{" "}
+          {Math.min(currentPage * activeRowsPerPage, sortedData.length)} of{" "}
           {sortedData.length}
         </span>
         <div className="flex gap-2">
@@ -516,7 +507,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess }) => {
           </button>
           <button
             className="px-3 py-1 border rounded disabled:opacity-50"
-            disabled={currentPage * rowsPerPage >= sortedData.length}
+            disabled={currentPage * activeRowsPerPage >= sortedData.length}
             onClick={() => setCurrentPage((p) => p + 1)}
           >
             Next

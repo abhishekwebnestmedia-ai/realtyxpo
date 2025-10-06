@@ -196,9 +196,10 @@ const TodaysTask = ({ isDashboard = false }) => {
               }}
             />
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
+            <label className="text-sm font-semibold text-gray-800 whitespace-nowrap">Rows per page:</label>
             <select
-              className="border border-gray-300 px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="border border-gray-200 rounded-lg p-2 text-sm  hover:border-gray-300 focus:outline-none focus:ring-2  min-w-10 cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 4 5%22><path fill=%22%23666%22 d=%22M2 0L0 2h4zm0 5L0 3h4z%22/></svg>')] bg-no-repeat bg-right bg-[length:12px] "
               value={rowsPerPage}
               onChange={(e) => {
                 setRowsPerPage(Number(e.target.value));

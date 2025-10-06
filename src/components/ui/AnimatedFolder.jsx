@@ -1,11 +1,7 @@
 import React from 'react';
 import './AnimatedFolder.css';
 
-const AnimatedFolder = ({ containerColor, tipColor, coverColor }) => {
-  const containerStyle = containerColor ? {
-    background: containerColor
-  } : {};
-  
+const AnimatedFolder = ({ tipColor, coverColor }) => {
   const tipStyle = tipColor ? {
     background: tipColor
   } : {};
@@ -16,7 +12,7 @@ const AnimatedFolder = ({ containerColor, tipColor, coverColor }) => {
 
   return (
     <div className="animated-folder-wrapper">
-      <div className="animated-folder-container" >
+      <div className="animated-folder-container">
         <div className="animated-folder">
           <div className="folder-front-side">
             <div className="folder-tip" style={tipStyle} />

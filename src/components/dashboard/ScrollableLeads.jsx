@@ -45,17 +45,20 @@ const getStatusStyles = (status) => {
       };
   }
 };
-const LeadsTable = ({ data = [], onEdit, onDelete }) => {
+const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalSearch = "", externalRowsPerPage = 10 }) => {
   const [search, setSearch] = useState("");
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState(null);
   const [leadDetails, setLeadDetails] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [localData, setLocalData] = useState(data);
   const navigate = useNavigate();
+
+  // Use external search and rows per page when provided
+  const activeSearch = hideSearch ? externalSearch : search;
+  const activeRowsPerPage = externalRowsPerPage;
 
   // Function to fetch lead details
   const fetchLeadDetails = async (leadId) => {
@@ -100,10 +103,10 @@ const LeadsTable = ({ data = [], onEdit, onDelete }) => {
   const filteredData = useMemo(() => {
     return (localData || []).filter((row) =>
       Object.values(row).some((value) =>
-        String(value).toLowerCase().includes(search.toLowerCase())
+        String(value).toLowerCase().includes(activeSearch.toLowerCase())
       )
     );
-  }, [localData, search]);
+  }, [localData, activeSearch]);
 
   // ↕️ Sorting
   const sortedData = useMemo(() => {
@@ -119,9 +122,9 @@ const LeadsTable = ({ data = [], onEdit, onDelete }) => {
 
   // 📄 Pagination
   const paginatedData = useMemo(() => {
-    const start = (currentPage - 1) * rowsPerPage;
-    return sortedData.slice(start, start + rowsPerPage);
-  }, [sortedData, currentPage, rowsPerPage]);
+    const start = (currentPage - 1) * activeRowsPerPage;
+    return sortedData.slice(start, start + activeRowsPerPage);
+  }, [sortedData, currentPage, activeRowsPerPage]);
 
   // 📌 Sorting handler
   const handleSort = (key) => {
@@ -155,30 +158,18 @@ const LeadsTable = ({ data = [], onEdit, onDelete }) => {
     <div className="  rounded-lg ">
       {/* 🔍 Search + Rows per page */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-3 ">
-        <input
-          type="text"
-          placeholder="Search..."
-          className="border px-3 py-2 rounded-full w-full md:w-1/3"
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setCurrentPage(1);
-          }}
-        />
-        <select
-          className="border px-3 py-2 rounded"
-          value={rowsPerPage}
-          onChange={(e) => {
-            setRowsPerPage(Number(e.target.value));
-            setCurrentPage(1);
-          }}
-        >
-          {[5, 10, 20, 50].map((n) => (
-            <option key={n} value={n}>
-              {n} rows
-            </option>
-          ))}
-        </select>
+        {!hideSearch && ( 
+          <input
+            type="text"
+            placeholder="Search..."
+            className="border px-3 py-2 rounded-full w-full md:w-1/3"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setCurrentPage(1);
+            }}
+          />
+        )}
       </div>
 
       {/* 📊 Table */}
@@ -354,8 +345,8 @@ const LeadsTable = ({ data = [], onEdit, onDelete }) => {
       {/* 📌 Pagination */}
       <div className="flex justify-between items-center mt-4 text-sm text-gray-600">
         <span>
-          Showing {(currentPage - 1) * rowsPerPage + 1} -{" "}
-          {Math.min(currentPage * rowsPerPage, sortedData.length)} of{" "}
+          Showing {(currentPage - 1) * activeRowsPerPage + 1} -{" "}
+          {Math.min(currentPage * activeRowsPerPage, sortedData.length)} of{" "}
           {sortedData.length}
         </span>
         <div className="flex gap-2">
@@ -368,7 +359,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete }) => {
           </button>
           <button
             className="px-3 py-1 border rounded disabled:opacity-50"
-            disabled={currentPage * rowsPerPage >= sortedData.length}
+            disabled={currentPage * activeRowsPerPage >= sortedData.length}
             onClick={() => setCurrentPage((p) => p + 1)}
           >
             Next

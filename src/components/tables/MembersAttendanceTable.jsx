@@ -254,12 +254,12 @@ const MembersAttendanceTable = ({ isDashboard = true, onClose = null }) => {
 
               <div className="flex items-center gap-4">
                 {/* Rows per page */}
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">Show:</span>
+                <div className="flex items-center gap-4">
+                  <span className="text-sm font-semibold text-gray-800 whitespace-nowrap">Rows per page:</span>
                   <select
                     value={rowsPerPage}
                     onChange={(e) => setRowsPerPage(Number(e.target.value))}
-                    className="border border-gray-300 rounded px-2 py-1 text-sm"
+                    className="border border-gray-200 rounded-lg p-2 text-sm  hover:border-gray-300 focus:outline-none focus:ring-2  min-w-10 cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 4 5%22><path fill=%22%23666%22 d=%22M2 0L0 2h4zm0 5L0 3h4z%22/></svg>')] bg-no-repeat bg-right bg-[length:12px] "
                   >
                     <option value={10}>10</option>
                     <option value={25}>25</option>

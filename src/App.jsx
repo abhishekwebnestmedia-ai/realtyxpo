@@ -15,6 +15,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/layout";
 import { EditLead, AddLead, AddInventry } from "./pages/forms";
 import { ToastContainer } from "react-toastify";
+import { Toaster } from "react-hot-toast";
 import Step3EmployeeDetails from "./pages/forms/components/Stepperformedit/Step3EmployeeDetails";
 import Step2ProjectDetails from "./pages/forms/components/Stepperformedit/Step2ProjectDetails";
 import Step1SellerDetails from "./pages/forms/components/Stepperformedit/Step1SellerDetails";
@@ -72,6 +73,16 @@ const App = () => {
         </Routes>
       </Router>
       <ToastContainer />
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+          },
+        }}
+      />
     </AuthProvider>
   );
 };

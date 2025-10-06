@@ -1,119 +1,57 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
 import Pagination from '../../components/ui/Pagination';
+import { useBrokers } from '../../hooks/useBrokers';
 
 const BrokersRequirements = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Static data matching the table from the image
-  const staticData = [
-    {
-      id: 1,
-      sellerName: "Abhishek Singh",
-      brokerName: "Abhishek Singh",
-      contact: "+91 8171 869 937",
-      status: "Hot",
-      date: "31 July 25",
-      requirement: "To Givrd Acrh",
-      source: "WhatsApp",
-      followUpDate: "31 July 25",
-      remark: "Lorem is..."
-    },
-    {
-      id: 2,
-      sellerName: "Abhishek Singh",
-      brokerName: "Abhishek Singh",
-      contact: "+91 8171 869 937",
-      status: "Normal",
-      date: "31 July 25",
-      requirement: "To Givrd Acrh",
-      source: "WhatsApp",
-      followUpDate: "31 July 25",
-      remark: "Lorem is..."
-    },
-    {
-      id: 3,
-      sellerName: "Abhishek Singh",
-      brokerName: "Abhishek Singh",
-      contact: "+91 8171 869 937",
-      status: "Normal",
-      date: "31 July 25",
-      requirement: "To Givrd Acrh",
-      source: "WhatsApp",
-      followUpDate: "31 July 25",
-      remark: "Lorem is..."
-    },
-    {
-      id: 4,
-      sellerName: "Abhishek Singh",
-      brokerName: "Abhishek Singh",
-      contact: "+91 8171 869 937",
-      status: "Hot",
-      date: "31 July 25",
-      requirement: "To Givrd Acrh",
-      source: "WhatsApp",
-      followUpDate: "31 July 25",
-      remark: "Lorem is..."
-    },
-    {
-      id: 5,
-      sellerName: "Abhishek Singh",
-      brokerName: "Abhishek Singh",
-      contact: "+91 8171 869 937",
-      status: "Hot",
-      date: "31 July 25",
-      requirement: "To Givrd Acrh",
-      source: "WhatsApp",
-      followUpDate: "31 July 25",
-      remark: "Lorem is..."
-    },
-    {
-      id: 6,
-      sellerName: "Abhishek Singh",
-      brokerName: "Abhishek Singh",
-      contact: "+91 8171 869 937",
-      status: "Hot",
-      date: "31 July 25",
-      requirement: "To Givrd Acrh",
-      source: "WhatsApp",
-      followUpDate: "31 July 25",
-      remark: "Lorem is..."
-    },
-    {
-      id: 7,
-      sellerName: "Abhishek Singh",
-      brokerName: "Abhishek Singh",
-      contact: "+91 8171 869 937",
-      status: "Hot",
-      date: "31 July 25",
-      requirement: "To Givrd Acrh",
-      source: "WhatsApp",
-      followUpDate: "31 July 25",
-      remark: "Lorem is..."
-    },
-    {
-      id: 8,
-      sellerName: "Abhishek Singh",
-      brokerName: "Abhishek Singh",
-      contact: "+91 8171 869 937",
-      status: "Hot",
-      date: "31 July 25",
-      requirement: "To Givrd Acrh",
-      source: "WhatsApp",
-      followUpDate: "31 July 25",
-      remark: "Lorem is..."
-    }
-  ];
+  // Fetch broker data from API
+  const { data: brokersData = [], isLoading, error } = useBrokers();
+
+  // Normalize broker data
+  const brokers = useMemo(() => {
+    if (Array.isArray(brokersData)) return brokersData;
+    if (brokersData && Array.isArray(brokersData.data)) return brokersData.data;
+    return [];
+  }, [brokersData]);
 
   // Filter data based on search term
-  const filteredData = staticData.filter((row) =>
+  const filteredData = brokers.filter((row) =>
     Object.values(row)
       .join(" ")
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
   );
+
+  // Loading and error states
+  if (isLoading) {
+    return (
+      <div className="rounded-lg">
+        <div className="mb-6">
+          <h1 className="pageheading mb-4">Brokers Requirements</h1>
+        </div>
+        <div className="flex justify-center items-center h-64">
+          <p className="text-gray-500 animate-pulse">Loading brokers data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-lg">
+        <div className="mb-6">
+          <h1 className="pageheading mb-4">Brokers Requirements</h1>
+        </div>
+        <div className="text-center text-red-600 font-medium">
+          Failed to load brokers data. Please try again later.
+        </div>
+      </div>
+    );
+  }
 
   // Pagination
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
@@ -142,15 +80,15 @@ const BrokersRequirements = () => {
             setCurrentPage(1);
           }}
         />
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-600">Rows per page:</label>
+        <div className="flex items-center gap-4">
+          <label className="text-sm font-semibold text-gray-800 whitespace-nowrap">Rows per page:</label>
           <select
             value={rowsPerPage}
             onChange={(e) => {
               setRowsPerPage(Number(e.target.value));
               setCurrentPage(1);
             }}
-            className="border border-gray-300 rounded px-2 py-1 text-sm"
+            className="border border-gray-200 rounded-lg p-2 text-sm  hover:border-gray-300 focus:outline-none focus:ring-2  min-w-10 cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 4 5%22><path fill=%22%23666%22 d=%22M2 0L0 2h4zm0 5L0 3h4z%22/></svg>')] bg-no-repeat bg-right bg-[length:12px] "
           >
             <option value={5}>5</option>
             <option value={10}>10</option>
@@ -169,7 +107,7 @@ const BrokersRequirements = () => {
                 <input type="checkbox" />
               </th>
               <th className="min-w-20 px-4 py-6 whitespace-nowrap theading text-left">
-                Seller Name
+                Captured By
               </th>
               <th className="min-w-32 px-4 py-6 whitespace-nowrap theading text-left">
                 Broker Name
@@ -211,19 +149,19 @@ const BrokersRequirements = () => {
                     <input type="checkbox" />
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
-                    {row.sellerName}
+                    {row.capturedBy || row.sellerName || 'N/A'}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     {row.brokerName}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
-                    {row.contact}
+                    {row.contactNumber}
                   </td>
                   <td className={`px-4 py-4 whitespace-nowrap font-medium ${getStatusColor(row.status)}`}>
                     {row.status}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
-                    {row.date}
+                    {row.createdAt ? new Date(row.createdAt).toLocaleDateString() : row.date || 'N/A'}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     {row.requirement}
@@ -241,13 +179,13 @@ const BrokersRequirements = () => {
                     <div className="flex gap-2 justify-center items-center">
                       <button
                         className="p-1 hover:bg-gray-100 rounded transition-colors text-blue-600"
-                        title={`Edit ${row.sellerName}`}
+                        title={`Edit ${row.capturedBy || row.sellerName || 'record'}`}
                       >
                         <Pencil size={16} />
                       </button>
                       <button
                         className="p-1 hover:bg-gray-100 rounded transition-colors text-red-600"
-                        title={`Delete ${row.sellerName}`}
+                        title={`Delete ${row.capturedBy || row.sellerName || 'record'}`}
                       >
                         <Trash2 size={16} />
                       </button>

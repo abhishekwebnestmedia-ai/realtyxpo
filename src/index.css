@@ -14,6 +14,47 @@
   }
 }
 
+/* Normal Scrollbar Styles */
+@layer base {
+  /* Default scrollbar styling for webkit browsers */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 10px;
+    transition: background-color 0.3s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
+
+  /* Firefox scrollbar styling */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #c1c1c1 #f1f1f1;
+  }
+
+  /* Apply smooth scrolling globally */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Ensure body doesn't interfere with smooth scrolling */
+  body {
+    margin: 0;
+    padding: 0;
+  }
+}
+
 @layer base {
   /* Apply smooth scrolling globally */
   html {

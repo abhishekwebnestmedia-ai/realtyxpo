@@ -108,7 +108,7 @@ const FindOpportunity = () => {
 
   if (isLoading) {
     return (
-      <div className="p-4">
+      <div className="">
         <div className="flex justify-center items-center h-64">
           <p className="text-gray-500 animate-pulse">Loading opportunities...</p>
         </div>
@@ -118,7 +118,7 @@ const FindOpportunity = () => {
 
   if (hasError) {
     return (
-      <div className="p-4">
+      <div className="">
         <div className="text-center text-red-600 font-medium">
           Failed to load data. Please try again later.
         </div>
@@ -127,7 +127,7 @@ const FindOpportunity = () => {
   }
 
   return (
-    <div className="p-4">
+    <div className="">
       {/* Header */}
       <div className="mb-6">
         <h1 className="pageheading mb-4">Find Opportunity</h1>
@@ -137,7 +137,6 @@ const FindOpportunity = () => {
       <div className="flex flex-col sm:flex-row gap-6 mb-6">
         {/* Primary Toggle */}
         <div className="flex flex-col space-y-2">
-          <label className="text-sm font-medium text-gray-700">Category:</label>
           <ToggleSwitch
             value={primaryFilter}
             options={primaryOptions}
@@ -148,7 +147,6 @@ const FindOpportunity = () => {
 
         {/* Secondary Toggle */}
         <div className="flex flex-col space-y-2">
-          <label className="text-sm font-medium text-gray-700">Type:</label>
           <ToggleSwitch
             value={secondaryFilter}
             options={getSecondaryOptions()}
@@ -162,7 +160,7 @@ const FindOpportunity = () => {
       <div className="">
         {primaryFilter === 'Leads' ? (
           filteredData.length > 0 ? (
-            <ScrollableLeads data={filteredData} />
+            <ScrollableLeads data={filteredData} hideSearch={true} />
           ) : (
             <div className="text-center py-10 text-gray-500">
               No {secondaryFilter === 'AllBuyers' ? 'buyer' : 'rental'} leads found.
@@ -170,7 +168,7 @@ const FindOpportunity = () => {
           )
         ) : (
           filteredData.length > 0 ? (
-            <InventoryTable data={filteredData} />
+            <InventoryTable data={filteredData} hideSearch={true} />
           ) : (
             <div className="text-center py-10 text-gray-500">
               No {secondaryFilter.toLowerCase()} inventory found.
