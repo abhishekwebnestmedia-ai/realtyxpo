@@ -310,15 +310,38 @@ const ProjectsWorking = () => {
       );
     }
 
-    // No data state
+    // No data state - but still show Add button
     if (currentLevelData.length === 0) {
       return (
-        <div className="text-center py-12">
-          <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No Data Available</h3>
-          <p className="text-gray-500">
-            No projects found for {filters.projectType} projects with {getConstructionStatusLabel(filters.constructionStatus)} status.
-          </p>
+        <div className="w-full min-h-[70vh] relative">
+          {/* Add Button - Left Aligned at Top */}
+          <div className="flex justify-start mt-6">
+            <div
+              onClick={() => setIsModalOpen(true)}
+              className="w-32 h-40 rounded-lg cursor-pointer flex flex-col items-center justify-center hover:bg-gray-50 transition-colors"
+              role="button"
+              tabIndex={0}
+            >
+              <div className="w-24 h-20 flex items-center justify-center mb-2">
+                <img src="/public/AddIcon.svg" alt="" className="w-22 h-22" />
+              </div>
+              <h3 className='text-xl text-center font-medium leading-tight min-h-12'>Add New Project</h3>
+            </div>
+          </div>
+          
+          {/* No Data Message - Vertically Centered */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center">
+              <Building2 className="h-16 w-16 text-gray-400 mx-auto mb-6" />
+              <h3 className="text-xl font-medium text-gray-900 mb-3">No Data Available</h3>
+              <p className="text-gray-500 max-w-md">
+                No projects found for {filters.projectType} projects with {getConstructionStatusLabel(filters.constructionStatus)} status.
+              </p>
+              <p className="text-blue-600 text-sm mt-4">
+                Click the button above to add your first project!
+              </p>
+            </div>
+          </div>
         </div>
       );
     }

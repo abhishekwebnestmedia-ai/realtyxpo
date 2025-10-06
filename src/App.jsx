@@ -9,6 +9,7 @@ import Inventory from "./pages/inventory/Inventory";
 import { ProjectsWorking } from "./pages/projects";
 import BrokersRequirements from "./pages/resources/BrokersRequirements";
 import MyTeam from "./pages/team/MyTeam";
+import UserDetails from "./pages/team/UserDetails";
 import FindOpportunity from "./pages/resources/FindOpportunity";
 import LearnGrow from "./pages/resources/LearnGrow";
 import { AuthProvider } from "./context/AuthContext";
@@ -67,6 +68,7 @@ const App = () => {
               element={<BrokersRequirements />}
             />
             <Route path="my-team" element={<MyTeam />} />
+            <Route path="team/member/:id" element={<UserDetails />} />
             <Route path="find-opportunity" element={<FindOpportunity />} />
             <Route path="learn-grow" element={<LearnGrow />} />
           </Route>

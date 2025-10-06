@@ -446,30 +446,59 @@ const ProjectModal = ({
     const structure = {
       category: formData.category,
       projectcategory: formData.projectcategory,
-      cities: [{
+    };
+
+    // Only add cities if cityName exists
+    if (formData.cityName.trim()) {
+      structure.cities = [{
         cityName: formData.cityName,
-        divisions: [{
+        divisions: []
+      }];
+
+      // Only add divisions if divisionName exists
+      if (formData.divisionName.trim()) {
+        structure.cities[0].divisions = [{
           divisionName: formData.divisionName,
-          sectors: [{
+          sectors: []
+        }];
+
+        // Only add sectors if sectorName exists
+        if (formData.sectorName.trim()) {
+          structure.cities[0].divisions[0].sectors = [{
             sectorName: formData.sectorName,
-            projects: [{
+            projects: []
+          }];
+
+          // Only add projects if projectName exists
+          if (formData.projectName.trim()) {
+            structure.cities[0].divisions[0].sectors[0].projects = [{
               projectName: formData.projectName,
-              towers: [{
+              towers: []
+            }];
+
+            // Only add towers if towerName exists
+            if (formData.towerName.trim()) {
+              structure.cities[0].divisions[0].sectors[0].projects[0].towers = [{
                 towerName: formData.towerName,
-                units: [{
+                units: []
+              }];
+
+              // Only add units if unitNumber exists
+              if (formData.unitNumber.trim()) {
+                structure.cities[0].divisions[0].sectors[0].projects[0].towers[0].units = [{
                   unitNumber: formData.unitNumber,
                   ownerName: formData.ownerName,
                   mobileNumbers: formData.mobileNumbers.filter(num => num.trim()),
                   email: formData.email,
                   status: formData.status,
                   remarks: formData.remarks
-                }]
-              }]
-            }]
-          }]
-        }]
-      }]
-    };
+                }];
+              }
+            }
+          }
+        }
+      }
+    }
 
     return structure;
   };
@@ -487,9 +516,20 @@ const ProjectModal = ({
     setIsSubmitting(true);
 
     try {
+      // Basic validation - ensure required fields are filled
+      if (!formData.category || !formData.projectcategory) {
+        toast.error('Project Type and Construction Status are required');
+        setIsSubmitting(false);
+        return;
+      }
+      
       // Only validate logical dependencies and unit details if filled
       const hierarchyErrors = validateHierarchy();
       let unitErrors = {};
+      
+      // Debug: Log validation results
+      console.log('Hierarchy errors:', hierarchyErrors);
+      console.log('Form data being validated:', formData);
       
       // Only validate unit details if user is trying to create units
       if (formData.unitNumber.trim() || formData.ownerName.trim() || 
@@ -513,6 +553,9 @@ const ProjectModal = ({
 
       const projectData = buildProjectStructure();
       
+      // Debug: Log the data being sent
+      console.log('Submitting project data:', JSON.stringify(projectData, null, 2));
+      
       // Create new project
       await api.post('/projects/project-types/full', projectData);
       toast.success('Project created successfully!');
@@ -521,7 +564,12 @@ const ProjectModal = ({
       onClose();
     } catch (error) {
       console.error('Error submitting project:', error);
-      toast.error('Failed to submit project. Please try again.');
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      console.error('Error headers:', error.response?.headers);
+      
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to submit project. Please try again.';
+      toast.error(`Error: ${errorMessage}`);
     } finally {
       setIsSubmitting(false);
     }
