@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Loader2, ArrowLeft } from 'lucide-react';
+import { Users, Loader2, ArrowLeft, BriefcaseBusiness,  Building, NotepadTextDashedIcon, Info } from 'lucide-react';
 import api from '../../api/api';
 import { toast } from 'react-hot-toast';
 import ToggleSwitch from '../../components/ui/ToggleSwitch';
@@ -32,30 +32,20 @@ const MyTeam = () => {
       setLoading(true);
       setError(null);
       
-      console.log('Fetching team members from: /auth/teams');
       const response = await api.get('/auth/teams');
-      console.log('Teams API response:', response.data);
       
       let usersData = [];
       if (response.data.users && Array.isArray(response.data.users)) {
         usersData = response.data.users;
-        console.log('Found users in response.data.users:', usersData.length);
       } else if (Array.isArray(response.data)) {
         usersData = response.data;
-        console.log('Found users in direct array:', usersData.length);
       } else if (response.data.data && Array.isArray(response.data.data)) {
         usersData = response.data.data;
-        console.log('Found users in response.data.data:', usersData.length);
-      } else {
-        console.log('No recognizable user data structure found:', response.data);
       }
       
-      console.log('Processed users:', usersData);
       setUsers(usersData);
     } catch (error) {
       console.error('Error fetching users:', error);
-      console.error('Error status:', error.response?.status);
-      console.error('Error message:', error.response?.data?.message || error.message);
       
       if (error.response?.status === 401) {
         setError('Authentication failed. Please login again.');
@@ -77,16 +67,10 @@ const MyTeam = () => {
       let response;
       const userName = selectedUser.name || selectedUser.username;
       
-      console.log('Fetching data for user:', userName, 'Option:', primaryOption);
-      
       if (primaryOption === 'Leads') {
-        console.log('Making API call to: /realtleads/userbasedlead?name=' + userName);
         response = await api.get(`/realtleads/userbasedlead?name=${userName}`);
-        console.log('Leads API response:', response.data);
       } else if (primaryOption === 'Inventory') {
-        console.log('Making API call to: /inventry/userbasedinventry?assignTo=' + userName);
         response = await api.get(`/inventry/userbasedinventry?assignTo=${userName}`);
-        console.log('Inventory API response:', response.data);
       } else {
         setUserData([]);
         setDataLoading(false);
@@ -96,28 +80,19 @@ const MyTeam = () => {
       let data = [];
       if (response.data.leads && Array.isArray(response.data.leads)) {
         data = response.data.leads;
-        console.log('Found leads data:', data.length, 'items');
       } else if (response.data.inventories && Array.isArray(response.data.inventories)) {
         data = response.data.inventories;
-        console.log('Found inventories data:', data.length, 'items');
       } else if (Array.isArray(response.data)) {
         data = response.data;
-        console.log('Found direct array data:', data.length, 'items');
       } else if (response.data.data && Array.isArray(response.data.data)) {
         data = response.data.data;
-        console.log('Found nested data:', data.length, 'items');
-      } else {
-        console.log('No recognizable data structure found:', response.data);
       }
       
       const filteredData = filterDataBySecondaryOption(data);
-      console.log('Filtered data:', filteredData.length, 'items after secondary filter');
       setUserData(filteredData);
       
     } catch (error) {
       console.error('Error fetching user data:', error);
-      console.error('Error status:', error.response?.status);
-      console.error('Error message:', error.response?.data?.message || error.message);
       
       if (error.response?.status === 401) {
         toast.error('Authentication failed. Please login again.');
@@ -194,17 +169,21 @@ const MyTeam = () => {
 
   const handlePrimaryOptionChange = (option) => {
     setPrimaryOption(option);
-    const secondaryOptions = getSecondaryOptions();
-    if (secondaryOptions.length > 0) {
-      setSecondaryOption(secondaryOptions[0].value);
+    // Always reset to first option when switching primary option
+    if (option === 'Leads') {
+      setSecondaryOption('All Buyers');
+    } else if (option === 'Inventory') {
+      setSecondaryOption('Sale');
+    } else {
+      setSecondaryOption('');
     }
   };
 
   const primaryOptions = [
-    { value: 'Leads', label: 'Leads' },
-    { value: 'Inventory', label: 'Inventory' },
-    { value: 'Daily Plan', label: 'Daily Plan' },
-    { value: 'Info', label: 'Info' }
+    { value: 'Leads', label: 'Leads', icon: BriefcaseBusiness },
+    { value: 'Inventory', label: 'Inventory', icon: Building },
+    { value: 'Daily Plan', label: 'Daily Plan', icon: NotepadTextDashedIcon },
+    { value: 'Info', label: 'Info', icon: Info }
   ];
 
   const getInitials = (name) => {
@@ -265,18 +244,16 @@ const MyTeam = () => {
   if (currentView === 'team') {
     return (
       <div className="">
-        <div className="mb-8">
+        <div className="">
           <h1 className="text-2xl font-medium text-gray-900 mb-2">My Team</h1>
-          <p className="text-gray-600">
-            {users.length} team member{users.length !== 1 ? 's' : ''} in your organization
-          </p>
+
         </div>
 
-        <div className="flex flex-wrap gap-6">
+        <div className="flex flex-wrap ">
           {users.map((user) => (
             <div
               key={user._id || user.id}
-              className=" p-6 cursor-pointer "
+              className="p-6 cursor-pointer"
               onClick={() => handleUserClick(user)}
             >
               <div className="flex flex-col items-center text-center">
@@ -285,7 +262,7 @@ const MyTeam = () => {
                     <img
                       src={user.profilePicture}
                       alt={user.name || 'Profile'}
-                      className="w-32 h-32 rounded-full object-cover"
+                      className="w-[6.5rem] h-[6.5rem] rounded-full object-cover"
                       onError={(e) => {
                         e.target.style.display = 'none';
                         e.target.nextSibling.style.display = 'flex';
@@ -293,7 +270,7 @@ const MyTeam = () => {
                     />
                   ) : null}
                   <div
-                    className={`w-32 h-32 rounded-full bg-gray-600 flex items-center justify-center text-white text-lg font-semibold ${
+                    className={`w-[6.5rem] h-[6.5rem] rounded-full bg-gray-600 flex items-center justify-center text-white text-2xl font-semibold ${
                       user.profilePicture ? 'hidden' : 'flex'
                     }`}
                   >
@@ -306,9 +283,6 @@ const MyTeam = () => {
                 <p className="text-sm text-gray-600 mb-3">
                   {user.designation || user.role || 'Team Member'}
                 </p>
-                <button className="text-blue-600 text-sm font-medium hover:text-blue-700 transition-colors">
-                  View Details →
-                </button>
               </div>
             </div>
           ))}
@@ -320,84 +294,38 @@ const MyTeam = () => {
   // User Details Screen
   return (
     <div className="">
-      <div className="mb-8">
-        <button
-          onClick={handleBackToTeam}
-          className="flex items-center text-blue-600 hover:text-blue-700 mb-4 transition-colors"
-        >
-          <ArrowLeft className="h-5 w-5 mr-2" />
-          Back to Team
-        </button>
-        
-        <div className="flex items-center mb-6">
-          <div className="mr-4">
-            {selectedUser?.profilePicture ? (
-              <img
-                src={selectedUser.profilePicture}
-                alt={selectedUser.name || 'Profile'}
-                className="w-16 h-16 rounded-full object-cover"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'flex';
-                }}
-              />
-            ) : null}
-            <div
-              className={`w-16 h-16 rounded-full bg-gray-600 flex items-center justify-center text-white text-lg font-semibold ${
-                selectedUser?.profilePicture ? 'hidden' : 'flex'
-              }`}
-            >
-              {getInitials(selectedUser?.name || selectedUser?.username || selectedUser?.email)}
-            </div>
-          </div>
-          <div>
-            <h1 className="text-2xl font-medium text-gray-900">
-              {selectedUser?.name || selectedUser?.username || 'Unknown User'}
-            </h1>
-            <p className="text-gray-600">
-              {selectedUser?.designation || selectedUser?.role || 'Team Member'}
-            </p>
-          </div>
+      <button
+        onClick={handleBackToTeam}
+        className="flex items-center text-blue-600 hover:text-blue-700 mb-4 transition-colors"
+      >
+        <ArrowLeft className="h-5 w-5 mr-2" />
+        Back to Team
+      </button>
+      
+      <div className=" mb-6">
+        <div className="max-w-md">
+          <ToggleSwitch
+            value={primaryOption}
+            options={primaryOptions}
+            onChange={handlePrimaryOptionChange}
+            size="md"
+          />
         </div>
 
-        <div className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              Select Data Type
-            </label>
+        {(primaryOption === 'Leads' || primaryOption === 'Inventory') && (
+          <div className="max-w-lg">
             <ToggleSwitch
-              value={primaryOption}
-              options={primaryOptions}
-              onChange={handlePrimaryOptionChange}
+              value={secondaryOption}
+              options={getSecondaryOptions()}
+              onChange={setSecondaryOption}
               size="md"
             />
           </div>
-
-          {(primaryOption === 'Leads' || primaryOption === 'Inventory') && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Filter by {primaryOption}
-              </label>
-              <ToggleSwitch
-                value={secondaryOption}
-                options={getSecondaryOptions()}
-                onChange={setSecondaryOption}
-                size="md"
-              />
-            </div>
-          )}
-        </div>
+        )}
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">
-          {primaryOption} Data
-          {(primaryOption === 'Leads' || primaryOption === 'Inventory') && (
-            <span className="text-sm font-normal text-gray-600 ml-2">
-              ({secondaryOption})
-            </span>
-          )}
-        </h2>
+      <div className="">
+
         
         {dataLoading ? (
           <div className="flex items-center justify-center py-12">
@@ -410,7 +338,7 @@ const MyTeam = () => {
               data={userData} 
               hideSearch={true}
               externalSearch=""
-              externalRowsPerPage={10}
+              externalRowsPerPage={5}
             />
           </div>
         ) : primaryOption === 'Inventory' ? (

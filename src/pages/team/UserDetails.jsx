@@ -220,44 +220,15 @@ const UserDetails = () => {
           Back to Team
         </button>
         
-        <div className="flex items-center mb-6">
-          <div className="mr-4">
-            {user.profilePicture ? (
-              <img
-                src={user.profilePicture}
-                alt={user.name || 'Profile'}
-                className="w-32 h-32 rounded-full object-cover"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'flex';
-                }}
-              />
-            ) : null}
-            <div
-              className={`w-32 h-32 rounded-full bg-gray-600 flex items-center justify-center text-white text-lg font-semibold ${
-                user.profilePicture ? 'hidden' : 'flex'
-              }`}
-            >
-              {getInitials(user.name || user.username || user.email)}
-            </div>
-          </div>
-          <div>
-            <h1 className="text-2xl font-medium text-gray-900">
-              {user.name || user.username || 'Unknown User'}
-            </h1>
-            <p className="text-gray-600">
-              {user.designation || user.role || 'Team Member'}
-            </p>
-          </div>
-        </div>
+    
 
         {/* Toggle Switches */}
-        <div className="space-y-6">
+        <div className="space-y-8">
           {/* Primary Toggle Switch */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Select Data Type
-            </label>
+            </h3>
             <ToggleSwitch
               value={primaryOption}
               options={primaryOptions}
@@ -269,9 +240,9 @@ const UserDetails = () => {
           {/* Secondary Toggle Switch - Only for Leads and Inventory */}
           {(primaryOption === 'Leads' || primaryOption === 'Inventory') && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 Filter by {primaryOption}
-              </label>
+              </h3>
               <ToggleSwitch
                 value={secondaryOption}
                 options={getSecondaryOptions()}
@@ -305,7 +276,7 @@ const UserDetails = () => {
               data={userData} 
               hideSearch={true}
               externalSearch=""
-              externalRowsPerPage={10}
+              externalRowsPerPage={5}
             />
           </div>
         ) : primaryOption === 'Inventory' ? (

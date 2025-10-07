@@ -44,7 +44,7 @@ const InventoryPage = () => {
   const [viewType, setViewType] = useState("Sales");
   const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 console.log('All inventory data:', allInventory); // Debug log
   // Memoized filter - recalculates only when dependencies change
   const filteredData = useMemo(() => {

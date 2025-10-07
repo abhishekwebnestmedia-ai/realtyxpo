@@ -209,7 +209,7 @@ const ProjectsWorking = () => {
   };
 
   const renderFilterSection = () => (
-    <div className="mb-6">
+    <div className="">
       <h1 className="pageheading mb-4">Projects Working</h1>
       
       {currentLevel === 'cities' && (

@@ -54,8 +54,8 @@ const FreshLeads = () => {
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-2xl scrollbar-hidden bg-white">
-        <table className="w-full border border-gray-200 rounded-lg">
+      <div className="max-h-80 overflow-y-auto overflow-x-auto rounded-2xl scrollbar-hidden bg-white min-h-[40vh]">
+        <table className="w-full rounded-lg">
           <thead>
             <tr className="bg-gray-100 text-sm text-gray-600">
               <th className="text-sm px-4 py-6 text-left text-nowrap">Lead Source</th>

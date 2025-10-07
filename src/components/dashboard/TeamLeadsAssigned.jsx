@@ -58,7 +58,7 @@ const TeamLeadsAssigned = () => {
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-3xl bg-white shadow-sm">
+      <div className="max-h-80 overflow-y-auto overflow-hidden rounded-3xl bg-white shadow-sm min-h-[40vh]">
         <table className="w-full text-sm">
           <thead className="bg-[#FAFBFC] text-gray-500 border-b ">
             <tr>

@@ -39,7 +39,7 @@ const MembersAttendanceTable = ({ isDashboard = true, onClose = null }) => {
   const totalPages = Math.ceil(filteredMembers.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
   const displayMembers = isDashboard 
-    ? members.slice(0, 5) // Dashboard shows only first 5
+    ? members // Dashboard shows all members with internal scrolling
     : filteredMembers.slice(startIndex, startIndex + rowsPerPage);
 
   const statusIcons = {
@@ -274,16 +274,16 @@ const MembersAttendanceTable = ({ isDashboard = true, onClose = null }) => {
 
         {/* Table */}
         <div className="bg-white mx-[6px] rounded-2xl mb-1">
-          <div className="overflow-x-auto scrollbar-hidden">
+          <div className={`overflow-x-auto scrollbar-hidden ${isDashboard ? 'h-64 overflow-y-auto' : ''}`}>
             <table className="w-full text-sm text-left text-gray-700">
-              <thead className="text-gray-600 uppercase text-xs">
-                <tr>
-                  <th className="px-4 py-3 w-16">Status</th>
+              <thead className={`text-gray-600 bg-[#FAFBFC] uppercase text-xs ${isDashboard ? 'sticky top-0 z-20' : ''}`}>
+                <tr className="first:rounded-t-2xl">
+                  <th className="px-4 py-3 w-16 first:rounded-tl-2xl">Status</th>
                   <th className="px-4 py-3 whitespace-nowrap">Name</th>
-                  <th className="px-4 py-3 min-w-[200px]">Email</th>
+                  <th className={`px-4 py-3 min-w-[200px] ${isDashboard ? 'rounded-tr-2xl' : ''}`}>Email</th>
                   {!isDashboard && <th className="px-4 py-3 min-w-[140px]">Phone No.</th>}
                   {!isDashboard && <th className="px-4 py-3 min-w-[120px]">Department</th>}
-                  {!isDashboard && <th className="px-4 py-3 min-w-[140px]">Last Login</th>}
+                  {!isDashboard && <th className="px-4 py-3 min-w-[140px] rounded-tr-2xl">Last Login</th>}
                 </tr>
               </thead>
               <tbody>
@@ -291,7 +291,7 @@ const MembersAttendanceTable = ({ isDashboard = true, onClose = null }) => {
                   displayMembers.map((member, i) => (
                     <tr
                       key={member.id || i}
-                      className="border-t border-gray-200 hover:bg-gray-100 transition"
+                      className={`hover:bg-gray-100 transition ${isDashboard ? '' : 'border-t border-gray-200'}`}
                     >
                       <td className="px-4 py-3 self-center">{statusIcons[member.status]}</td>
                       <td className="px-4 py-3 font-medium whitespace-nowrap">{member.name}</td>
@@ -354,7 +354,7 @@ const MembersAttendanceTable = ({ isDashboard = true, onClose = null }) => {
 
         {/* Footer with summary - Only in dashboard view */}
         {isDashboard && (
-          <div className="px-5 py-2 text-xs text-gray-500 border-t border-gray-200">
+          <div className="px-5 py-2 text-xs text-gray-500  border-gray-200">
             <div className="flex justify-between items-center">
               <span>
                 Present: {members.filter(m => m.status === 'present').length} | 

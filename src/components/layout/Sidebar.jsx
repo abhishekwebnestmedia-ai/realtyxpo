@@ -9,7 +9,7 @@ import icon6 from "/menuicons/6.svg";
 import icon7 from "/menuicons/7.svg";
 import icon8 from "/menuicons/8.svg";
 import icon9 from "/menuicons/9.svg";
-
+import icon10 from "/menuicons/10.svg";
 const SidebarMenu = ({ isOpen}) => {
   const menuItems = [
     { icon: icon9, text: "Dashboard", path: "/" },
@@ -20,7 +20,8 @@ const SidebarMenu = ({ isOpen}) => {
     { icon: icon5, text: "Brokers Requirements", path: "/brokers-requirements" },
     { icon: icon6, text: "My Team", path: "/my-team" },
     { icon: icon7, text: "Find Opportunity", path: "/find-opportunity" },
-    { icon: icon8, text: "Learn Grow", path: "/learn-grow" }
+    { icon: icon8, text: "Learn Grow", path: "/learn-grow" },
+    { icon: icon10, text: "Database", path: "/learn-grow" }
   ];
 
   return (
@@ -86,7 +87,7 @@ const SidebarMenu = ({ isOpen}) => {
         }}
       >
         <img
-          src={isOpen ? "/public/webnest-logo-full.svg" : "/public/webnst-logo.svg"}
+          src={isOpen ? "/webnest-logo-full.svg" : "/public/webnst-logo.svg"}
           alt="Logo"
           style={{
             width: isOpen ? "11rem" : "2rem",
