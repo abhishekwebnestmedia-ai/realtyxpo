@@ -190,6 +190,14 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
               </th>
               <th
                 className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-medium"
+                onClick={() => handleSort("contactNumber")}
+              >
+                Contact Number{" "}
+                {sortConfig.key === "contactNumber" &&
+                  (sortConfig.direction === "asc" ? "▲" : "▼")}
+              </th>
+              <th
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-medium"
                 onClick={() => handleSort("email")}
               >
                 Email{" "}
@@ -282,6 +290,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                   <input type="checkbox" />
                 </td>
                 <td className="px-4 py-4  whitespace-nowrap ">{row.customerName}</td>
+                <td className="px-4 py-4 whitespace-nowrap ">{row.contactNumber || row.contactNo || 'N/A'}</td>
                 <td className="px-4 py-4 whitespace-nowrap ">{row.email}</td>
                 <td className="px-4 py-4 whitespace-nowrap">
                   <span 
@@ -411,7 +420,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                       </div>
                       <div>
                         <span className="font-medium text-gray-600">Phone:</span>
-                        <p className="text-gray-800">{leadDetails.phone || leadDetails.mobile || 'N/A'}</p>
+                        <p className="text-gray-800">{leadDetails.contactNumber || leadDetails.phone || leadDetails.mobile || 'N/A'}</p>
                       </div>
                       <div>
                         <span className="font-medium text-gray-600">Status:</span>
