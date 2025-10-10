@@ -177,11 +177,11 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
         <table className="w-full border-collapse">
           <thead className="bg-gray-100 text-gray-600 uppercase text-xs sticky top-0 z-10">
             <tr>
-              <th className="px-4 py-2">
+              <th className="px-4 py-2 font-medium">
                 <input type="checkbox" />
               </th>
               <th
-                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading"
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading "
                 onClick={() => handleSort("customerName")}
               >
                 Customer Name{" "}
@@ -189,7 +189,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                   (sortConfig.direction === "asc" ? "▲" : "▼")}
               </th>
               <th
-                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-medium"
                 onClick={() => handleSort("email")}
               >
                 Email{" "}
@@ -197,7 +197,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                   (sortConfig.direction === "asc" ? "▲" : "▼")}
               </th>
               <th
-                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-medium"
                 onClick={() => handleSort("status")}
               >
                 Status{" "}
@@ -205,7 +205,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                   (sortConfig.direction === "asc" ? "▲" : "▼")}
               </th>
               <th
-                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading"
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading font-medium"
                 onClick={() => handleSort("followUpDate")}
               >
                 Follow-up Date{" "}
@@ -213,7 +213,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                   (sortConfig.direction === "asc" ? "▲" : "▼")}
               </th>
               <th
-                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-medium"
                 onClick={() => handleSort("requirement")}
               >
                 Requirement{" "}
@@ -221,7 +221,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                   (sortConfig.direction === "asc" ? "▲" : "▼")}
               </th>
               <th
-                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-medium"
                 onClick={() => handleSort("remark")}
               >
                 Remark{" "}
@@ -229,7 +229,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                   (sortConfig.direction === "asc" ? "▲" : "▼")}
               </th>
               <th
-                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-medium"
                 onClick={() => handleSort("date")}
               >
                 Date{" "}
@@ -237,7 +237,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                   (sortConfig.direction === "asc" ? "▲" : "▼")}
               </th>
               <th
-                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-medium"
                 onClick={() => handleSort("capturedBy")}
               >
                 Captured{" "}
@@ -245,7 +245,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                   (sortConfig.direction === "asc" ? "▲" : "▼")}
               </th>
               <th
-                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-medium"
                 onClick={() => handleSort("assignedTo")}
               >
                 Assigned To{" "}
@@ -253,7 +253,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                   (sortConfig.direction === "asc" ? "▲" : "▼")}
               </th>
               <th
-                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-medium"
                 onClick={() => handleSort("transferTo")}
               >
                 Transfer To{" "}
@@ -261,14 +261,14 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                   (sortConfig.direction === "asc" ? "▲" : "▼")}
               </th>
               <th
-                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left"
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-medium"
                 onClick={() => handleSort("source")}
               >
                 Source{" "}
                 {sortConfig.key === "source" &&
                   (sortConfig.direction === "asc" ? "▲" : "▼")}
               </th>
-              <th className="px-4 py-2 theading">Action</th>
+              <th className="px-4 py-2 theading font-medium">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -278,7 +278,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                 className="border-b hover:bg-gray-50 transition cursor-pointer"
                 onClick={() => handleRowClick(row)}
               >
-                <td className="px-4 py-2">
+                <td className="px-4 py-2 font-medium">
                   <input type="checkbox" />
                 </td>
                 <td className="px-4 py-4  whitespace-nowrap ">{row.customerName}</td>
@@ -303,9 +303,9 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                 <td className="px-4 py-4 whitespace-nowrap ">
                   {row.assignTo ? `${row.assignTo.name} ` : " "}{" "}
                 </td>
-                <td className="px-4 py-2 whitespace-nowrap ">{row.transferTo}</td>
-                <td className="px-4 py-2 whitespace-nowrap ">{row.source}</td>
-                <td className="px-4 py-2 whitespace-nowrap text-center align-middle">
+                <td className="px-4 py-2 whitespace-nowrap  font-medium">{row.transferTo}</td>
+                <td className="px-4 py-2 whitespace-nowrap  font-medium">{row.source}</td>
+                <td className="px-4 py-2 whitespace-nowrap text-center align-middle font-medium">
                   <div className="flex items-center justify-center gap-2">
                     <button
                       onClick={(e) => {
@@ -531,7 +531,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                   setSelectedLead(null);
                   setLeadDetails(null);
                 }}
-                className="px-4 py-2 text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                className="px-4 py-2 text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium"
               >
                 Close
               </button>
@@ -545,7 +545,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                     }
                     setIsPopupOpen(false);
                   }}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
                 >
                   Edit Lead
                 </button>

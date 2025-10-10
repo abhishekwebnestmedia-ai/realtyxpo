@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import { useParams, useLocation, useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
+import { AuthContext } from '../../context/AuthContext'
+import { useUsers } from '../../hooks/useBroadcast'
 import api from '../../api/api'
 
 const EditLead = () => {
@@ -8,6 +10,8 @@ const EditLead = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user } = useContext(AuthContext);
+  const { users, loading: usersLoading, fetchUsers } = useUsers();
 
   const [form, setForm] = useState({
     customerName: '',
@@ -27,6 +31,11 @@ const EditLead = () => {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+
+  useEffect(() => {
+    // Fetch users when component mounts
+    fetchUsers();
+  }, [fetchUsers]);
 
   useEffect(() => {
     // if lead was passed via navigate state, use it
@@ -101,10 +110,20 @@ const EditLead = () => {
       const payload = {
         status: form.status,
         leadType: form.leadType,
-        remark: form.remark
+        remark: form.remark,
+        assignTo: form.assignTo, // Include assignTo field
+        contactNumber: form.contactNumber, // Include other editable fields
+        email: form.email,
+        requirement: form.requirement,
+        followUp: form.followUp,
+        Budget: form.Budget
       }
 
-      await api.put(`/realtleads/update/${id}`, payload)
+      console.log('EditLead: Update payload:', payload)
+      console.log('EditLead: Current form state:', form)
+      
+      const response = await api.put(`/realtleads/update/${id}`, payload)
+      console.log('EditLead: Update response:', response.data)
       
       // Invalidate and refetch leads cache to reflect changes immediately
       queryClient.invalidateQueries({ queryKey: ['leads'] })
@@ -112,7 +131,8 @@ const EditLead = () => {
       alert('Lead updated successfully!')
       navigate('/all-leads')
     } catch (error) {
-      console.error('Update failed:', error)
+      console.error('EditLead: Update failed:', error)
+      console.error('EditLead: Error details:', error.response?.data)
       alert('Failed to update lead. Please try again.')
     } finally {
       setLoading(false)
@@ -168,11 +188,26 @@ const EditLead = () => {
             </div>
             <div>
               <label htmlFor="capturedBy" className='block mb-1 font-medium'>Captured by</label>
-              <input name="capturedBy" value={form.capturedBy} onChange={handleChange} type="text" id='capturedBy' className='w-full border border-gray-300  bg-[#FAFBFC] rounded px-3 py-2' />
+              <input name="capturedBy" value={form.capturedBy} type="text" id='capturedBy' className='w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2' readOnly disabled />
             </div>
             <div>
               <label htmlFor="assignTo" className='block mb-1 font-medium'>Assign to</label>
-              <input name="assignTo" value={form.assignTo} onChange={handleChange} type="text" id='assignTo' className='w-full border border-gray-300  bg-[#FAFBFC] rounded px-3 py-2' readOnly disabled />
+              <select name="assignTo" value={form.assignTo} onChange={handleChange} id='assignTo' className='w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2'>
+                <option value="">Select User</option>
+                {user?.role === 'admin' ? (
+                  // Admin sees all users
+                  users?.map((userItem) => (
+                    <option key={userItem._id || userItem.id} value={userItem.name || userItem.username}>
+                      {userItem.name || userItem.username}
+                    </option>
+                  ))
+                ) : (
+                  // Regular user sees only their own name
+                  <option value={user?.name || user?.username}>
+                    {user?.name || user?.username}
+                  </option>
+                )}
+              </select>
             </div>
             <div>
               <label htmlFor="source" className='block mb-1 font-medium' >Enter source</label>

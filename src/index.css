@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --blue100: #dbeafe;
+  --blue700: #1d4ed8;
+}
+
 @layer utilities {
   /* Hide scrollbar for Chrome, Safari and Opera */
   .scrollbar-hidden::-webkit-scrollbar {
@@ -79,13 +84,84 @@
 }
 
 .theading{
-  @apply text-[#656972] text-sm font-normal;
+  @apply text-[#656972] text-sm font-medium;
 }
 .pageheading{
   @apply text-2xl font-semibold text-black;
 }
 td{
   @apply text-sm leading-[100%] 
+}
+
+/* Global Montserrat Font Configuration */
+.montserrat {
+  font-family: "Montserrat", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+/* Apply Montserrat globally to body and all elements */
+body {
+  font-family: "Montserrat", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+/* Utility classes for different font weights */
+.montserrat-thin {
+  font-family: "Montserrat", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 100;
+  font-style: normal;
+}
+
+.montserrat-light {
+  font-family: "Montserrat", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 300;
+  font-style: normal;
+}
+
+.montserrat-regular {
+  font-family: "Montserrat", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.montserrat-medium {
+  font-family: "Montserrat", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
+}
+
+.montserrat-semibold {
+  font-family: "Montserrat", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-style: normal;
+}
+
+.montserrat-bold {
+  font-family: "Montserrat", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
+}
+
+.montserrat-extrabold {
+  font-family: "Montserrat", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 800;
+  font-style: normal;
+}
+
+.montserrat-black {
+  font-family: "Montserrat", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 900;
+  font-style: normal;
 }
 
 /* Remove the old .html class - not needed */

@@ -4,6 +4,7 @@ import api from '../../api/api';
 import { toast } from 'react-hot-toast';
 import ToggleSwitch from '../../components/ui/ToggleSwitch';
 import { ScrollableLeads } from '../../components/dashboard';
+import ViewProfile from '../profile/ViewProfile';
 
 const MyTeam = () => {
   const [users, setUsers] = useState([]);
@@ -217,7 +218,7 @@ const MyTeam = () => {
           <p className="text-gray-500 max-w-md mb-4">{error}</p>
           <button
             onClick={fetchAllUsers}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
           >
             Try Again
           </button>
@@ -332,6 +333,12 @@ const MyTeam = () => {
             <Loader2 className="h-8 w-8 text-blue-600 animate-spin mr-2" />
             <span>Loading {primaryOption.toLowerCase()}...</span>
           </div>
+        ) : primaryOption === 'Info' ? (
+          <ViewProfile 
+            profileUser={selectedUser}
+            customHeading={`${selectedUser?.name || 'User'} Profile`}
+            showEditButton={false}
+          />
         ) : primaryOption === 'Leads' ? (
           <div className="max-h-96 overflow-y-auto">
             <ScrollableLeads 
@@ -348,16 +355,16 @@ const MyTeam = () => {
                 <table className="min-w-full bg-white border border-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-medium">
                         Property
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-medium">
                         Type
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-medium">
                         Status
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-medium">
                         Price
                       </th>
                     </tr>

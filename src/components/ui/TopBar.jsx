@@ -1,17 +1,57 @@
 import { Bell, ChevronDown, PanelsTopLeft, Radio } from "lucide-react";
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
+
 const TopBar = ({ toggleSidebar }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { logout } = useContext(AuthContext);
-  const { user } = useContext(AuthContext);
+  const { logout, user } = useContext(AuthContext);
   const navigate = useNavigate();
+  const dropdownRef = useRef(null);
 
   const handleLogout = () => {
     logout(); // Clears token and user
     navigate("/login"); // Redirect to login page
   };
+
+  const handleViewProfile = () => {
+    setIsOpen(false);
+    navigate("/profile");
+  };
+
+  const handleEditProfile = () => {
+    setIsOpen(false);
+    navigate("/profile/edit");
+  };
+
+  const handleBroadcastClick = () => {
+    navigate("/broadcast");
+  };
+
+  // Function to get user initials
+  const getInitials = (name) => {
+    if (!name) return 'U';
+    return name
+      .split(' ')
+      .map(word => word.charAt(0))
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   return (
     <header className="flex justify-between items-center px-5 py-[6px] bg-white sticky top-0 z-50">
@@ -31,41 +71,65 @@ const TopBar = ({ toggleSidebar }) => {
         <div className="p-2 bg-white rounded-full border border-[#666E99]">
           <Bell className="w-6 h-6 cursor-pointer text-gray-600" />
         </div>
-        <div className="p-2 bg-white rounded-full border border-[#666E99]">
-          <Radio size={24} />
+        <div 
+          className="p-2 bg-white rounded-full border border-[#666E99] cursor-pointer hover:bg-gray-50 transition-colors"
+          onClick={handleBroadcastClick}
+        >
+          <Radio size={24} className="text-gray-600" />
         </div>
 
         {/* Profile section */}
-        <div className="relative">
+        <div className="relative" ref={dropdownRef}>
           <button
-            className="flex items-center space-x-2"
+            className="flex items-center space-x-3"
             onClick={() => setIsOpen(!isOpen)}
           >
-            {/* <img
-              src=""
-              alt="Profile"
-              className="w-10 h-10 rounded-full border"
-            /> */}
-            <div className="flex flex-col">
-              <span className="font-medium">{user.name}</span>
-              <span className="font-medium truncate w-32">
-                {user.email}
-              </span>
+            {/* Profile Circle */}
+            <div className="flex items-center space-x-3">
+              {user?.profileImage ? (
+                <img
+                  src={user.profileImage}
+                  alt="Profile"
+                  className="w-10 h-10 rounded-full border-2 border-gray-200 object-cover"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center border-2 border-gray-200">
+                  <span className="text-sm font-bold text-white">
+                    {getInitials(user?.name)}
+                  </span>
+                </div>
+              )}
+              
+              <div className="flex flex-col text-left">
+                <span className="font-medium text-gray-900">{user?.name}</span>
+                <span className="text-sm text-gray-600 truncate w-32">
+                  {user?.email}
+                </span>
+              </div>
             </div>
-            <ChevronDown size={18} />
+            <ChevronDown size={18} className="text-gray-600" />
           </button>
 
           {/* Dropdown */}
           {isOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border">
-              <div className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer">
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border z-50">
+              <button
+                className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer rounded-t-lg transition-colors"
+                onClick={handleViewProfile}
+              >
                 View Profile
-              </div>
-              <div className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer">
+              </button>
+              <button
+                className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer transition-colors"
+                onClick={handleEditProfile}
+              >
+                Edit Profile
+              </button>
+              <div className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer transition-colors">
                 Settings
               </div>
               <button
-                className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer"
+                className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer rounded-b-lg transition-colors"
                 onClick={handleLogout}
               >
                 Logout

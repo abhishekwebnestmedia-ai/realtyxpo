@@ -244,7 +244,7 @@ const MembersAttendanceTable = ({ isDashboard = true, onClose = null }) => {
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-medium"
                 >
                   <option value="all">All Status</option>
                   <option value="present">Present Only</option>
@@ -278,12 +278,12 @@ const MembersAttendanceTable = ({ isDashboard = true, onClose = null }) => {
             <table className="w-full text-sm text-left text-gray-700">
               <thead className={`text-gray-600 bg-[#FAFBFC] uppercase text-xs ${isDashboard ? 'sticky top-0 z-20' : ''}`}>
                 <tr className="first:rounded-t-2xl">
-                  <th className="px-4 py-3 w-16 first:rounded-tl-2xl">Status</th>
-                  <th className="px-4 py-3 whitespace-nowrap">Name</th>
-                  <th className={`px-4 py-3 min-w-[200px] ${isDashboard ? 'rounded-tr-2xl' : ''}`}>Email</th>
-                  {!isDashboard && <th className="px-4 py-3 min-w-[140px]">Phone No.</th>}
-                  {!isDashboard && <th className="px-4 py-3 min-w-[120px]">Department</th>}
-                  {!isDashboard && <th className="px-4 py-3 min-w-[140px] rounded-tr-2xl">Last Login</th>}
+                  <th className="px-4 py-3 w-16 first:rounded-tl-2xl font-medium">Status</th>
+                  <th className="px-4 py-3 whitespace-nowrap font-medium">Name</th>
+                  <th className={`px-4 py-3 min-w-[200px] font-medium ${isDashboard ? 'rounded-tr-2xl' : ''}`}>Email</th>
+                  {!isDashboard && <th className="px-4 py-3 min-w-[140px] font-medium">Phone No.</th>}
+                  {!isDashboard && <th className="px-4 py-3 min-w-[120px] font-medium">Department</th>}
+                  {!isDashboard && <th className="px-4 py-3 min-w-[140px] rounded-tr-2xl font-medium">Last Login</th>}
                 </tr>
               </thead>
               <tbody>
@@ -293,19 +293,19 @@ const MembersAttendanceTable = ({ isDashboard = true, onClose = null }) => {
                       key={member.id || i}
                       className={`hover:bg-gray-100 transition ${isDashboard ? '' : 'border-t border-gray-200'}`}
                     >
-                      <td className="px-4 py-3 self-center">{statusIcons[member.status]}</td>
-                      <td className="px-4 py-3 font-medium whitespace-nowrap">{member.name}</td>
+                      <td className="px-4 py-3 self-center font-medium">{statusIcons[member.status]}</td>
+                      <td className="px-4 py-3 whitespace-nowrap font-medium">{member.name}</td>
                       <td
-                        className="px-4 py-3 truncate  text-gray-600"
+                        className="px-4 py-3 truncate  text-gray-600 font-medium"
                         title={member.email}
                       >
                         {member.email}
                       </td>
                       {!isDashboard && (
                         <>
-                          <td className="px-4 py-3 text-gray-600">{member.phone}</td>
-                          <td className="px-4 py-3 text-gray-600">{member.department}</td>
-                          <td className="px-4 py-3 text-gray-600">{member.loginTime}</td>
+                          <td className="px-4 py-3 text-gray-600 font-medium">{member.phone}</td>
+                          <td className="px-4 py-3 text-gray-600 font-medium">{member.department}</td>
+                          <td className="px-4 py-3 text-gray-600 font-medium">{member.loginTime}</td>
                         </>
                       )}
                     </tr>

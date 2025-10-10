@@ -12,6 +12,9 @@ import MyTeam from "./pages/team/MyTeam";
 import UserDetails from "./pages/team/UserDetails";
 import FindOpportunity from "./pages/resources/FindOpportunity";
 import LearnGrow from "./pages/resources/LearnGrow";
+import { Profile } from "./pages/profile";
+import EditProfile from "./pages/profile/EditProfile";
+import { Broadcast } from "./pages/broadcast";
 import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/layout";
 import { EditLead, AddLead, AddInventry } from "./pages/forms";
@@ -71,6 +74,9 @@ const App = () => {
             <Route path="team/member/:id" element={<UserDetails />} />
             <Route path="find-opportunity" element={<FindOpportunity />} />
             <Route path="learn-grow" element={<LearnGrow />} />
+            <Route path="broadcast" element={<Broadcast />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="profile/edit" element={<EditProfile />} />
           </Route>
         </Routes>
       </Router>

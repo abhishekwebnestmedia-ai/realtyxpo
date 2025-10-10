@@ -1,18 +1,61 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../api/api";
 
-// Hook to fetch daily tasks
+// Hook to fetch today's daily task for current user
+export const useTodaysDailyTask = (userName = "User") => {
+  return useQuery({
+    queryKey: ["todaysDailyTask", userName],
+    queryFn: async () => {
+      try {
+        const response = await api.post("/dailytask/task/today", {
+          name: userName
+        });
+        
+        return response.data.success ? response.data.data : null;
+      } catch (error) {
+        console.error('Error fetching today\'s task:', error.message);
+        return null;
+      }
+    },
+    staleTime: 0,
+    cacheTime: 5 * 60 * 1000,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+  });
+};
+
+// Hook to fetch daily tasks for all users (admin)
 export const useDailyTasks = () => {
   return useQuery({
     queryKey: ["dailyTasks"],
     queryFn: async () => {
-      const response = await api.get("/dailytask/task");
-      return response.data;
+      try {
+        const response = await api.post("/dailytask/task/today", {});
+        
+        if (response.data.success) {
+          const taskData = response.data.data;
+          return Array.isArray(taskData) ? taskData : taskData ? [taskData] : [];
+        }
+        return [];
+      } catch (error) {
+        console.error('Error fetching daily tasks:', error.message);
+        // Fallback to original API
+        try {
+          const fallbackResponse = await api.get("/dailytask/task");
+          return fallbackResponse.data;
+        } catch (fallbackError) {
+          console.error('Fallback API failed:', fallbackError.message);
+          return [];
+        }
+      }
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 0,
+    cacheTime: 5 * 60 * 1000,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 };
+
 
 // Hook to create a daily task
 export const useCreateDailyTask = () => {
@@ -21,15 +64,14 @@ export const useCreateDailyTask = () => {
   return useMutation({
     mutationFn: async (taskData) => {
       const response = await api.post("/dailytask/task", taskData);
-      console.log(response.data)
       return response.data;
     },
     onSuccess: () => {
-      // Invalidate and refetch daily tasks
       queryClient.invalidateQueries({ queryKey: ["dailyTasks"] });
+      queryClient.invalidateQueries({ queryKey: ["todaysDailyTask"] });
     },
     onError: (error) => {
-      console.error("Failed to create daily task:", error);
+      console.error("Failed to create daily task:", error.response?.data?.message || error.message);
     },
   });
 };
@@ -45,9 +87,10 @@ export const useUpdateDailyTask = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dailyTasks"] });
+      queryClient.invalidateQueries({ queryKey: ["todaysDailyTask"] });
     },
     onError: (error) => {
-      console.error("Failed to update daily task:", error);
+      console.error("Failed to update daily task:", error.response?.data?.message || error.message);
     },
   });
 };

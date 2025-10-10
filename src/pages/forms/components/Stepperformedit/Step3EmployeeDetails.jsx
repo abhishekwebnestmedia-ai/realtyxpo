@@ -1,12 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
+import { AuthContext } from "../../../../context/AuthContext";
+import { useUsers } from "../../../../hooks/useBroadcast";
 import api from "../../../../api/api";
 
 const Step3EmployeeDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user } = useContext(AuthContext);
+  const { users: allUsers } = useUsers();
 
   const [formData, setFormData] = useState({
     capturedBy: "",
@@ -24,6 +28,18 @@ const Step3EmployeeDetails = () => {
 
   // new saving state
   const [isSaving, setIsSaving] = useState(false);
+
+  // Filter users based on role for assignTo dropdown
+  const getFilteredUsersForAssignTo = () => {
+    if (user?.role === 'admin') {
+      return allUsers || users; // Admin sees all users
+    } else {
+      // Regular users see only themselves
+      const currentUser = allUsers?.find(u => u._id === user?._id) || 
+                         users?.find(u => u._id === user?._id);
+      return currentUser ? [currentUser] : [];
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -159,7 +175,8 @@ const Step3EmployeeDetails = () => {
           name="capturedBy"
           value={formData.capturedBy || ""}
           onChange={handleChange}
-          className="w-full border px-3 py-2 rounded-lg bg-[#FAFBFC]"
+          className="w-full border px-3 py-2 rounded-lg bg-gray-100 cursor-not-allowed"
+          disabled
         >
           <option value="">-- Select User --</option>
           {users.map((u) => (
@@ -180,7 +197,7 @@ const Step3EmployeeDetails = () => {
           className="w-full border px-3 py-2 rounded-lg bg-[#FAFBFC]"
         >
           <option value="">-- Select User --</option>
-          {users.map((u) => (
+          {getFilteredUsersForAssignTo().map((u) => (
             <option key={u._id} value={u._id}>
               {u.name || u.email}
             </option>

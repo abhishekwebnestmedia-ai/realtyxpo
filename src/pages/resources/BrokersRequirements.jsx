@@ -103,37 +103,37 @@ const BrokersRequirements = () => {
         <table className="w-full border-collapse text-sm">
           <thead className="bg-gray-100 text-gray-600 uppercase text-xs sticky top-0 z-10">
             <tr>
-              <th className="px-4 py-2">
+              <th className="px-4 py-2 font-medium">
                 <input type="checkbox" />
               </th>
-              <th className="min-w-20 px-4 py-6 whitespace-nowrap theading text-left">
+              <th className="min-w-20 px-4 py-6 whitespace-nowrap theading text-left font-medium">
                 Captured By
               </th>
-              <th className="min-w-32 px-4 py-6 whitespace-nowrap theading text-left">
+              <th className="min-w-32 px-4 py-6 whitespace-nowrap theading text-left font-medium">
                 Broker Name
               </th>
-              <th className="min-w-20 px-4 py-6 whitespace-nowrap theading text-left">
+              <th className="min-w-20 px-4 py-6 whitespace-nowrap theading text-left font-medium">
                 Contact
               </th>
-              <th className="min-w-20 px-4 py-6 whitespace-nowrap theading text-left">
+              <th className="min-w-20 px-4 py-6 whitespace-nowrap theading text-left font-medium">
                 Status
               </th>
-              <th className="min-w-28 px-4 py-6 whitespace-nowrap theading text-left">
+              <th className="min-w-28 px-4 py-6 whitespace-nowrap theading text-left font-medium">
                 Date
               </th>
-              <th className="min-w-40 px-4 py-6 whitespace-nowrap theading text-left">
+              <th className="min-w-40 px-4 py-6 whitespace-nowrap theading text-left font-medium">
                 Requirement
               </th>
-              <th className="min-w-20 px-4 py-6 whitespace-nowrap theading text-left">
+              <th className="min-w-20 px-4 py-6 whitespace-nowrap theading text-left font-medium">
                 Source
               </th>
-              <th className="min-w-28 px-4 py-6 whitespace-nowrap theading text-left">
+              <th className="min-w-28 px-4 py-6 whitespace-nowrap theading text-left font-medium">
                 Follow Up Date
               </th>
-              <th className="min-w-20 px-4 py-6 whitespace-nowrap theading text-left">
+              <th className="min-w-20 px-4 py-6 whitespace-nowrap theading text-left font-medium">
                 Remark
               </th>
-              <th className="min-w-20 px-4 py-6 whitespace-nowrap theading text-left">
+              <th className="min-w-20 px-4 py-6 whitespace-nowrap theading text-left font-medium">
                 Action
               </th>
             </tr>
@@ -175,7 +175,7 @@ const BrokersRequirements = () => {
                   <td className="px-4 py-4 whitespace-nowrap">
                     {row.remark}
                   </td>
-                  <td className="px-4 py-2 align-middle">
+                  <td className="px-4 py-2 align-middle font-medium">
                     <div className="flex gap-2 justify-center items-center">
                       <button
                         className="p-1 hover:bg-gray-100 rounded transition-colors text-blue-600"

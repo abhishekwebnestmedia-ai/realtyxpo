@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import api from "../../api/api"; // added import for api
+import { AuthContext } from "../../context/AuthContext";
 import Step1SellerDetails from "./components/Stepperform/Step1SellerDetails";
 import Step2ProjectDetails from "./components/Stepperform/Step2ProjectDetails";
 import Step3EmployeeDetails from "./components/Stepperform/Step3EmployeeDetails";
 const StepperForm = () => {
+  const { user } = useContext(AuthContext);
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     name: "",
@@ -34,6 +36,17 @@ const StepperForm = () => {
   const [sources, setSources] = useState([]);
   const [paymentStatuses, setPaymentStatuses] = useState([]);
   const [users, setUsers] = useState([]);
+
+  // Filter users based on role for assignTo dropdown
+  const getFilteredUsersForAssignTo = () => {
+    if (user?.role === 'admin') {
+      return users; // Admin sees all users
+    } else {
+      // Regular users see only themselves
+      const currentUser = users?.find(u => u._id === user?._id);
+      return currentUser ? [currentUser] : [];
+    }
+  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -192,6 +205,7 @@ const StepperForm = () => {
     formData={formData}
     handleChange={handleChange}
     users={users}
+    filteredUsersForAssignTo={getFilteredUsersForAssignTo()}
     sources={sources}
   />
 )}

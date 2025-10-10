@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
+import { AuthContext } from "../../context/AuthContext";
 import api from "../../api/api";
 import showToast from "../../components/ui/notifications/AddSuccess";
 
 const AddLead = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user } = useContext(AuthContext);
   const [form, setForm] = useState({
     customerName: "",
     contactNumber: "",
@@ -33,6 +35,17 @@ const AddLead = () => {
   });
 
   const token = localStorage.getItem("token");
+
+  // Filter users based on role for assignTo dropdown
+  const getFilteredUsersForAssignTo = () => {
+    if (user?.role === 'admin') {
+      return users; // Admin sees all users
+    } else {
+      // Regular users see only themselves
+      const currentUser = users?.find(u => u._id === user?._id);
+      return currentUser ? [currentUser] : [];
+    }
+  };
 
   // 🔹 Fetch users and sources on mount
   useEffect(() => {
@@ -185,7 +198,8 @@ const AddLead = () => {
               value={form.capturedBy}
               onChange={handleChange}
               id="capturedBy"
-              className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2"
+              className="w-full border border-gray-300 bg-gray-100 cursor-not-allowed rounded px-3 py-2"
+              disabled
             >
               <option value="">-- Select User --</option>
               {users.map((u) => (
@@ -209,7 +223,7 @@ const AddLead = () => {
               className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2"
             >
               <option value="">-- Select User --</option>
-              {users.map((u) => (
+              {getFilteredUsersForAssignTo().map((u) => (
                 <option key={u._id} value={u._id}>
                   {u.name}
                 </option>

@@ -58,15 +58,15 @@ const FreshLeads = () => {
         <table className="w-full rounded-lg">
           <thead>
             <tr className="bg-gray-100 text-sm text-gray-600">
-              <th className="text-sm px-4 py-6 text-left text-nowrap">Lead Source</th>
-              <th className="text-sm px-4 py-6 text-left ">Name</th>
-              <th className="text-sm px-4 py-6 text-left text-nowrap">Lead Update On</th>
-              <th className="text-sm px-4 py-6 text-left">Phone No.</th>
-              <th className="text-sm px-4 py-6 text-left">Email</th>
-              <th className="text-sm px-4 py-6 text-left">Budget</th>
-              <th className="text-sm px-4 py-6 text-left">Type</th>
-              <th className="text-sm px-4 py-6 text-left">Requirement</th>
-              <th className="px-4 py-3 text-center">Action</th>
+              <th className="text-sm px-4 py-6 text-left text-nowrap font-medium">Lead Source</th>
+              <th className="text-sm px-4 py-6 text-left  font-medium">Name</th>
+              <th className="text-sm px-4 py-6 text-left text-nowrap font-medium">Lead Update On</th>
+              <th className="text-sm px-4 py-6 text-left font-medium">Phone No.</th>
+              <th className="text-sm px-4 py-6 text-left font-medium">Email</th>
+              <th className="text-sm px-4 py-6 text-left font-medium">Budget</th>
+              <th className="text-sm px-4 py-6 text-left font-medium">Type</th>
+              <th className="text-sm px-4 py-6 text-left font-medium">Requirement</th>
+              <th className="px-4 py-3 text-center font-medium">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -75,21 +75,21 @@ const FreshLeads = () => {
                 key={index}
                 className="border-t border-gray-200 text-gray-700 hover:bg-gray-50"
               >
-                <td className="px-4 py-3 flex justify-center">
+                <td className="px-4 py-3 flex justify-center font-medium">
                   <img src={lead.source} alt="Source" className="w-6 h-6" />
                 </td>
-                <td className="text-sm px-4 py-3 text-nowrap">{lead.name}</td>
-                <td className="text-sm px-4 py-3">{lead.date}</td>
-                <td className="text-sm px-4 py-3 text-nowrap">{lead.phone}</td>
-                <td className="text-sm px-4 py-3">{lead.email}</td>
-                <td className="text-sm px-4 py-3">
+                <td className="text-sm px-4 py-3 text-nowrap font-medium">{lead.name}</td>
+                <td className="text-sm px-4 py-3 font-medium">{lead.date}</td>
+                <td className="text-sm px-4 py-3 text-nowrap font-medium">{lead.phone}</td>
+                <td className="text-sm px-4 py-3 font-medium">{lead.email}</td>
+                <td className="text-sm px-4 py-3 font-medium">
                   <span className="bg-green-100 text-green-700 text-xs font-medium px-3 py-1 rounded-full">
                     {lead.budget}
                   </span>
                 </td>
-                <td className="text-sm px-4 py-3">{lead.type}</td>
-                <td className="text-sm px-4 py-3">{lead.requirement}</td>
-                <td className="text-sm px-4 py-3 text-center">
+                <td className="text-sm px-4 py-3 font-medium">{lead.type}</td>
+                <td className="text-sm px-4 py-3 font-medium">{lead.requirement}</td>
+                <td className="text-sm px-4 py-3 text-center font-medium">
                   <div className="flex justify-center gap-3">
                     <button className="text-blue-600 hover:text-blue-800">
                       

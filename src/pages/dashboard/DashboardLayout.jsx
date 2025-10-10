@@ -17,7 +17,7 @@ const DashboardLayout = () => {
         className={`
           bg-slate-900 text-white flex-shrink-0 h-full
           transition-[width] duration-300 ease-in-out
-          ${isSidebarOpen ? "w-72" : "w-16"}
+          ${isSidebarOpen ? "w-[18.5rem]" : "w-16"}
         `}
         style={{ willChange: "width" }}
       >

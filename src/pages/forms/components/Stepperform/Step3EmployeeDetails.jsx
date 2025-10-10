@@ -1,6 +1,6 @@
 import React from "react";
 
-const Step3EmployeeDetails = ({ formData, handleChange, users, sources }) => {
+const Step3EmployeeDetails = ({ formData, handleChange, users, filteredUsersForAssignTo, sources }) => {
   return (
     <div className="grid grid-cols-2 gap-8 mt-4">
       {/* Captured By */}
@@ -10,7 +10,8 @@ const Step3EmployeeDetails = ({ formData, handleChange, users, sources }) => {
           name="capturedBy"
           value={formData.capturedBy}
           onChange={handleChange}
-          className="w-full border px-3 py-2 rounded-lg bg-[#FAFBFC]"
+          className="w-full border px-3 py-2 rounded-lg bg-gray-100 cursor-not-allowed"
+          disabled
           required
         >
           <option value="">-- Select User --</option>
@@ -31,7 +32,7 @@ const Step3EmployeeDetails = ({ formData, handleChange, users, sources }) => {
           required
         >
           <option value="">-- Select User --</option>
-          {users.map((u) => (
+          {filteredUsersForAssignTo.map((u) => (
             <option key={u._id} value={u.name}>{u.name}</option>
           ))}
         </select>

@@ -66,7 +66,7 @@ const SidebarMenu = ({ isOpen}) => {
               className="overflow-hidden text-xl transition-all duration-300 whitespace-nowrap"
               style={{
                 opacity: isOpen ? 1 : 0,
-                maxWidth: isOpen ? "200px" : "0px",
+                
                 
                 transitionProperty: "opacity, max-width, margin-left"
               }}

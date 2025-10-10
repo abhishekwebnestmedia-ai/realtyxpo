@@ -23,10 +23,10 @@ const OverviewDashboard = () => {
         <table className="w-full text-left">
           <thead>
             <tr>
-              <th>Status</th>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Phone</th>
+              <th className="font-medium">Status</th>
+              <th className="font-medium">Name</th>
+              <th className="font-medium">Email</th>
+              <th className="font-medium">Phone</th>
             </tr>
           </thead>
           <tbody>

@@ -1,13 +1,23 @@
 import React, { useState, useMemo, useContext } from "react";
 import { CheckSquare, Filter, Download, ExternalLink, PlusCircle, Search, NotebookPen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useDailyTasks } from "../../hooks/useDailyTasks";
+import { useQueryClient } from "@tanstack/react-query";
+import { useDailyTasks, useUpdateDailyTask, useCreateDailyTask, useTodaysDailyTask } from "../../hooks/useDailyTasks";
 import { AuthContext } from "../../context/AuthContext";
 
 const TodaysTask = ({ isDashboard = false, userRole = 'user' }) => {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  // Use the new efficient API for today's task detection
+  const userName = user?.name || user?.firstName || user?.username || 'User';
+  const { data: todaysTask, isLoading: todayLoading } = useTodaysDailyTask(userName);
+  
+  // Keep the existing API for admin table view
   const { data: dailyTasksData = [], isLoading, isError } = useDailyTasks();
+  
+  const updateDailyTask = useUpdateDailyTask();
+  const createDailyTask = useCreateDailyTask();
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState("");
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
@@ -17,27 +27,279 @@ const TodaysTask = ({ isDashboard = false, userRole = 'user' }) => {
   const [isNotesPopupOpen, setIsNotesPopupOpen] = useState(false);
   const [selectedNotes, setSelectedNotes] = useState("");
 
+  // Time-based workflow state - now derived from API data
+  // Get current submission status based on today's task data (using efficient API)
+  const submissionStatus = useMemo(() => {
+    if (todayLoading) {
+      return 'none'; // Default while loading
+    }
+
+    if (!todaysTask) {
+      return 'none'; // No task for today
+    }
+
+    // Check if morning commitment has meaningful data
+    const hasMorning = todaysTask.morningCommitment && 
+      Object.keys(todaysTask.morningCommitment).length > 0 &&
+      // Check if at least one field has a meaningful value
+      (todaysTask.morningCommitment.onlinePortalChecked !== null ||
+       todaysTask.morningCommitment.whatsappStatus !== null ||
+       todaysTask.morningCommitment.emailWorking > 0 ||
+       todaysTask.morningCommitment.buyersWorking ||
+       todaysTask.morningCommitment.sellersWorking);
+
+    // Check if evening achievements has meaningful data  
+    const hasEvening = todaysTask.eveningAchievements && 
+      Object.keys(todaysTask.eveningAchievements).length > 0 &&
+      // Check if it has more than just default false values
+      (todaysTask.eveningAchievements.emailWorking > 0 ||
+       todaysTask.eveningAchievements.buyersWorking ||
+       todaysTask.eveningAchievements.sellersWorking ||
+       // Only count as complete if portal/whatsapp are true (not just false)
+       (todaysTask.eveningAchievements.onlinePortalChecked === true ||
+        todaysTask.eveningAchievements.whatsappStatus === true));
+
+    if (hasMorning && hasEvening) {
+      return 'both';
+    } else if (hasMorning) {
+      return 'morning';
+    } else {
+      return 'none';
+    }
+  }, [todaysTask, todayLoading]);
+
+  // Determine current workflow state
+  const workflowState = useMemo(() => {
+    switch (submissionStatus) {
+      case 'none':
+        return {
+          morningEnabled: true,
+          eveningEnabled: false,
+          showSubmissionStatus: false
+        };
+      case 'morning':
+        return {
+          morningEnabled: false,
+          eveningEnabled: true,
+          showSubmissionStatus: true
+        };
+      case 'both':
+        return {
+          morningEnabled: false,
+          eveningEnabled: false,
+          showSubmissionStatus: true
+        };
+      default:
+        return {
+          morningEnabled: true,
+          eveningEnabled: false,
+          showSubmissionStatus: false
+        };
+    }
+  }, [submissionStatus]);
+
   // User form state for simplified view
   const [formData, setFormData] = useState({
     morning: {
-      onlinePortal: false,
-      whatsappStatus: false,
-      emailWorking: false,
+      onlinePortal: null, // Changed from false to null to track user selection
+      whatsappStatus: null, // Changed from false to null to track user selection
+      emailWorking: '',
       buyersWorking: '',
       sellersWorking: '',
       meetingVisits: '',
       addNote: ''
     },
     evening: {
-      onlinePortal: false,
-      whatsappStatus: false,
-      emailWorking: false,
+      onlinePortal: null, // Changed from false to null to track user selection
+      whatsappStatus: null, // Changed from false to null to track user selection
+      emailWorking: '',
       buyersWorking: '',
       sellersWorking: '',
       meetingVisits: '',
       addNote: ''
     }
   });
+
+  // Removed daily reset logic since API data automatically reflects new day state
+
+  // Validation helper
+  const validateMorningForm = () => {
+    const { morning } = formData;
+    const errors = [];
+
+    // For boolean fields, check if user has made a selection (not the initial state)
+    // We need to track if user actually clicked a radio button
+    if (morning.onlinePortal === null || morning.onlinePortal === undefined) {
+      errors.push('Please select Online Portal Checking status');
+    }
+    if (morning.whatsappStatus === null || morning.whatsappStatus === undefined) {
+      errors.push('Please select WhatsApp Status');
+    }
+    if (!morning.emailWorking || morning.emailWorking.toString().trim() === '') {
+      errors.push('Please enter Email Working count');
+    }
+    if (!morning.buyersWorking || morning.buyersWorking.trim() === '') {
+      errors.push('Please enter Buyers Working count');
+    }
+    if (!morning.sellersWorking || morning.sellersWorking.trim() === '') {
+      errors.push('Please enter Sellers Working count');
+    }
+    if (!morning.meetingVisits || morning.meetingVisits.trim() === '') {
+      errors.push('Please enter Meeting/Visits count');
+    }
+
+    return errors;
+  };
+
+  const validateEveningForm = () => {
+    const { evening } = formData;
+    const errors = [];
+
+    if (evening.onlinePortal === null || evening.onlinePortal === undefined) {
+      errors.push('Please select Online Portal Checking status');
+    }
+    if (evening.whatsappStatus === null || evening.whatsappStatus === undefined) {
+      errors.push('Please select WhatsApp Status');
+    }
+    if (!evening.emailWorking || evening.emailWorking.toString().trim() === '') {
+      errors.push('Please enter Email Working count');
+    }
+    if (!evening.buyersWorking || evening.buyersWorking.trim() === '') {
+      errors.push('Please enter Buyers Working count');
+    }
+    if (!evening.sellersWorking || evening.sellersWorking.trim() === '') {
+      errors.push('Please enter Sellers Working count');
+    }
+    if (!evening.meetingVisits || evening.meetingVisits.trim() === '') {
+      errors.push('Please enter Meeting/Visits count');
+    }
+
+    return errors;
+  };
+
+  // Morning submission handler
+  const handleMorningSubmit = async () => {
+    const errors = validateMorningForm();
+    if (errors.length > 0) {
+      alert('Please fill in all required fields:\n' + errors.join('\n'));
+      return;
+    }
+
+    try {
+      const taskData = {
+        date: new Date().toISOString().split('T')[0],
+        name: user?.name || user?.firstName || user?.username || 'User',
+        morningCommitment: {
+          onlinePortalChecked: formData.morning.onlinePortal,
+          whatsappStatus: formData.morning.whatsappStatus,
+          emailWorking: parseInt(formData.morning.emailWorking) || 0,
+          buyersWorking: formData.morning.buyersWorking,
+          sellersWorking: formData.morning.sellersWorking,
+        }
+      };
+
+      // Find if there's already a task for today
+      const today = new Date().toDateString();
+      const existingTask = dailyTasksData?.find(task => {
+        const taskDate = new Date(task.date || task.createdAt).toDateString();
+        return taskDate === today;
+      });
+
+      if (existingTask && existingTask._id) {
+        await updateDailyTask.mutateAsync({ id: existingTask._id, taskData });
+      } else {
+        await createDailyTask.mutateAsync(taskData);
+      }
+      
+      queryClient.invalidateQueries({ queryKey: ["dailyTasks"] });
+      queryClient.invalidateQueries({ queryKey: ["todaysDailyTask"] });
+      
+      alert('Morning commitments submitted successfully!');
+      
+    } catch (error) {
+      console.error('Error submitting morning commitments:', error.response?.data?.message || error.message);
+      alert(`Failed to submit morning commitments: ${error.response?.data?.message || error.message}`);
+    }
+  };
+
+  // Evening submission handler
+  const handleEveningSubmit = async () => {
+    const errors = validateEveningForm();
+    if (errors.length > 0) {
+      alert('Please fill in all required fields:\n' + errors.join('\n'));
+      return;
+    }
+
+    try {
+      // Find today's existing task
+      const today = new Date().toISOString().split('T')[0];
+      const existingTask = dailyTasksData?.find(task => {
+        const taskDate = task.date || (task.createdAt ? task.createdAt.split('T')[0] : null);
+        return taskDate === today;
+      });
+
+      if (!existingTask || !existingTask._id) {
+        alert('Error: No morning commitment found. Please submit morning commitments first.');
+        return;
+      }
+
+      const eveningData = {
+        eveningAchievements: {
+          onlinePortalChecked: formData.evening.onlinePortal,
+          whatsappStatus: formData.evening.whatsappStatus,
+          emailWorking: parseInt(formData.evening.emailWorking) || 0,
+          buyersWorking: formData.evening.buyersWorking,
+          sellersWorking: formData.evening.sellersWorking,
+          meetingVisits: formData.evening.meetingVisits,
+          addNotes: formData.evening.addNote
+        }
+      };
+
+      await updateDailyTask.mutateAsync({ 
+        id: existingTask._id, 
+        taskData: eveningData 
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ["dailyTasks"] });
+      queryClient.invalidateQueries({ queryKey: ["todaysDailyTask"] });
+      
+      alert('Evening achievements submitted successfully!');
+    } catch (error) {
+      console.error('Error submitting evening achievements:', error.response?.data?.message || error.message);
+      alert(`Failed to submit evening achievements: ${error.response?.data?.message || error.message}`);
+    }
+  };
+
+  // Clear form handlers
+  const handleMorningClear = () => {
+    setFormData(prev => ({
+      ...prev,
+      morning: {
+        onlinePortal: null, // Reset to null to indicate no selection
+        whatsappStatus: null, // Reset to null to indicate no selection
+        emailWorking: '',
+        buyersWorking: '',
+        sellersWorking: '',
+        meetingVisits: '',
+        addNote: ''
+      }
+    }));
+  };
+
+  const handleEveningClear = () => {
+    setFormData(prev => ({
+      ...prev,
+      evening: {
+        onlinePortal: null, // Reset to null to indicate no selection
+        whatsappStatus: null, // Reset to null to indicate no selection
+        emailWorking: '',
+        buyersWorking: '',
+        sellersWorking: '',
+        meetingVisits: '',
+        addNote: ''
+      }
+    }));
+  };
 
   // Determine if user is admin based on userRole prop or user context
   const isAdmin = userRole === 'admin' || user?.role === 'admin';
@@ -58,8 +320,8 @@ const TodaysTask = ({ isDashboard = false, userRole = 'user' }) => {
     name: task.name,
     morning: {
       commitment: "Morning Commitment",
-      portal: task.morningCommitment?.onlinePortalChecked || 0,
-      whatsapp: task.morningCommitment?.whatsappStatus || 0,
+      portal: task.morningCommitment?.onlinePortalChecked === true ? "true" : task.morningCommitment?.onlinePortalChecked === false ? "false" : "-",
+      whatsapp: task.morningCommitment?.whatsappStatus === true ? "true" : task.morningCommitment?.whatsappStatus === false ? "false" : "-",
       buyers: task.morningCommitment?.buyersWorking || "-",
       sellers: task.morningCommitment?.sellersWorking || "-",
       met: task.meetingVisits || 0,
@@ -67,8 +329,8 @@ const TodaysTask = ({ isDashboard = false, userRole = 'user' }) => {
     },
     evening: {
       commitment: "Evening Achievements",
-      portal: task.eveningAchievements?.onlinePortalChecked || 0,
-      whatsapp: task.eveningAchievements?.whatsappStatus || 0,
+      portal: task.eveningAchievements?.onlinePortalChecked === true ? "true" : task.eveningAchievements?.onlinePortalChecked === false ? "false" : "-",
+      whatsapp: task.eveningAchievements?.whatsappStatus === true ? "true" : task.eveningAchievements?.whatsappStatus === false ? "false" : "-",
       buyers: task.eveningAchievements?.buyersWorking || "-",
       sellers: task.eveningAchievements?.sellersWorking || "-",
       met: task.meetingVisits || 0,
@@ -212,396 +474,427 @@ const TodaysTask = ({ isDashboard = false, userRole = 'user' }) => {
             </div>
           </div>
 
+          {/* Status Indicator */}
+          {workflowState.showSubmissionStatus && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+              <div className="flex items-center gap-3">
+                <CheckSquare size={20} className="text-blue-600" />
+                <div>
+                  <h4 className="font-medium text-blue-900">
+                    {submissionStatus === 'morning' ? 'Morning Commitments Submitted' : 'All Tasks Completed for Today'}
+                  </h4>
+                  <p className="text-sm text-blue-700">
+                    {submissionStatus === 'morning' 
+                      ? 'You can now fill in your evening achievements' 
+                      : 'Both morning and evening submissions are complete. See you tomorrow!'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Form Layout */}
-          <div className="flex flex-col lg:flex-row gap-6">
+          <div className="flex flex-col lg:flex-row gap-4">
             {/* Morning Commitment */}
-            <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-6 border-b border-gray-200 pb-3">
-                Morning Commitment
-              </h3>
+            <div className={`flex-1 bg-white rounded-xl shadow-sm border border-gray-200 p-6 ${
+              !workflowState.morningEnabled ? 'opacity-60 pointer-events-none' : ''
+            }`}>
+              <div className="flex items-center justify-between pb-3">
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Morning Commitment
+                </h3>
+                {submissionStatus === 'morning' || submissionStatus === 'both' ? (
+                  <span className="text-sm bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">
+                    ✓ Submitted
+                  </span>
+                ) : null}
+              </div>
               
               <div className="space-y-6">
                 {/* Online Portal Checking */}
                 <div className="space-y-3">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-base font-medium text-gray-700">
                     Online Portal Checking
                   </label>
-                  <div className="flex gap-4">
-                    <label className="flex items-center gap-2 cursor-pointer">
+                  <div className="flex gap-2">
+                    <label className="flex-1 flex items-center justify-between cursor-pointer px-4 py-3 border rounded-lg transition-all bg-gray-50 hover:bg-gray-100 has-[:checked]:bg-blue-50 has-[:checked]:border-blue-500 font-medium">
+                      <span className="text-sm font-medium text-gray-700">Yes</span>
                       <input
                         type="radio"
                         name="morningPortal"
                         value="yes"
                         checked={formData.morning.onlinePortal === true}
-                        onChange={() => setFormData(prev => ({
+                        onChange={() => workflowState.morningEnabled && setFormData(prev => ({
                           ...prev,
                           morning: { ...prev.morning, onlinePortal: true }
                         }))}
+                        disabled={!workflowState.morningEnabled}
                         className="w-4 h-4 text-blue-600"
                       />
-                      <span className="text-sm text-gray-700">Yes</span>
                     </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
+                    <label className="flex-1 flex items-center justify-between cursor-pointer px-4 py-3 border rounded-lg transition-all bg-gray-50 hover:bg-gray-100 has-[:checked]:bg-blue-50 has-[:checked]:border-blue-500 font-medium">
+                      <span className="text-sm font-medium text-gray-700">No</span>
                       <input
                         type="radio"
                         name="morningPortal"
                         value="no"
                         checked={formData.morning.onlinePortal === false}
-                        onChange={() => setFormData(prev => ({
+                        onChange={() => workflowState.morningEnabled && setFormData(prev => ({
                           ...prev,
                           morning: { ...prev.morning, onlinePortal: false }
                         }))}
+                        disabled={!workflowState.morningEnabled}
                         className="w-4 h-4 text-blue-600"
                       />
-                      <span className="text-sm text-gray-700">No</span>
                     </label>
                   </div>
                 </div>
 
                 {/* WhatsApp Status */}
                 <div className="space-y-3">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-base font-medium text-gray-700">
                     WhatsApp Status / Post in Group
                   </label>
-                  <div className="flex gap-4">
-                    <label className="flex items-center gap-2 cursor-pointer">
+                  <div className="flex gap-2">
+                    <label className="flex-1 flex items-center justify-between cursor-pointer px-4 py-3 border rounded-lg transition-all bg-gray-50 hover:bg-gray-100 has-[:checked]:bg-blue-50 has-[:checked]:border-blue-500 font-medium">
+                      <span className="text-sm font-medium text-gray-700">Yes</span>
                       <input
                         type="radio"
                         name="morningWhatsapp"
                         value="yes"
                         checked={formData.morning.whatsappStatus === true}
-                        onChange={() => setFormData(prev => ({
+                        onChange={() => workflowState.morningEnabled && setFormData(prev => ({
                           ...prev,
                           morning: { ...prev.morning, whatsappStatus: true }
                         }))}
+                        disabled={!workflowState.morningEnabled}
                         className="w-4 h-4 text-blue-600"
                       />
-                      <span className="text-sm text-gray-700">Yes</span>
                     </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
+                    <label className="flex-1 flex items-center justify-between cursor-pointer px-4 py-3 border rounded-lg transition-all bg-gray-50 hover:bg-gray-100 has-[:checked]:bg-blue-50 has-[:checked]:border-blue-500 font-medium">
+                      <span className="text-sm font-medium text-gray-700">No</span>
                       <input
                         type="radio"
                         name="morningWhatsapp"
                         value="no"
                         checked={formData.morning.whatsappStatus === false}
-                        onChange={() => setFormData(prev => ({
+                        onChange={() => workflowState.morningEnabled && setFormData(prev => ({
                           ...prev,
                           morning: { ...prev.morning, whatsappStatus: false }
                         }))}
+                        disabled={!workflowState.morningEnabled}
                         className="w-4 h-4 text-blue-600"
                       />
-                      <span className="text-sm text-gray-700">No</span>
                     </label>
                   </div>
                 </div>
 
                 {/* Email Working */}
                 <div className="space-y-3">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-base font-medium text-gray-700">
                     Email Working on
                   </label>
-                  <div className="flex gap-4">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="morningEmail"
-                        value="yes"
-                        checked={formData.morning.emailWorking === true}
-                        onChange={() => setFormData(prev => ({
-                          ...prev,
-                          morning: { ...prev.morning, emailWorking: true }
-                        }))}
-                        className="w-4 h-4 text-blue-600"
-                      />
-                      <span className="text-sm text-gray-700">Yes</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="morningEmail"
-                        value="no"
-                        checked={formData.morning.emailWorking === false}
-                        onChange={() => setFormData(prev => ({
-                          ...prev,
-                          morning: { ...prev.morning, emailWorking: false }
-                        }))}
-                        className="w-4 h-4 text-blue-600"
-                      />
-                      <span className="text-sm text-gray-700">No</span>
-                    </label>
-                  </div>
+                  <input
+                    type="number"
+                    placeholder="Enter number"
+                    value={formData.morning.emailWorking}
+                    onChange={(e) => workflowState.morningEnabled && setFormData(prev => ({
+                      ...prev,
+                      morning: { ...prev.morning, emailWorking: e.target.value }
+                    }))}
+                    disabled={!workflowState.morningEnabled}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  />
                 </div>
 
                 {/* Buyers Working */}
                 <div className="space-y-3">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-base font-medium text-gray-700">
                     Buyers Working
                   </label>
                   <input
                     type="text"
                     placeholder="No. of Buyers Working"
                     value={formData.morning.buyersWorking}
-                    onChange={(e) => setFormData(prev => ({
+                    onChange={(e) => workflowState.morningEnabled && setFormData(prev => ({
                       ...prev,
                       morning: { ...prev.morning, buyersWorking: e.target.value }
                     }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    disabled={!workflowState.morningEnabled}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                   />
                 </div>
 
                 {/* Sellers Working */}
                 <div className="space-y-3">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-base font-medium text-gray-700">
                     Sellers Working
                   </label>
                   <input
                     type="text"
                     placeholder="No. of Sellers Working"
                     value={formData.morning.sellersWorking}
-                    onChange={(e) => setFormData(prev => ({
+                    onChange={(e) => workflowState.morningEnabled && setFormData(prev => ({
                       ...prev,
                       morning: { ...prev.morning, sellersWorking: e.target.value }
                     }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    disabled={!workflowState.morningEnabled}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                   />
                 </div>
 
                 {/* Meeting / Visits */}
                 <div className="space-y-3">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-base font-medium text-gray-700">
                     Meeting / Visits
                   </label>
                   <input
                     type="text"
                     placeholder="No. of Meeting / Visits"
                     value={formData.morning.meetingVisits}
-                    onChange={(e) => setFormData(prev => ({
+                    onChange={(e) => workflowState.morningEnabled && setFormData(prev => ({
                       ...prev,
                       morning: { ...prev.morning, meetingVisits: e.target.value }
                     }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    disabled={!workflowState.morningEnabled}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                   />
                 </div>
 
                 {/* Add Note */}
                 <div className="space-y-3">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-base font-medium text-gray-700">
                     Add Note
                   </label>
                   <textarea
                     placeholder="Add Note"
                     value={formData.morning.addNote}
-                    onChange={(e) => setFormData(prev => ({
+                    onChange={(e) => workflowState.morningEnabled && setFormData(prev => ({
                       ...prev,
                       morning: { ...prev.morning, addNote: e.target.value }
                     }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-20 resize-none"
+                    disabled={!workflowState.morningEnabled}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-20 resize-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                   />
                 </div>
               </div>
 
-              <div className="flex gap-3 mt-8">
-                <button className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+              <div className="flex justify-end gap-3 mt-8">
+                <button 
+                  onClick={handleMorningClear}
+                  disabled={!workflowState.morningEnabled}
+                  className="px-6 py-1.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-base disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   Clear
                 </button>
-                <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                  Confirm
+                <button 
+                  onClick={handleMorningSubmit}
+                  disabled={!workflowState.morningEnabled || updateDailyTask.isPending}
+                  className="px-6 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-base disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {updateDailyTask.isPending ? 'Submitting...' : 'Confirm'}
                 </button>
               </div>
             </div>
 
             {/* Evening Achievements */}
-            <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-6 border-b border-gray-200 pb-3">
-                Evening Achievements
-              </h3>
+            <div className={`flex-1 bg-white rounded-xl shadow-sm border border-gray-200 p-6 ${
+              !workflowState.eveningEnabled ? 'opacity-60 pointer-events-none' : ''
+            }`}>
+              <div className="flex items-center justify-between pb-3">
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Evening Achievements
+                </h3>
+                {submissionStatus === 'both' ? (
+                  <span className="text-sm bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">
+                    ✓ Submitted
+                  </span>
+                ) : null}
+              </div>
               
               <div className="space-y-6">
                 {/* Online Portal Checking */}
                 <div className="space-y-3">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-base font-medium text-gray-700">
                     Online Portal Checking
                   </label>
-                  <div className="flex gap-4">
-                    <label className="flex items-center gap-2 cursor-pointer">
+                  <div className="flex gap-2">
+                    <label className="flex-1 flex items-center justify-between cursor-pointer px-4 py-3 border rounded-lg transition-all bg-gray-50 hover:bg-gray-100 has-[:checked]:bg-blue-50 has-[:checked]:border-blue-500 font-medium">
+                      <span className="text-sm font-medium text-gray-700">Yes</span>
                       <input
                         type="radio"
                         name="eveningPortal"
                         value="yes"
                         checked={formData.evening.onlinePortal === true}
-                        onChange={() => setFormData(prev => ({
+                        onChange={() => workflowState.eveningEnabled && setFormData(prev => ({
                           ...prev,
                           evening: { ...prev.evening, onlinePortal: true }
                         }))}
+                        disabled={!workflowState.eveningEnabled}
                         className="w-4 h-4 text-blue-600"
                       />
-                      <span className="text-sm text-gray-700">Yes</span>
                     </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
+                    <label className="flex-1 flex items-center justify-between cursor-pointer px-4 py-3 border rounded-lg transition-all bg-gray-50 hover:bg-gray-100 has-[:checked]:bg-blue-50 has-[:checked]:border-blue-500 font-medium">
+                      <span className="text-sm font-medium text-gray-700">No</span>
                       <input
                         type="radio"
                         name="eveningPortal"
                         value="no"
                         checked={formData.evening.onlinePortal === false}
-                        onChange={() => setFormData(prev => ({
+                        onChange={() => workflowState.eveningEnabled && setFormData(prev => ({
                           ...prev,
                           evening: { ...prev.evening, onlinePortal: false }
                         }))}
+                        disabled={!workflowState.eveningEnabled}
                         className="w-4 h-4 text-blue-600"
                       />
-                      <span className="text-sm text-gray-700">No</span>
                     </label>
                   </div>
                 </div>
 
                 {/* WhatsApp Status */}
                 <div className="space-y-3">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-base font-medium text-gray-700">
                     WhatsApp Status / Post in Group
                   </label>
-                  <div className="flex gap-4">
-                    <label className="flex items-center gap-2 cursor-pointer">
+                  <div className="flex gap-2">
+                    <label className="flex-1 flex items-center justify-between cursor-pointer px-4 py-3 border rounded-lg transition-all bg-gray-50 hover:bg-gray-100 has-[:checked]:bg-blue-50 has-[:checked]:border-blue-500 font-medium">
+                      <span className="text-sm font-medium text-gray-700">Yes</span>
                       <input
                         type="radio"
                         name="eveningWhatsapp"
                         value="yes"
                         checked={formData.evening.whatsappStatus === true}
-                        onChange={() => setFormData(prev => ({
+                        onChange={() => workflowState.eveningEnabled && setFormData(prev => ({
                           ...prev,
                           evening: { ...prev.evening, whatsappStatus: true }
                         }))}
+                        disabled={!workflowState.eveningEnabled}
                         className="w-4 h-4 text-blue-600"
                       />
-                      <span className="text-sm text-gray-700">Yes</span>
                     </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
+                    <label className="flex-1 flex items-center justify-between cursor-pointer px-4 py-3 border rounded-lg transition-all bg-gray-50 hover:bg-gray-100 has-[:checked]:bg-blue-50 has-[:checked]:border-blue-500 font-medium">
+                      <span className="text-sm font-medium text-gray-700">No</span>
                       <input
                         type="radio"
                         name="eveningWhatsapp"
                         value="no"
                         checked={formData.evening.whatsappStatus === false}
-                        onChange={() => setFormData(prev => ({
+                        onChange={() => workflowState.eveningEnabled && setFormData(prev => ({
                           ...prev,
                           evening: { ...prev.evening, whatsappStatus: false }
                         }))}
+                        disabled={!workflowState.eveningEnabled}
                         className="w-4 h-4 text-blue-600"
                       />
-                      <span className="text-sm text-gray-700">No</span>
                     </label>
                   </div>
                 </div>
 
                 {/* Email Working */}
                 <div className="space-y-3">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-base font-medium text-gray-700">
                     Email Working on
                   </label>
-                  <div className="flex gap-4">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="eveningEmail"
-                        value="yes"
-                        checked={formData.evening.emailWorking === true}
-                        onChange={() => setFormData(prev => ({
-                          ...prev,
-                          evening: { ...prev.evening, emailWorking: true }
-                        }))}
-                        className="w-4 h-4 text-blue-600"
-                      />
-                      <span className="text-sm text-gray-700">Yes</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="eveningEmail"
-                        value="no"
-                        checked={formData.evening.emailWorking === false}
-                        onChange={() => setFormData(prev => ({
-                          ...prev,
-                          evening: { ...prev.evening, emailWorking: false }
-                        }))}
-                        className="w-4 h-4 text-blue-600"
-                      />
-                      <span className="text-sm text-gray-700">No</span>
-                    </label>
-                  </div>
+                  <input
+                    type="number"
+                    placeholder="Enter number"
+                    value={formData.evening.emailWorking}
+                    onChange={(e) => workflowState.eveningEnabled && setFormData(prev => ({
+                      ...prev,
+                      evening: { ...prev.evening, emailWorking: e.target.value }
+                    }))}
+                    disabled={!workflowState.eveningEnabled}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  />
                 </div>
 
                 {/* Buyers Working */}
                 <div className="space-y-3">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-base font-medium text-gray-700">
                     Buyers Working
                   </label>
                   <input
                     type="text"
                     placeholder="No. of Buyers Working"
                     value={formData.evening.buyersWorking}
-                    onChange={(e) => setFormData(prev => ({
+                    onChange={(e) => workflowState.eveningEnabled && setFormData(prev => ({
                       ...prev,
                       evening: { ...prev.evening, buyersWorking: e.target.value }
                     }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    disabled={!workflowState.eveningEnabled}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                   />
                 </div>
 
                 {/* Sellers Working */}
                 <div className="space-y-3">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-base font-medium text-gray-700">
                     Sellers Working
                   </label>
                   <input
                     type="text"
                     placeholder="No. of Sellers Working"
                     value={formData.evening.sellersWorking}
-                    onChange={(e) => setFormData(prev => ({
+                    onChange={(e) => workflowState.eveningEnabled && setFormData(prev => ({
                       ...prev,
                       evening: { ...prev.evening, sellersWorking: e.target.value }
                     }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    disabled={!workflowState.eveningEnabled}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                   />
                 </div>
 
                 {/* Meeting / Visits */}
                 <div className="space-y-3">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-base font-medium text-gray-700">
                     Meeting / Visits
                   </label>
                   <input
                     type="text"
                     placeholder="No. of Meeting / Visits"
                     value={formData.evening.meetingVisits}
-                    onChange={(e) => setFormData(prev => ({
+                    onChange={(e) => workflowState.eveningEnabled && setFormData(prev => ({
                       ...prev,
                       evening: { ...prev.evening, meetingVisits: e.target.value }
                     }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    disabled={!workflowState.eveningEnabled}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                   />
                 </div>
 
                 {/* Add Note */}
                 <div className="space-y-3">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-base font-medium text-gray-700">
                     Add Note
                   </label>
                   <textarea
                     placeholder="Add Note"
                     value={formData.evening.addNote}
-                    onChange={(e) => setFormData(prev => ({
+                    onChange={(e) => workflowState.eveningEnabled && setFormData(prev => ({
                       ...prev,
                       evening: { ...prev.evening, addNote: e.target.value }
                     }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-20 resize-none"
+                    disabled={!workflowState.eveningEnabled}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-20 resize-none disabled:bg-gray-100 disabled:cursor-not-allowed"
                   />
                 </div>
               </div>
 
-              <div className="flex gap-3 mt-8">
-                <button className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+              <div className="flex justify-end gap-3 mt-8">
+                <button 
+                  onClick={handleEveningClear}
+                  disabled={!workflowState.eveningEnabled}
+                  className="px-6 py-1.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-base disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   Clear
                 </button>
-                <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                  Confirm
+                <button 
+                  onClick={handleEveningSubmit}
+                  disabled={!workflowState.eveningEnabled || updateDailyTask.isPending}
+                  className="px-6 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-base disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {updateDailyTask.isPending ? 'Submitting...' : 'Confirm'}
                 </button>
               </div>
             </div>
@@ -675,54 +968,54 @@ const TodaysTask = ({ isDashboard = false, userRole = 'user' }) => {
           {/* Conditional Table Header - Only show on full page */}
         
             <thead className="sticky top-0 z-20 bg-[#FAFBFC]">
-              <tr className="bg-[#FAFBFC] text-gray-700 border-b border-gray-200">
-                <th className="px-6 py-6 text-sm text-center whitespace-nowrap bg-[#FAFBFC]">
+              <tr className="bg-[#FAFBFC] text-gray-700">
+                <th className="px-6 py-6 text-sm text-center whitespace-nowrap bg-[#FAFBFC] font-medium">
                   <CheckSquare size={18} />
                 </th>
                 <th 
-                  className="px-6 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC]"
+                  className="px-6 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
                   onClick={() => handleSort('name')}
                 >
                   Name {sortConfig.key === 'name' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                 </th>
-                <th className="px-10 py-6 text-sm text-left whitespace-nowrap bg-[#FAFBFC]">Promises</th>
+                <th className="px-10 py-6 text-sm text-left whitespace-nowrap bg-[#FAFBFC] font-medium">Promises</th>
                 <th 
-                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC]"
+                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
                   onClick={() => handleSort('morning.portal')}
                 >
                   Online Portal Checked {sortConfig.key === 'morning.portal' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                 </th>
                 <th 
-                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC]"
+                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
                   onClick={() => handleSort('morning.whatsapp')}
                 >
                   Whatsapp Status/ Post in Group {sortConfig.key === 'morning.whatsapp' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                 </th>
                 <th 
-                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC]"
+                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
                   onClick={() => handleSort('morning.email')}
                 >
                   Email Working {sortConfig.key === 'morning.email' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                 </th>
                 <th 
-                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC]"
+                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
                   onClick={() => handleSort('morning.buyers')}
                 >
                   Buyers Working {sortConfig.key === 'morning.buyers' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                 </th>
                 <th 
-                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC]"
+                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
                   onClick={() => handleSort('morning.sellers')}
                 >
                   Sellers Working {sortConfig.key === 'morning.sellers' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                 </th>
                 <th 
-                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC]"
+                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
                   onClick={() => handleSort('morning.met')}
                 >
                   Meeting {sortConfig.key === 'morning.met' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                 </th>
-                <th className="px-20 py-6 text-sm text-left whitespace-nowrap bg-[#FAFBFC]">Notes</th>
+                <th className="px-20 py-6 text-sm text-left whitespace-nowrap bg-[#FAFBFC] font-medium">Notes</th>
               </tr>
             </thead>
           
@@ -753,7 +1046,7 @@ const TodaysTask = ({ isDashboard = false, userRole = 'user' }) => {
                     </td>
                     <td className="px-6 py-4 font-medium whitespace-nowrap">{person.morning.commitment}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{person.morning.portal}</td>
-                    <td className="px-6 py-4 font-semibold whitespace-nowrap">{person.morning.whatsapp}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{person.morning.whatsapp}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{person.morning.email}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{person.morning.buyers}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{person.morning.sellers}</td>
@@ -778,7 +1071,7 @@ const TodaysTask = ({ isDashboard = false, userRole = 'user' }) => {
                   <tr className="bg-[#FFC6C7]">
                     <td className="px-6 py-4 font-medium whitespace-nowrap">{person.evening.commitment}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{person.evening.portal}</td>
-                    <td className="px-6 py-4 font-semibold whitespace-nowrap">{person.evening.whatsapp}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{person.evening.whatsapp}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{person.evening.email}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{person.evening.buyers}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{person.evening.sellers}</td>
@@ -869,7 +1162,7 @@ const TodaysTask = ({ isDashboard = false, userRole = 'user' }) => {
                     setIsNotesPopupOpen(false);
                     setSelectedNotes("");
                   }}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium"
                 >
                   Close
                 </button>
