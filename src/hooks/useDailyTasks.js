@@ -94,3 +94,29 @@ export const useUpdateDailyTask = () => {
     },
   });
 };
+
+
+// Hook to fetch all daily plans for a specific user (all time)
+export const useUserAllDailyPlans = (userName = "User") => {
+  return useQuery({
+    queryKey: ["userAllDailyPlans", userName],
+    queryFn: async () => {
+      try {
+        const response = await api.post("/dailytask/task/byname", {
+          name: userName
+        });
+        if (response.data.success) {
+          return response.data.data || [];
+        }
+        return [];
+      } catch (error) {
+        console.error("Error fetching all daily plans for user:", error.message);
+        return [];
+      }
+    },
+    staleTime: 0,
+    cacheTime: 5 * 60 * 1000,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+  });
+};

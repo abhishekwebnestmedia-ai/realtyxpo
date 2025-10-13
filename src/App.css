@@ -1,4 +1,18 @@
+/* Sidebar animated border */
+.border-animated {
+	transition: border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Selected sidebar tab background with reduced opacity */
+.selected-tab-bg {
+	background-color: #334155;
+	/*Tailwindslate-700*/transition: background 0.4s;
+	-webkit-transition: background 0.4s;
+	-moz-transition: background 0.4s;
+	-ms-transition: background 0.4s;
+	-o-transition: background 0.4s;
+}
 

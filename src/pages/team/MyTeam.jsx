@@ -4,6 +4,7 @@ import api from '../../api/api';
 import { toast } from 'react-hot-toast';
 import ToggleSwitch from '../../components/ui/ToggleSwitch';
 import { ScrollableLeads } from '../../components/dashboard';
+import UserDailyPlanTable from '../../components/dashboard/UserDailyPlanTable';
 import ViewProfile from '../profile/ViewProfile';
 
 const MyTeam = () => {
@@ -340,7 +341,7 @@ const MyTeam = () => {
             showEditButton={false}
           />
         ) : primaryOption === 'Leads' ? (
-          <div className="max-h-96 overflow-y-auto">
+          <div className="max-h-96 ">
             <ScrollableLeads 
               data={userData} 
               hideSearch={true}
@@ -348,8 +349,12 @@ const MyTeam = () => {
               externalRowsPerPage={5}
             />
           </div>
+        ) : primaryOption === 'Daily Plan' ? (
+          <div className="">
+            <UserDailyPlanTable userName={selectedUser?.name || selectedUser?.username || ''} />
+          </div>
         ) : primaryOption === 'Inventory' ? (
-          <div className="max-h-96 overflow-y-auto">
+          <div className="overflow-y-auto">
             {userData.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="min-w-full bg-white border border-gray-200">

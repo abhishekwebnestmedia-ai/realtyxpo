@@ -973,49 +973,49 @@ const TodaysTask = ({ isDashboard = false, userRole = 'user' }) => {
                   <CheckSquare size={18} />
                 </th>
                 <th 
-                  className="px-6 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
+                  className="min-w-32 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
                   onClick={() => handleSort('name')}
                 >
                   Name {sortConfig.key === 'name' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                 </th>
-                <th className="px-10 py-6 text-sm text-left whitespace-nowrap bg-[#FAFBFC] font-medium">Promises</th>
+                <th className="min-w-56 px-4 text-sm text-left whitespace-nowrap bg-[#FAFBFC] font-medium">Promises</th>
                 <th 
-                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
+                  className="min-w-56 px-4 text-sm text-center cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
                   onClick={() => handleSort('morning.portal')}
                 >
                   Online Portal Checked {sortConfig.key === 'morning.portal' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                 </th>
                 <th 
-                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
+                  className="min-w-56 text-sm text-center cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
                   onClick={() => handleSort('morning.whatsapp')}
                 >
-                  Whatsapp Status/ Post in Group {sortConfig.key === 'morning.whatsapp' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
+                  Whatsapp Status/ Post  {sortConfig.key === 'morning.whatsapp' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                 </th>
                 <th 
-                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
+                  className="min-w-32 text-sm text-center cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
                   onClick={() => handleSort('morning.email')}
                 >
                   Email Working {sortConfig.key === 'morning.email' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                 </th>
                 <th 
-                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
+                  className="min-w-32 text-sm text-center cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
                   onClick={() => handleSort('morning.buyers')}
                 >
                   Buyers Working {sortConfig.key === 'morning.buyers' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                 </th>
                 <th 
-                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
+                  className="min-w-32 text-sm text-center cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
                   onClick={() => handleSort('morning.sellers')}
                 >
                   Sellers Working {sortConfig.key === 'morning.sellers' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                 </th>
                 <th 
-                  className="px-10 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
+                  className="min-w-24 text-sm text-center cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
                   onClick={() => handleSort('morning.met')}
                 >
                   Meeting {sortConfig.key === 'morning.met' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                 </th>
-                <th className="px-20 py-6 text-sm text-left whitespace-nowrap bg-[#FAFBFC] font-medium">Notes</th>
+                <th className="text-sm text-center whitespace-nowrap bg-[#FAFBFC] font-medium">Notes</th>
               </tr>
             </thead>
           
@@ -1041,17 +1041,17 @@ const TodaysTask = ({ isDashboard = false, userRole = 'user' }) => {
                     <td className="px-6 py-4 text-center" rowSpan={2}>
                       <CheckSquare size={18} className="text-blue-500" />
                     </td>
-                    <td className="px-6 py-4 font-medium text-gray-800 whitespace-nowrap" rowSpan={2}>
+                    <td className=" font-medium text-gray-800 whitespace-nowrap" rowSpan={2}>
                       {person.name}
                     </td>
-                    <td className="px-6 py-4 font-medium whitespace-nowrap">{person.morning.commitment}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{person.morning.portal}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{person.morning.whatsapp}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{person.morning.email}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{person.morning.buyers}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{person.morning.sellers}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{person.morning.met}</td>
-                    <td className="px-6 py-4 text-center whitespace-nowrap place-items-center">
+                    <td className="py-4 px-4 font-medium whitespace-nowrap">{person.morning.commitment}</td>
+                    <td className="py-4 whitespace-nowrap text-center">{person.morning.portal}</td>
+                    <td className="py-4 whitespace-nowrap text-center">{person.morning.whatsapp}</td>
+                    <td className="py-4 whitespace-nowrap text-center">{person.morning.email}</td>
+                    <td className="py-4 whitespace-nowrap text-center">{person.morning.buyers}</td>
+                    <td className="py-4 whitespace-nowrap text-center">{person.morning.sellers}</td>
+                    <td className="py-4 whitespace-nowrap text-center">{person.morning.met}</td>
+                    <td className="py-4 text-center whitespace-nowrap place-items-center">
                       <div className="relative group">
                         <NotebookPen 
                           size={18} 
@@ -1069,14 +1069,14 @@ const TodaysTask = ({ isDashboard = false, userRole = 'user' }) => {
                   </tr>
 
                   <tr className="bg-[#FFC6C7]">
-                    <td className="px-6 py-4 font-medium whitespace-nowrap">{person.evening.commitment}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{person.evening.portal}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{person.evening.whatsapp}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{person.evening.email}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{person.evening.buyers}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{person.evening.sellers}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{person.evening.met}</td>
-                    <td className="px-6 py-4 text-center whitespace-nowrap place-items-center">
+                    <td className=" px-4 py-4 font-medium whitespace-nowrap">{person.evening.commitment}</td>
+                    <td className="text-center py-4 whitespace-nowrap">{person.evening.portal}</td>
+                    <td className="text-center py-4 whitespace-nowrap">{person.evening.whatsapp}</td>
+                    <td className="text-center py-4 whitespace-nowrap">{person.evening.email}</td>
+                    <td className="text-center py-4 whitespace-nowrap">{person.evening.buyers}</td>
+                    <td className="text-center py-4 whitespace-nowrap">{person.evening.sellers}</td>
+                    <td className="text-center py-4 whitespace-nowrap">{person.evening.met}</td>
+                    <td className="px-24 py-4 text-center whitespace-nowrap place-items-center">
                       <div className="relative group">
                         <NotebookPen 
                           size={18} 

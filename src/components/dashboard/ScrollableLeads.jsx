@@ -205,7 +205,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                   (sortConfig.direction === "asc" ? "▲" : "▼")}
               </th>
               <th
-                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-medium"
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-center font-medium"
                 onClick={() => handleSort("status")}
               >
                 Status{" "}
