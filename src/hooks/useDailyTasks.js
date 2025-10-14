@@ -7,13 +7,17 @@ export const useTodaysDailyTask = (userName = "User") => {
     queryKey: ["todaysDailyTask", userName],
     queryFn: async () => {
       try {
-        const response = await api.post("/dailytask/task/today", {
-          name: userName
+        // Use GET to fetch all tasks, then filter for today and user
+        const response = await api.get("/dailytask/task");
+        const allTasks = Array.isArray(response.data) ? response.data : [response.data];
+        const today = new Date().toISOString().slice(0, 10);
+        const todaysTask = allTasks.find(task => {
+          const taskDate = task.date ? task.date.slice(0, 10) : null;
+          return task.name === userName && taskDate === today;
         });
-        
-        return response.data.success ? response.data.data : null;
+        return todaysTask || null;
       } catch (error) {
-        console.error('Error fetching today\'s task:', error.message);
+        console.error('Error fetching today\'s task (GET /task):', error.message);
         return null;
       }
     },
@@ -30,23 +34,12 @@ export const useDailyTasks = () => {
     queryKey: ["dailyTasks"],
     queryFn: async () => {
       try {
-        const response = await api.post("/dailytask/task/today", {});
-        
-        if (response.data.success) {
-          const taskData = response.data.data;
-          return Array.isArray(taskData) ? taskData : taskData ? [taskData] : [];
-        }
-        return [];
+        // Use GET to fetch all daily tasks
+        const response = await api.get("/dailytask/task");
+        return Array.isArray(response.data) ? response.data : [response.data];
       } catch (error) {
-        console.error('Error fetching daily tasks:', error.message);
-        // Fallback to original API
-        try {
-          const fallbackResponse = await api.get("/dailytask/task");
-          return fallbackResponse.data;
-        } catch (fallbackError) {
-          console.error('Fallback API failed:', fallbackError.message);
-          return [];
-        }
+        console.error('Error fetching daily tasks (GET /task):', error.message);
+        return [];
       }
     },
     staleTime: 0,

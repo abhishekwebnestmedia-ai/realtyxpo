@@ -74,7 +74,7 @@ const SidebarMenu = ({ isOpen }) => {
       </div>
 
       {/* Menu Items */}
-      <div className="mt-6 relative">
+  <div className="mt-6 relative flex flex-col gap-y-2">
         {/* Animated indicator */}
         <span
           style={{
@@ -100,7 +100,7 @@ const SidebarMenu = ({ isOpen }) => {
               key={index}
               to={item.path}
               ref={(el) => (itemRefs.current[index] = el)}
-              className={`relative flex items-center py-3 transition-colors duration-300 rounded-lg group hover:bg-slate-700${
+              className={`relative flex items-center py-2 transition-colors duration-300 rounded-lg group hover:bg-slate-700${
                 isActive ? " bg-slate-700" : ""
               }`}
               style={{ overflow: "hidden" }}

@@ -54,10 +54,10 @@ const TopBar = ({ toggleSidebar }) => {
   }, []);
 
   return (
-    <header className="flex justify-between items-center px-5 py-[6px] bg-white sticky top-0 z-50">
+  <header className="flex justify-between items-center px-5 py-[6px] bg-white sticky top-0 z-50 transition-all duration-300 border-b border-gray-200">
       {/* Left side */}
       <div className="flex items-center space-x-4">
-        <div className="cursor-pointer " onClick={toggleSidebar}>
+  <div className="cursor-pointer" onClick={toggleSidebar}>
           <PanelsTopLeft size={24} color="black" className="object-contain" />
         </div>
         <div>
@@ -72,7 +72,7 @@ const TopBar = ({ toggleSidebar }) => {
           <Bell className="w-6 h-6 cursor-pointer text-gray-600" />
         </div>
         <div 
-          className="p-2 bg-white rounded-full border border-[#666E99] cursor-pointer hover:bg-gray-50 transition-colors"
+          className="p-2 bg-white rounded-full border border-[#666E99] cursor-pointer hover:bg-gray-50"
           onClick={handleBroadcastClick}
         >
           <Radio size={24} className="text-gray-600" />
@@ -81,7 +81,7 @@ const TopBar = ({ toggleSidebar }) => {
         {/* Profile section */}
         <div className="relative" ref={dropdownRef}>
           <button
-            className="flex items-center space-x-3"
+            className="flex items-center space-x-3 transition-all duration-200"
             onClick={() => setIsOpen(!isOpen)}
           >
             {/* Profile Circle */}
@@ -90,10 +90,10 @@ const TopBar = ({ toggleSidebar }) => {
                 <img
                   src={user.profileImage}
                   alt="Profile"
-                  className="w-10 h-10 rounded-full border-2 border-gray-200 object-cover"
+                  className="w-10 h-10 rounded-full border-2 border-gray-200 object-cover transition-all duration-300 hover:scale-105 focus:scale-105"
                 />
               ) : (
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center border-2 border-gray-200">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center border-2 border-gray-200 transition-all duration-300 hover:scale-105 focus:scale-105">
                   <span className="text-sm font-bold text-white">
                     {getInitials(user?.name)}
                   </span>
@@ -107,29 +107,29 @@ const TopBar = ({ toggleSidebar }) => {
                 </span>
               </div>
             </div>
-            <ChevronDown size={18} className="text-gray-600" />
+            <ChevronDown size={18} className="text-gray-600 transition-all duration-200 group-hover:rotate-180" />
           </button>
 
           {/* Dropdown */}
           {isOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border z-50">
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border z-50 transition-all duration-300">
               <button
-                className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer rounded-t-lg transition-colors"
+                className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer rounded-t-lg transition-all duration-200"
                 onClick={handleViewProfile}
               >
                 View Profile
               </button>
               <button
-                className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer transition-colors"
+                className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer transition-all duration-200"
                 onClick={handleEditProfile}
               >
                 Edit Profile
               </button>
-              <div className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer transition-colors">
+              <div className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer transition-all duration-200">
                 Settings
               </div>
               <button
-                className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer rounded-b-lg transition-colors"
+                className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer rounded-b-lg transition-all duration-200"
                 onClick={handleLogout}
               >
                 Logout

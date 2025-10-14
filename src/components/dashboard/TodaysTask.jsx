@@ -978,44 +978,44 @@ const TodaysTask = ({ isDashboard = false, userRole = 'user' }) => {
                 >
                   Name {sortConfig.key === 'name' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                 </th>
-                <th className="min-w-56 px-4 text-sm text-left whitespace-nowrap bg-[#FAFBFC] font-medium">Promises</th>
+                <th className="px-4 text-sm text-left whitespace-nowrap bg-[#FAFBFC] font-medium">Promises</th>
                 <th 
-                  className="min-w-56 px-4 text-sm text-center cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
+                  className="px-4 text-sm text-center cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
                   onClick={() => handleSort('morning.portal')}
                 >
                   Online Portal Checked {sortConfig.key === 'morning.portal' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                 </th>
                 <th 
-                  className="min-w-56 text-sm text-center cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
+                  className="px-4 text-sm text-center cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
                   onClick={() => handleSort('morning.whatsapp')}
                 >
                   Whatsapp Status/ Post  {sortConfig.key === 'morning.whatsapp' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                 </th>
                 <th 
-                  className="min-w-32 text-sm text-center cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
+                  className="px-4 text-sm text-center cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
                   onClick={() => handleSort('morning.email')}
                 >
                   Email Working {sortConfig.key === 'morning.email' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                 </th>
                 <th 
-                  className="min-w-32 text-sm text-center cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
+                  className="px-4 text-sm text-center cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
                   onClick={() => handleSort('morning.buyers')}
                 >
                   Buyers Working {sortConfig.key === 'morning.buyers' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                 </th>
                 <th 
-                  className="min-w-32 text-sm text-center cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
+                  className="px-4 text-sm text-center cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
                   onClick={() => handleSort('morning.sellers')}
                 >
                   Sellers Working {sortConfig.key === 'morning.sellers' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                 </th>
                 <th 
-                  className="min-w-24 text-sm text-center cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
+                  className="px-4 text-sm text-center cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
                   onClick={() => handleSort('morning.met')}
                 >
                   Meeting {sortConfig.key === 'morning.met' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                 </th>
-                <th className="text-sm text-center whitespace-nowrap bg-[#FAFBFC] font-medium">Notes</th>
+                <th className="px-4 text-sm text-center whitespace-nowrap bg-[#FAFBFC] font-medium">Notes</th>
               </tr>
             </thead>
           
