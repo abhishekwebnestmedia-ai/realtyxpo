@@ -557,7 +557,9 @@ const ProjectModal = ({
       console.log('Submitting project data:', JSON.stringify(projectData, null, 2));
       
       // Create new project
-      await api.post('/projects/project-types/full', projectData);
+      // await api.post('/projects/project-types/full', projectData);
+      await api.post('/projects/project-types/merge', projectData);
+
       toast.success('Project created successfully!');
 
       onSuccess?.();

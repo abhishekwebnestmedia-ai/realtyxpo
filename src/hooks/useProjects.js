@@ -163,6 +163,7 @@ const useProjects = (filters = {}) => {
       try {
         // First try: project-types endpoint (most likely)
         response = await api.get('/projects/project-types');
+        console.log("repsonse pro",response.data);
       } catch {
         try {
           // Second try: inventory endpoint (might contain project info)
@@ -241,3 +242,4 @@ const useProjects = (filters = {}) => {
 };
 
 export default useProjects;
+
