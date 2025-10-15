@@ -231,6 +231,10 @@ export const useBroadcasts = (groupId) => {
         seenCount: 0,
         attachmentUrl: response.data.broadcast.attachmentUrl,
         attachmentType: response.data.broadcast.attachmentType
+        ,
+        // Ensure createdAt is present so MessageList grouping can include this message immediately
+        createdAt: response.data.broadcast.createdAt,
+        createdBy: response.data.broadcast.createdBy
       };
 
       // Add message only to the current group
@@ -251,6 +255,13 @@ export const useBroadcasts = (groupId) => {
 
   // Clear messages when switching groups
   const clearMessages = () => {
+    // Remove messages for the current groupId so UI doesn't show stale data
+    if (groupId && groupId !== 'all') {
+      setMessagesPerGroup(prev => ({
+        ...prev,
+        [groupId]: []
+      }));
+    }
     setError(null);
   };
 

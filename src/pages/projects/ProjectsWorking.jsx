@@ -347,7 +347,7 @@ const ProjectsWorking = () => {
     }
 
     return (
-      <div className="flex flex-wrap gap-4 mt-6">
+      <div className="flex flex-wrap gap-4 ">
         {/* Plus Icon for Adding New Items */}
         <div
           onClick={() => setIsModalOpen(true)}

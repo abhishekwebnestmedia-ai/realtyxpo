@@ -21,6 +21,7 @@ const AllLeads = () => {
   const [showBulkUploadPopup, setShowBulkUploadPopup] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  // table-specific filters removed — using page-level filteredLeads only
 
   const isDead = (lead) =>
     typeof lead?.status === "string" && /dead/i.test(lead.status);
@@ -34,6 +35,8 @@ const AllLeads = () => {
     if (filter === "dead") return leads.filter((l) => isDead(l));
     return leads.filter((l) => !isDead(l));
   }, [leads, filter]);
+
+  const filteredAndTableFilteredLeads = filteredLeads;
 
   if (isLoading) return <p className="p-4">Loading leads...</p>;
   if (error) return <p className="p-4 text-red-500">Error loading leads</p>;
@@ -134,8 +137,10 @@ const AllLeads = () => {
         </div>
       </div>
 
+      {/* Table-specific filters removed */}
+
       <ScrollableLeads 
-        data={filteredLeads} 
+        data={filteredAndTableFilteredLeads} 
         hideSearch={true}
         externalSearch={searchTerm}
         externalRowsPerPage={rowsPerPage}

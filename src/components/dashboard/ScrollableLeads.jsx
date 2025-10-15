@@ -294,7 +294,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                 <td className="px-4 py-4 whitespace-nowrap ">{row.email}</td>
                 <td className="px-4 py-4 whitespace-nowrap">
                   <span 
-                    className="px-10 py-1 rounded-3xl text-sm font-medium border flex  items-center"
+                    className="px-10 py-1 rounded-3xl text-sm font-medium border flex items-center justify-center text-center"
                     style={{
                       backgroundColor: getStatusStyles(row.status).backgroundColor,
                       color: getStatusStyles(row.status).color,

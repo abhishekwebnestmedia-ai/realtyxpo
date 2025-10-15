@@ -2,12 +2,15 @@ import { Bell, ChevronDown, PanelsTopLeft, Radio } from "lucide-react";
 import { useState, useContext, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
+import { useNotifications } from '../../hooks/useNotifications';
+import NotificationsPanel from './NotificationsPanel';
 
 const TopBar = ({ toggleSidebar }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { logout, user } = useContext(AuthContext);
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
+  const { unreadCount, openPanel, closePanel, isPanelOpen } = useNotifications();
 
   const handleLogout = () => {
     logout(); // Clears token and user
@@ -68,8 +71,19 @@ const TopBar = ({ toggleSidebar }) => {
       {/* Right side */}
       <div className="flex items-center space-x-6">
         {/* Notifications */}
-        <div className="p-2 bg-white rounded-full border border-[#666E99]">
-          <Bell className="w-6 h-6 cursor-pointer text-gray-600" />
+        <div className="relative">
+          <button
+            onClick={() => (isPanelOpen ? closePanel() : openPanel())}
+            className="p-2 bg-white rounded-full border border-[#666E99] relative"
+            aria-label="Open notifications"
+          >
+            <Bell className="w-6 h-6 cursor-pointer text-gray-600" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 text-[10px] bg-red-600 text-white rounded-full px-1.5">{unreadCount}</span>
+            )}
+          </button>
+          
+          <NotificationsPanel />
         </div>
         <div 
           className="p-2 bg-white rounded-full border border-[#666E99] cursor-pointer hover:bg-gray-50"

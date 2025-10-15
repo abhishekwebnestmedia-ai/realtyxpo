@@ -15,6 +15,7 @@ import LearnGrow from "./pages/resources/LearnGrow";
 import { Profile } from "./pages/profile";
 import EditProfile from "./pages/profile/EditProfile";
 import { Broadcast } from "./pages/broadcast";
+import NotificationsPage from './pages/notifications/NotificationsPage';
 import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/layout";
 import { EditLead, AddLead, AddInventry } from "./pages/forms";
@@ -77,6 +78,7 @@ const App = () => {
             <Route path="broadcast" element={<Broadcast />} />
             <Route path="profile" element={<Profile />} />
             <Route path="profile/edit" element={<EditProfile />} />
+            <Route path="notifications" element={<NotificationsPage />} />
           </Route>
         </Routes>
       </Router>

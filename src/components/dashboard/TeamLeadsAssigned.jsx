@@ -36,17 +36,7 @@ const TeamLeadsAssigned = () => {
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <h2 className="font-semibold text-2xl">Team Leads Assigned</h2>
-        <div className="flex gap-5 text-[13px] text-gray-600 font-medium">
-          <button className="flex items-center gap-1 hover:text-cyan-600">
-            View All <ChevronDown size={16}/>
-          </button>
-          <button className="flex items-center gap-1 hover:text-cyan-600">
-            Filter <Filter size={16}/>
-          </button>
-          <button className="flex items-center gap-1 hover:text-cyan-600">
-            Download PDF <FileInput size={16} />
-          </button>
-        </div>
+     
       </div>
 
       {/* Table */}
