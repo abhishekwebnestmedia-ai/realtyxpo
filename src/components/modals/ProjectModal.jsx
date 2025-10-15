@@ -259,7 +259,7 @@ const ProjectModal = ({
         </div>
 
         {/* Unit Number */}
-        <div>
+        {/* <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Unit Number
           </label>
@@ -273,7 +273,61 @@ const ProjectModal = ({
             }`}
           />
           {formErrors.unitNumber && <p className="text-red-500 text-xs mt-1">{formErrors.unitNumber}</p>}
-        </div>
+        </div> */}
+
+        <div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    Floor & Unit Number
+  </label>
+
+  <div className="flex items-center border rounded-md px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500">
+    <span className="text-gray-600 mr-1">Floor</span>
+
+    <input
+      type="number"
+      min="0"
+      onChange={(e) => {
+        const floor = e.target.value;
+        // Extract current unit from existing string
+        const match = formData.unitNumber?.match(/Unit No (\d+)/);
+        const unit = match ? match[1] : '';
+        // Combine into single string value
+        const newValue = `Floor ${floor || ''}, Unit No ${unit || ''}`;
+        handleInputChange('unitNumber', newValue.trim());
+      }}
+      className="w-16 border-none focus:outline-none focus:ring-0 text-center"
+      placeholder="0"
+    />
+
+    <span className="text-gray-600 mx-2">, Unit No</span>
+
+    <input
+      type="number"
+      min="0"
+      onChange={(e) => {
+        const unit = e.target.value;
+        // Extract current floor from existing string
+        const match = formData.unitNumber?.match(/Floor (\d+)/);
+        const floor = match ? match[1] : '';
+        // Combine into single string value
+        const newValue = `Floor ${floor || ''}, Unit No ${unit || ''}`;
+        handleInputChange('unitNumber', newValue.trim());
+      }}
+      className="w-20 border-none focus:outline-none focus:ring-0 text-center"
+      placeholder="0"
+    />
+  </div>
+
+  {formErrors.unitNumber && (
+    <p className="text-red-500 text-xs mt-1">{formErrors.unitNumber}</p>
+  )}
+</div>
+
+
+
+
+
+
       </div>
     </div>
   );
