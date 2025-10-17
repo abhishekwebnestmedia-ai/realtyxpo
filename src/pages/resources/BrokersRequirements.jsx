@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import AddBulkBrokerRequirements from '../../components/modals/AddBulkBrokerRequirements';
 import Pagination from '../../components/ui/Pagination';
 import { useBrokers } from '../../hooks/useBrokers';
 
@@ -7,6 +9,7 @@ const BrokersRequirements = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
 
   // Fetch broker data from API
   const { data: brokersData = [], isLoading, error } = useBrokers();
@@ -64,8 +67,19 @@ const BrokersRequirements = () => {
 
   return (
     <div className="rounded-lg">
-      <div className="mb-6">
-        <h1 className="pageheading mb-4">Brokers Requirements</h1>
+      <div className="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+        <h1 className="pageheading mb-0">Brokers Requirements</h1>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsBulkModalOpen(true)}
+            className="btn"
+          >
+            Add Bulk Broker Requirements
+          </button>
+          <Link to="/brokers-requirements/add" className="btn">
+            Add Broker Requirement
+          </Link>
+        </div>
       </div>
 
       {/* Controls */}
@@ -226,6 +240,12 @@ const BrokersRequirements = () => {
           </button>
         </div>
       </div>
+      {isBulkModalOpen && (
+        <AddBulkBrokerRequirements
+          isOpen={isBulkModalOpen}
+          onClose={() => setIsBulkModalOpen(false)}
+        />
+      )}
     </div>
   );
 };

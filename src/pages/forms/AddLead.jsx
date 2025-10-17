@@ -70,8 +70,26 @@ const AddLead = () => {
     fetchDropdowns();
   }, [token]);
 
+  // Prefill capturedBy with current user's name so the disabled select shows the logged-in user
+  useEffect(() => {
+    if (user?.name) {
+      setForm((prev) => ({ ...prev, capturedBy: user.name }));
+    }
+  }, [user]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    // Auto-sync assignTo and transferTo: if one is set, mirror to the other
+    if (name === 'assignTo') {
+      setForm((prev) => ({ ...prev, assignTo: value, transferTo: value }));
+      return;
+    }
+    if (name === 'transferTo') {
+      setForm((prev) => ({ ...prev, transferTo: value, assignTo: value }));
+      return;
+    }
+
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -80,13 +98,25 @@ const AddLead = () => {
     setError(null);
     setLoading(true);
     try {
-      const payload = {
-        ...form,
-        assignTo: form.assignTo || undefined, // send ObjectId
-        transferTo: form.transferTo || undefined, // send string
+      // helper: if assignTo/transferTo are ids, map to name using users list
+      const resolveToName = (val) => {
+        if (!val) return undefined;
+        // if value already looks like a name (contains space or non-id), return as-is
+        const found = users.find((u) => u._id === val || u.id === val || u.name === val || u.email === val);
+        if (found) return found.name || found.email;
+        return val;
       };
 
-      await api.post("/realtleads/create", payload);
+      const payload = {
+        ...form,
+        assignTo: resolveToName(form.assignTo),
+        transferTo: resolveToName(form.transferTo),
+      };
+
+  // Debug log: show final payload that will be sent to the API
+  console.log('AddLead: Submit payload (final):', payload);
+
+  await api.post("/realtleads/create", payload);
 
       // Invalidate leads cache to show new lead immediately
       queryClient.invalidateQueries({ queryKey: ["leads"] });
@@ -220,6 +250,27 @@ const AddLead = () => {
               value={form.assignTo}
               onChange={handleChange}
               id="assignTo"
+              className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2"
+            >
+              <option value="">-- Select User --</option>
+              {getFilteredUsersForAssignTo().map((u) => (
+                <option key={u._id} value={u._id}>
+                  {u.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Transfer To */}
+          <div>
+            <label htmlFor="transferTo" className="block mb-1 font-medium">
+              Transfer To
+            </label>
+            <select
+              name="transferTo"
+              value={form.transferTo}
+              onChange={handleChange}
+              id="transferTo"
               className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2"
             >
               <option value="">-- Select User --</option>

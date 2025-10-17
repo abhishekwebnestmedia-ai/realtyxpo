@@ -4,12 +4,12 @@ import App from './App.jsx';
 import './index.css';
 import "simple-datatables/dist/style.css";
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { initScrollbarAnimation, scrollbarCSS } from './utils/scrollbarUtils.js';
 import { NotificationsProvider } from './context/NotificationsContext';
 
-const queryClient = new QueryClient();
+import queryClient from './queryClient';
 
 // Initialize scrollbar animations
 initScrollbarAnimation();

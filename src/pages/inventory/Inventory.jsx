@@ -1,8 +1,10 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useContext } from "react";
 import { useInventory } from "../../hooks/useInventory";
 import { InventoryTable } from "../../components/tables";
 import { useNavigate } from "react-router-dom";
 import { AddBulkInventry } from "../../components/modals";
+import { AuthContext } from '../../context/AuthContext';
+import { getViewerPerms, canViewInventory } from '../../utils/permissions';
 
 // Reusable ToggleSwitch component (framer-motion sliding rounded background)
 const ToggleSwitch = ({ viewType, setViewType }) => (
@@ -45,11 +47,39 @@ const InventoryPage = () => {
   const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [rowsPerPage, setRowsPerPage] = useState(5);
-console.log('All inventory data:', allInventory); // Debug log
+  const { user: authUser } = useContext(AuthContext) || {};
+  // Normalize inventory data: backend may return an array or an object wrapper
+  const inventoryArray = React.useMemo(() => {
+    if (Array.isArray(allInventory)) return allInventory;
+    // common wrappers: { data: [...] } or { docs: [...] } or { inventory: [...] }
+    if (Array.isArray(allInventory?.data)) return allInventory.data;
+    if (Array.isArray(allInventory?.docs)) return allInventory.docs;
+    if (Array.isArray(allInventory?.inventory)) return allInventory.inventory;
+    // fallback: return empty array and warn in dev
+    if (allInventory && Object.keys(allInventory).length > 0) {
+      console.warn("useInventory returned unexpected shape, expected array. Returning empty list.", allInventory);
+    }
+    return [];
+  }, [allInventory]);
+
   // Memoized filter - recalculates only when dependencies change
   const filteredData = useMemo(() => {
-    return allInventory.filter((item) => item.inventoryType === viewType);
-  }, [allInventory, viewType]);
+    const viewerPerms = getViewerPerms(authUser || {});
+    const viewLower = String(viewType || '').toLowerCase();
+
+    // first filter by requested view type
+    const arr = inventoryArray.filter((item) => {
+      const t = String(item.inventoryType || item.type || item.category || '').toLowerCase();
+      if (viewLower.includes('sale')) return t.includes('sale') || t.includes('sell');
+      if (viewLower.includes('rent')) return t.includes('rent') || t.includes('rental');
+      return true;
+    });
+
+    // now restrict per-item by permissions
+    return arr.filter(item => canViewInventory(viewerPerms, item));
+  }, [inventoryArray, viewType, authUser]);
+
+  // removed dev debug logging
 
   if (isLoading)
     return (

@@ -909,18 +909,7 @@ const TodaysTask = ({ isDashboard = false, userRole = 'user' }) => {
               Today's Task
             </h2>
             <div className="flex gap-4 text-sm text-gray-600">
-              <button 
-                onClick={handleViewAll}
-                className="flex items-center gap-1 hover:text-cyan-600 transition-colors"
-              >
-                View All <ExternalLink size={16} />
-              </button>
-              <button className="flex items-center gap-1 hover:text-cyan-600">
-                Filter <Filter size={16} />
-              </button>
-              <button className="flex items-center gap-1 hover:text-cyan-600">
-                Download PDF <Download size={16} />
-              </button>
+              {/* Admin header actions removed per request (View All / Filter / Download PDF) */}
             </div>
           </div>
 
@@ -969,11 +958,12 @@ const TodaysTask = ({ isDashboard = false, userRole = 'user' }) => {
         
             <thead className="sticky top-0 z-20 bg-[#FAFBFC]">
               <tr className="bg-[#FAFBFC] text-gray-700">
-                <th className="px-6 py-6 text-sm text-center whitespace-nowrap bg-[#FAFBFC] font-medium">
+                <th className="px-6 py-6 text-sm text-center whitespace-nowrap bg-[#FAFBFC] font-medium sticky left-0 z-10 w-16">
                   <CheckSquare size={18} />
                 </th>
                 <th 
-                  className="min-w-32 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
+                  className="min-w-32 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium sticky left-16 z-10"
+                  style={{ minWidth: 180 }}
                   onClick={() => handleSort('name')}
                 >
                   Name {sortConfig.key === 'name' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
@@ -1022,7 +1012,7 @@ const TodaysTask = ({ isDashboard = false, userRole = 'user' }) => {
           <tbody className="">
             {currentRows.length === 0 ? (
               <tr>
-                <td colSpan={isDashboard ? 10 : 10} className="px-6 py-12 text-center">
+                <td colSpan={isDashboard ? 10 : 10} className="border-t-4 border-b-4 border-white px-6 py-12 text-center">
                   <div className="flex flex-col items-center">
                     <CheckSquare size={48} className="text-gray-400 mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -1038,20 +1028,20 @@ const TodaysTask = ({ isDashboard = false, userRole = 'user' }) => {
               currentRows.map((person, idx) => (
                 <React.Fragment key={idx}>
                   <tr className="bg-[#FFF4BD]">
-                    <td className="px-6 py-4 text-center" rowSpan={2}>
+                    <td className="border-t-4 border-b-4 border-white px-6 py-4 text-center sticky left-0 bg-[#FFF4BD] z-10" rowSpan={2}>
                       <CheckSquare size={18} className="text-blue-500" />
                     </td>
-                    <td className=" font-medium text-gray-800 whitespace-nowrap" rowSpan={2}>
+                    <td className="border-t-4 border-b-4 border-white font-medium text-gray-800 whitespace-nowrap sticky left-16 bg-[#FFF4BD] z-10" rowSpan={2}>
                       {person.name}
                     </td>
-                    <td className="py-4 px-4 font-medium whitespace-nowrap">{person.morning.commitment}</td>
-                    <td className="py-4 whitespace-nowrap text-center">{person.morning.portal}</td>
-                    <td className="py-4 whitespace-nowrap text-center">{person.morning.whatsapp}</td>
-                    <td className="py-4 whitespace-nowrap text-center">{person.morning.email}</td>
-                    <td className="py-4 whitespace-nowrap text-center">{person.morning.buyers}</td>
-                    <td className="py-4 whitespace-nowrap text-center">{person.morning.sellers}</td>
-                    <td className="py-4 whitespace-nowrap text-center">{person.morning.met}</td>
-                    <td className="py-4 text-center whitespace-nowrap place-items-center">
+                    <td className="border-t-4 border-b-4 border-white py-4 px-4 font-medium whitespace-nowrap">{person.morning.commitment}</td>
+                    <td className="border-t-4 border-b-4 border-white py-4 whitespace-nowrap text-center">{person.morning.portal}</td>
+                    <td className="border-t-4 border-b-4 border-white py-4 whitespace-nowrap text-center">{person.morning.whatsapp}</td>
+                    <td className="border-t-4 border-b-4 border-white py-4 whitespace-nowrap text-center">{person.morning.email}</td>
+                    <td className="border-t-4 border-b-4 border-white py-4 whitespace-nowrap text-center">{person.morning.buyers}</td>
+                    <td className="border-t-4 border-b-4 border-white py-4 whitespace-nowrap text-center">{person.morning.sellers}</td>
+                    <td className="border-t-4 border-b-4 border-white py-4 whitespace-nowrap text-center">{person.morning.met}</td>
+                    <td className="border-t-4 border-b-4 border-white py-4 text-center whitespace-nowrap place-items-center">
                       <div className="relative group">
                         <NotebookPen 
                           size={18} 
@@ -1069,14 +1059,14 @@ const TodaysTask = ({ isDashboard = false, userRole = 'user' }) => {
                   </tr>
 
                   <tr className="bg-[#FFC6C7]">
-                    <td className=" px-4 py-4 font-medium whitespace-nowrap">{person.evening.commitment}</td>
-                    <td className="text-center py-4 whitespace-nowrap">{person.evening.portal}</td>
-                    <td className="text-center py-4 whitespace-nowrap">{person.evening.whatsapp}</td>
-                    <td className="text-center py-4 whitespace-nowrap">{person.evening.email}</td>
-                    <td className="text-center py-4 whitespace-nowrap">{person.evening.buyers}</td>
-                    <td className="text-center py-4 whitespace-nowrap">{person.evening.sellers}</td>
-                    <td className="text-center py-4 whitespace-nowrap">{person.evening.met}</td>
-                    <td className="px-24 py-4 text-center whitespace-nowrap place-items-center">
+                    <td className="border-t-4 border-b-4 border-white px-4 py-4 font-medium whitespace-nowrap">{person.evening.commitment}</td>
+                    <td className="border-t-4 border-b-4 border-white text-center py-4 whitespace-nowrap">{person.evening.portal}</td>
+                    <td className="border-t-4 border-b-4 border-white text-center py-4 whitespace-nowrap">{person.evening.whatsapp}</td>
+                    <td className="border-t-4 border-b-4 border-white text-center py-4 whitespace-nowrap">{person.evening.email}</td>
+                    <td className="border-t-4 border-b-4 border-white text-center py-4 whitespace-nowrap">{person.evening.buyers}</td>
+                    <td className="border-t-4 border-b-4 border-white text-center py-4 whitespace-nowrap">{person.evening.sellers}</td>
+                    <td className="border-t-4 border-b-4 border-white text-center py-4 whitespace-nowrap">{person.evening.met}</td>
+                    <td className="border-t-4 border-b-4 border-white px-24 py-4 text-center whitespace-nowrap place-items-center">
                       <div className="relative group">
                         <NotebookPen 
                           size={18} 

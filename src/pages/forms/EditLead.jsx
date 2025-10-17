@@ -11,7 +11,7 @@ const EditLead = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useContext(AuthContext);
-  const { users, loading: usersLoading, fetchUsers } = useUsers();
+  const { users, fetchUsers } = useUsers();
 
   const [form, setForm] = useState({
     customerName: '',
@@ -107,11 +107,31 @@ const EditLead = () => {
 
     setLoading(true)
     try {
+      // Helper to resolve a value (id/name/email) to a display name using the users pool
+      const resolveToName = (val) => {
+        if (!val) return ''
+        if (typeof val === 'string') {
+          const trimmed = val.trim()
+          if (trimmed === '') return ''
+          // Try to find a matching user by several common keys
+          const found = (users || []).find(u =>
+            u._id === trimmed || u.id === trimmed || u.name === trimmed || u.username === trimmed || u.email === trimmed
+          )
+          return found?.name || found?.username || trimmed
+        }
+        if (typeof val === 'object') return val.name || val.username || ''
+        return String(val)
+      }
+
+      const assignToName = resolveToName(form.assignTo)
+      const transferToName = resolveToName(form.transferTo)
+
       const payload = {
         status: form.status,
         leadType: form.leadType,
         remark: form.remark,
-        assignTo: form.assignTo, // Include assignTo field
+        assignTo: assignToName, // send name instead of id
+        transferTo: transferToName || undefined, // include if present
         contactNumber: form.contactNumber, // Include other editable fields
         email: form.email,
         requirement: form.requirement,
@@ -119,15 +139,16 @@ const EditLead = () => {
         Budget: form.Budget
       }
 
-      console.log('EditLead: Update payload:', payload)
+      // Log final payload for quick debug (visible in browser console)
+      console.log('EditLead: Update payload (final):', payload)
       console.log('EditLead: Current form state:', form)
-      
+
       const response = await api.put(`/realtleads/update/${id}`, payload)
       console.log('EditLead: Update response:', response.data)
-      
+
       // Invalidate and refetch leads cache to reflect changes immediately
       queryClient.invalidateQueries({ queryKey: ['leads'] })
-      
+
       alert('Lead updated successfully!')
       navigate('/all-leads')
     } catch (error) {
@@ -203,6 +224,23 @@ const EditLead = () => {
                   ))
                 ) : (
                   // Regular user sees only their own name
+                  <option value={user?.name || user?.username}>
+                    {user?.name || user?.username}
+                  </option>
+                )}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="transferTo" className='block mb-1 font-medium'>Transfer To</label>
+              <select name="transferTo" value={form.transferTo} onChange={handleChange} id='transferTo' className='w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2'>
+                <option value="">Select User</option>
+                {user?.role === 'admin' ? (
+                  users?.map((userItem) => (
+                    <option key={userItem._id || userItem.id} value={userItem.name || userItem.username}>
+                      {userItem.name || userItem.username}
+                    </option>
+                  ))
+                ) : (
                   <option value={user?.name || user?.username}>
                     {user?.name || user?.username}
                   </option>

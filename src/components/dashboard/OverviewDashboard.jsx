@@ -82,10 +82,10 @@ const OverviewDashboard = () => {
 
           {/* Pie Chart & Attendance Table */}
           <section className="flex justify-between gap-6 bg-white mt-4 p-5 rounded-3xl">
-            <div className="w-1/2">
+            <div className="w-[40%]">
               <PieChartSection />
             </div>
-            <div className="w-1/2">
+            <div className="w-[60%]">
               <MembersAttendanceTable />
             </div>
           </section>

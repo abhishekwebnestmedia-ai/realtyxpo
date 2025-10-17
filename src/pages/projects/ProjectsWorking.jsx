@@ -1,41 +1,30 @@
-﻿
-
-
-import React, { useState } from 'react';
-import { Home, ChevronRight, Folder, File, Building2, Plus } from 'lucide-react';
-
-// Custom Components
+﻿import React, { useState } from 'react';
+import { Home, ChevronRight, Building2 } from 'lucide-react';
 import { ToggleSwitch } from '../../components/ui';
 import AnimatedFolder from '../../components/ui/AnimatedFolder';
 import { ProjectModal } from '../../components/modals';
-import UnitInfoModal from '../../components/modals/UnitInfomodal'; // ✅ FIXED import
 import { toast } from 'react-hot-toast';
 import useProjects from '../../hooks/useProjects';
 
 const ProjectsWorking = () => {
-  // State Management
+  // ✅ State Management
   const [filters, setFilters] = useState({
     projectType: 'Commercial',
-    constructionStatus: 'ReadyToMove',
+    constructionStatus: 'ReadyToMove'
   });
 
   const [currentPath, setCurrentPath] = useState([]);
   const [currentLevel, setCurrentLevel] = useState('cities');
-
-  const [selectedUnit, setSelectedUnit] = useState(null);
-  const [isUnitModalOpen, setIsUnitModalOpen] = useState(false);
-
-  // Use custom hook for data fetching
-  const { data: projectData, loading, error, refresh } = useProjects(filters);
-
-  // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Get current path for pre-filling modal
+  // ✅ Fetch data via custom hook
+  const { data: projectData, loading, error, refresh } = useProjects(filters);
+
+  // ✅ Build context for modal
   const getCurrentPath = () => {
     const pathData = {
       category: filters.projectType,
-      projectcategory: filters.constructionStatus,
+      projectcategory: filters.constructionStatus
     };
 
     if (currentPath.length > 0) {
@@ -49,7 +38,7 @@ const ProjectsWorking = () => {
     return pathData;
   };
 
-  // Event Handlers
+  // ✅ Handlers
   const handleProjectTypeChange = (value) => {
     setFilters((prev) => ({ ...prev, projectType: value }));
     setCurrentPath([]);
@@ -62,7 +51,6 @@ const ProjectsWorking = () => {
     setCurrentLevel('cities');
   };
 
-  // Get status color for units only
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case 'vacant':
@@ -78,39 +66,28 @@ const ProjectsWorking = () => {
     }
   };
 
-  // Get current level data
+  // ✅ Data traversal
   const getCurrentLevelData = () => {
     if (!projectData) return [];
 
     switch (currentLevel) {
       case 'cities':
         return projectData.cities || [];
-      case 'divisions': {
-        const cityId = currentPath[0]?.id;
-        return projectData.divisions?.[cityId] || [];
-      }
-      case 'sectors': {
-        const divisionId = currentPath[1]?.id;
-        return projectData.sectors?.[divisionId] || [];
-      }
-      case 'projects': {
-        const sectorId = currentPath[2]?.id;
-        return projectData.projects?.[sectorId] || [];
-      }
-      case 'towers': {
-        const projectId = currentPath[3]?.id;
-        return projectData.towers?.[projectId] || [];
-      }
-      case 'units': {
-        const towerId = currentPath[4]?.id;
-        return projectData.units?.[towerId] || [];
-      }
+      case 'divisions':
+        return projectData.divisions?.[currentPath[0]?.id] || [];
+      case 'sectors':
+        return projectData.sectors?.[currentPath[1]?.id] || [];
+      case 'projects':
+        return projectData.projects?.[currentPath[2]?.id] || [];
+      case 'towers':
+        return projectData.towers?.[currentPath[3]?.id] || [];
+      case 'units':
+        return projectData.units?.[currentPath[4]?.id] || [];
       default:
         return [];
     }
   };
 
-  // Icon selection based on project type and construction status
   const getProjectIcon = () => {
     const { projectType, constructionStatus } = filters;
 
@@ -126,7 +103,6 @@ const ProjectsWorking = () => {
     return '/project-working/icon1.svg';
   };
 
-  // Level configuration
   const getLevelConfig = () => {
     const configs = {
       cities: { title: 'Cities', getItemName: (i) => i.cityName || i.name },
@@ -134,7 +110,7 @@ const ProjectsWorking = () => {
       sectors: { title: 'Sectors', getItemName: (i) => i.sectorName || i.name },
       projects: { title: 'Projects', getItemName: (i) => i.projectName || i.name },
       towers: { title: 'Towers', getItemName: (i) => i.towerName || i.name },
-      units: { title: 'Units', getItemName: (i) => i.unitNumber || i.name },
+      units: { title: 'Units', getItemName: (i) => i.unitNumber || i.name }
     };
     return configs[currentLevel] || configs.cities;
   };
@@ -153,30 +129,82 @@ const ProjectsWorking = () => {
 
   const handleNavigateToItem = (item) => {
     if (currentLevel === 'units') return;
-
     const levels = ['cities', 'divisions', 'sectors', 'projects', 'towers', 'units'];
     const currentIndex = levels.indexOf(currentLevel);
     const nextLevel = levels[currentIndex + 1];
-
     if (nextLevel) {
       setCurrentPath((prev) => [...prev, { id: item._id, name: item.name }]);
       setCurrentLevel(nextLevel);
     }
   };
 
+  // ✅ Render Filters
+  const renderFilterSection = () => (
+    <div>
+      <h1 className="pageheading mb-4">Projects Working</h1>
+      {currentLevel === 'cities' && (
+        <div className="flex flex-wrap gap-6 mb-4">
+          <ToggleSwitch
+            value={filters.projectType}
+            options={[
+              { value: 'Commercial', label: 'Commercial' },
+              { value: 'Residential', label: 'Residential' }
+            ]}
+            onChange={handleProjectTypeChange}
+            size="md"
+          />
+          <ToggleSwitch
+            value={filters.constructionStatus}
+            options={[
+              { value: 'ReadyToMove', label: 'Ready To Move' },
+              { value: 'UnderConstruction', label: 'Under Construction' }
+            ]}
+            onChange={handleConstructionStatusChange}
+            size="md"
+          />
+        </div>
+      )}
+    </div>
+  );
+
+  // ✅ Render Breadcrumbs
+  const renderBreadcrumbs = () => (
+    <div className="flex items-center space-x-2 mb-4 rounded-lg">
+      <button
+        onClick={() => handleNavigateBack(-1)}
+        className="flex items-center text-gray-700 hover:text-blue-800 transition-colors"
+      >
+        <Home className="h-4 w-4" />
+      </button>
+      {currentPath.map((p, i) => (
+        <React.Fragment key={p.id}>
+          <ChevronRight className="h-4 w-4 text-gray-400" />
+          <button
+            onClick={() => handleNavigateBack(i)}
+            className="text-gray-700 hover:text-blue-800 text-sm transition-colors"
+          >
+            {p.name}
+          </button>
+        </React.Fragment>
+      ))}
+    </div>
+  );
+
+  // ✅ MAIN GRID RENDER
   const renderItemGrid = () => {
     const currentLevelData = getCurrentLevelData();
     const levelConfig = getLevelConfig();
 
-    if (loading)
+    if (loading) {
       return (
         <div className="text-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">Loading Projects...</h3>
         </div>
       );
+    }
 
-    if (error)
+    if (error) {
       return (
         <div className="text-center py-12">
           <Building2 className="h-12 w-12 text-red-400 mx-auto mb-4" />
@@ -190,216 +218,181 @@ const ProjectsWorking = () => {
           </button>
         </div>
       );
+    }
 
-    return (
-     <div className="flex flex-wrap gap-4 mt-6">
-  {/* Plus Icon */}
-  <div
-    onClick={() => setIsModalOpen(true)}
-    className="w-32 h-40 rounded-lg cursor-pointer flex flex-col items-center justify-center"
-  >
-    <div className="w-24 h-20 flex items-center justify-center mb-2">
-      <img src="/public/AddIcon.svg" alt="" className="w-22 h-22" />
-    </div>
-    <h3 className="text-xl text-center font-medium leading-tight min-h-12">
-      Add New Project
-    </h3>
-  </div>
-
-
-
-  {/* {currentLevel === 'units' ? (
-    <div className="w-full mt-6 space-y-8">
-      {Object.entries(
-        currentLevelData.reduce((acc, unit) => {
-          let floor = 'Unknown Floor';
-          let unitLabel = unit.unitNumber;
-
-          if (unit.unitNumber) {
-           
-            const parts = unit.unitNumber.split(',');
-            const floorPart = parts[0]?.trim();
-            const unitPart = parts[1]?.trim();
-
-       
-            const floorMatch = floorPart?.match(/floor\s*([0-9]+)/i);
-            if (floorMatch && floorMatch[1]) {
-              floor = `Floor ${floorMatch[1]}`;
-            }
-
-          
-            const unitMatch = unitPart?.match(/unit\s*no\s*([a-z0-9]+)/i);
-            if (unitMatch && unitMatch[1]) {
-              unitLabel = `Unit No ${unitMatch[1]}`;
-            } else if (unitPart) {
-              unitLabel = unitPart;
-            }
-          }
-
-      
-          unit.cleanedUnitNumber = unitLabel;
-
-          if (!acc[floor]) acc[floor] = [];
-          acc[floor].push(unit);
-          return acc;
-        }, {})
-      )
-      
-        .sort(
-          ([a], [b]) =>
-            parseInt(a.match(/\d+/)?.[0] || 0) -
-            parseInt(b.match(/\d+/)?.[0] || 0)
-        )
-        .map(([floor, units]) => (
-          <div key={floor} className="flex items-start gap-6">
-        
-            <div className="w-32 flex-shrink-0">
-              <h2 className="text-2xl font-semibold text-gray-800">{floor}</h2>
-            </div>
-
-            <div className="flex flex-wrap gap-4 flex-1">
-              {units.map((unit) => (
-                <div
-                  key={unit._id}
-                  onDoubleClick={() => {
-                    setSelectedUnit(unit);
-                    setIsUnitModalOpen(true);
-                  }}
-                  className="w-32 h-40 rounded-lg cursor-pointer transition-colors flex flex-col items-center justify-center hover:bg-gray-50"
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      setSelectedUnit(unit);
-                      setIsUnitModalOpen(true);
-                    }
-                  }}
-                >
-                  <div className="w-24 h-20 flex items-center justify-center mb-2">
-                    <AnimatedFolder
-                      tipColor={getStatusColor(unit.status).tipColor}
-                      coverColor={getStatusColor(unit.status).coverColor}
-                    />
-                  </div>
-                  <h3 className="font-medium text-center text-gray-900 text-xl leading-tight min-h-12">
-                    {unit.cleanedUnitNumber}
-                  </h3>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-    </div>
-  ) : (
-    // Normal levels (unchanged)
-    currentLevelData.map((item) => (
-      <div
-        key={item._id}
-        onDoubleClick={() => handleNavigateToItem(item)}
-        className="w-32 h-40 rounded-lg cursor-pointer transition-colors flex flex-col items-center justify-center"
-      >
-        {currentLevel === 'cities' ? (
-          <div className="w-24 h-20 flex items-center justify-center mb-2">
-            <img
-              src={getProjectIcon()}
-              alt={`${filters.projectType} ${filters.constructionStatus} icon`}
-              className="w-22 h-22"
-            />
-          </div>
-        ) : (
-          <div className="w-24 h-20 flex items-center justify-center mb-2">
-            <AnimatedFolder />
-          </div>
-        )}
-        <h3 className="font-medium text-center text-gray-900 text-xl leading-tight min-h-12">
-          {levelConfig.getItemName(item)}
-        </h3>
-      </div>
-    ))
-  )} */}
-
-  {/* Existing Items */}
-{currentLevel === 'units' ? (
-  <div className="w-full mt-6 space-y-8">
-    {Object.entries(
-      currentLevelData.reduce((acc, unit) => {
+    // ✅ Special handling for UNITS level (floor + unit grouping)
+    if (currentLevel === 'units') {
+      const groupedByFloor = currentLevelData.reduce((acc, unit) => {
         let floor = 'Unknown Floor';
         let unitLabel = unit.unitNumber;
 
         if (unit.unitNumber) {
-          // ✅ Split by comma
           const parts = unit.unitNumber.split(',');
           const floorPart = parts[0]?.trim();
           const unitPart = parts[1]?.trim();
 
-          // ✅ Extract floor number (handles "floor 8" or "Floor 100")
           const floorMatch = floorPart?.match(/floor\s*([0-9]+)/i);
-          if (floorMatch && floorMatch[1]) {
-            floor = `Floor ${floorMatch[1]}`;
-          }
+          if (floorMatch && floorMatch[1]) floor = `Floor ${floorMatch[1]}`;
 
-          // ✅ Extract unit number (handles "Unit No 99" or just "99")
           const unitMatch = unitPart?.match(/unit\s*no\s*([a-z0-9]+)/i);
-          if (unitMatch && unitMatch[1]) {
-            unitLabel = `Unit No ${unitMatch[1]}`;
-          } else if (unitPart) {
-            unitLabel = unitPart;
-          }
+          if (unitMatch && unitMatch[1]) unitLabel = `Unit No ${unitMatch[1]}`;
+          else if (unitPart) unitLabel = unitPart;
         }
 
-        // ✅ Save cleaned-up label
         unit.cleanedUnitNumber = unitLabel;
-
-        // ✅ Group by detected floor
         if (!acc[floor]) acc[floor] = [];
         acc[floor].push(unit);
         return acc;
-      }, {})
-    )
-      // ✅ Sort floors numerically (descending: Floor 100 → Floor 1)
-      .sort(([a], [b]) => {
+      }, {});
+
+      const sortedFloors = Object.entries(groupedByFloor).sort(([a], [b]) => {
         const floorA = parseInt(a.match(/\d+/)?.[0] || 0);
         const floorB = parseInt(b.match(/\d+/)?.[0] || 0);
-
-        // ✅ Ensure "Unknown Floor" always appears last
         if (isNaN(floorA)) return 1;
         if (isNaN(floorB)) return -1;
-
-        // ✅ Descending: higher floors first
         return floorB - floorA;
-      })
-      .map(([floor, units]) => (
-        <div key={floor} className="flex items-start gap-6">
-          {/* Floor Label */}
-          <div className="w-32 flex-shrink-0">
-            <h2 className="text-2xl font-semibold text-gray-800">{floor}</h2>
+      });
+
+      return (
+        <div className="w-full mt-6 space-y-8">
+          {/* Add Unit Button */}
+          <div
+            onClick={() => setIsModalOpen(true)}
+            className="w-32 h-40 rounded-lg cursor-pointer flex flex-col items-center justify-center hover:bg-gray-50 transition-colors"
+          >
+            <div className="w-24 h-20 flex items-center justify-center mb-2">
+              <img src="/public/AddIcon.svg" alt="" className="w-22 h-22" />
+            </div>
+            <h3 className="text-xl text-center font-medium leading-tight min-h-12">
+              Add New Unit
+            </h3>
           </div>
 
-          {/* Units Row */}
-          <div className="flex flex-wrap gap-4 flex-1">
-            {units
-              // ✅ Sort units ascending by unit number (1 → 2 → 10)
-              .sort((a, b) => {
-                const unitA = parseInt(a.cleanedUnitNumber.match(/\d+/)?.[0] || 0);
-                const unitB = parseInt(b.cleanedUnitNumber.match(/\d+/)?.[0] || 0);
-                return unitA - unitB;
-              })
-              .map((unit) => (
+          {/* Floors & Units */}
+ 
+           {/* {sortedFloors.map(([floor, units]) => (
+              <div className='flex items-center justify-center'>
+
+  <div key={floor} className="flex items-start gap-6">
+              <div className="w-32 flex-shrink-0">
+                <h2 className="text-2xl font-semibold text-gray-800">{floor}</h2>
+              </div>
+
+              <div className="flex flex-wrap gap-4 flex-1">
+                {units
+                  .sort((a, b) => {
+                    const unitA = parseInt(a.cleanedUnitNumber.match(/\d+/)?.[0] || 0);
+                    const unitB = parseInt(b.cleanedUnitNumber.match(/\d+/)?.[0] || 0);
+                    return unitA - unitB;
+                  })
+                  .map((unit) => (
+                    <div
+                      key={unit._id}
+                      onDoubleClick={() => handleNavigateToItem(unit)}
+                      className="w-32 h-40 rounded-lg cursor-pointer flex flex-col items-center justify-center hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="w-24 h-20 flex items-center justify-center mb-2">
+                        <AnimatedFolder
+                          tipColor={getStatusColor(unit.status).tipColor}
+                          coverColor={getStatusColor(unit.status).coverColor}
+                        />
+                      </div>
+                      <h3 className="font-medium text-center text-gray-900 text-xl leading-tight min-h-12">
+                        {unit.cleanedUnitNumber}
+                      </h3>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            
+            </div>
+
+          
+          ))} */}
+
+{/* <div className="flex flex-col items-center justify-center w-full space-y-10">
+  {sortedFloors.map(([floor, units]) => (
+    <div
+      key={floor}
+      className="flex items-center gap-10 justify-center "
+    >
+     
+      <div className=" max-w-10 text-right w-full  gap-5 ">
+        <h2 className="text-2xl font-semibold text-gray-800">{floor}</h2>
+      </div>
+
+   
+      <div className="flex flex-wrap gap-4 flex-1 justify-center">
+        {units
+          .sort((a, b) => {
+            const unitA = parseInt(a.cleanedUnitNumber.match(/\d+/)?.[0] || 0);
+            const unitB = parseInt(b.cleanedUnitNumber.match(/\d+/)?.[0] || 0);
+            return unitA - unitB;
+          })
+          .map((unit) => (
+            <div
+              key={unit._id}
+              onDoubleClick={() => handleNavigateToItem(unit)}
+              className="w-32 h-40 rounded-lg cursor-pointer flex flex-col items-center justify-center hover:bg-gray-50 transition-colors"
+            >
+              <div className="w-24 h-20 flex items-center justify-center mb-2">
+                <AnimatedFolder
+                  tipColor={getStatusColor(unit.status).tipColor}
+                  coverColor={getStatusColor(unit.status).coverColor}
+                />
+              </div>
+              <h3 className="font-medium text-center text-gray-900 text-xl leading-tight min-h-12">
+                {unit.cleanedUnitNumber}
+              </h3>
+            </div>
+          ))}
+      </div>
+    </div>
+  ))}
+</div> */}
+
+
+<div className="grid justify-center w-full gap-10">
+  {sortedFloors.map(([floor, units]) => {
+    // sort units by numeric part for stable ordering
+    const sortedUnits = [...units].sort((a, b) => {
+      const unitA = parseInt((a.cleanedUnitNumber || '').match(/\d+/)?.[0] || 0);
+      const unitB = parseInt((b.cleanedUnitNumber || '').match(/\d+/)?.[0] || 0);
+      return unitA - unitB;
+    });
+
+    // split into rows of 5 units each to render across the 5 columns
+    const rows = [];
+    for (let i = 0; i < sortedUnits.length; i += 5) rows.push(sortedUnits.slice(i, i + 5));
+
+    return (
+      <div key={floor} className="w-full max-w-6xl mx-auto">
+        {rows.map((rowUnits, rowIndex) => (
+          <div key={rowIndex} className="grid grid-cols-6 gap-4 items-start mb-4">
+            {/* Floor column: show on the first row only; responsive alignment (right on small, start on md+) */}
+            <div className="text-right md:text-start pr-4">
+              {rowIndex === 0 ? (
+                <h2 className="text-2xl font-semibold text-gray-800">{floor}</h2>
+              ) : (
+                <div />
+              )}
+            </div>
+
+            {/* Five unit columns */}
+            {Array.from({ length: 5 }).map((_, colIdx) => {
+              const unit = rowUnits[colIdx];
+              if (!unit) {
+                return (
+                  <div key={colIdx} className="w-32 h-40 rounded-lg flex items-center justify-center bg-transparent" />
+                );
+              }
+
+              return (
                 <div
-                  key={unit._id}
-                  onDoubleClick={() => {
-                    setSelectedUnit(unit);
-                    setIsUnitModalOpen(true);
-                  }}
-                  className="w-32 h-40 rounded-lg cursor-pointer transition-colors flex flex-col items-center justify-center hover:bg-gray-50"
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      setSelectedUnit(unit);
-                      setIsUnitModalOpen(true);
-                    }
-                  }}
+                  key={unit._id || unit.id || `${floor}-${rowIndex}-${colIdx}`}
+                  onDoubleClick={() => handleNavigateToItem(unit)}
+                  className="w-32 h-40 rounded-lg cursor-pointer flex flex-col items-center justify-center hover:bg-gray-50 transition-colors"
                 >
                   <div className="w-24 h-20 flex items-center justify-center mb-2">
                     <AnimatedFolder
@@ -411,74 +404,81 @@ const ProjectsWorking = () => {
                     {unit.cleanedUnitNumber}
                   </h3>
                 </div>
-              ))}
+              );
+            })}
           </div>
-        </div>
-      ))}
-  </div>
-) : (
-  // Normal levels (unchanged)
-  currentLevelData.map((item) => (
-    <div
-      key={item._id}
-      onDoubleClick={() => handleNavigateToItem(item)}
-      className="w-32 h-40 rounded-lg cursor-pointer transition-colors flex flex-col items-center justify-center"
-    >
-      {currentLevel === 'cities' ? (
-        <div className="w-24 h-20 flex items-center justify-center mb-2">
-          <img
-            src={getProjectIcon()}
-            alt={`${filters.projectType} ${filters.constructionStatus} icon`}
-            className="w-22 h-22"
-          />
-        </div>
-      ) : (
-        <div className="w-24 h-20 flex items-center justify-center mb-2">
-          <AnimatedFolder />
-        </div>
-      )}
-      <h3 className="font-medium text-center text-gray-900 text-xl leading-tight min-h-12">
-        {levelConfig.getItemName(item)}
-      </h3>
-    </div>
-  ))
-)}
-
-
-
-
+        ))}
+        {/* If there are no units, show an empty row with floor label */}
+        {rows.length === 0 && (
+          <div className="grid grid-cols-6 gap-4 items-start mb-4">
+            <div className="text-right md:text-start pr-4"><h2 className="text-2xl font-semibold text-gray-800">{floor}</h2></div>
+            <div className="col-span-5 text-center py-6 text-gray-500">No units</div>
+          </div>
+        )}
+      </div>
+    );
+  })}
 </div>
 
+          
+       </div>
+      
+      );
+    }
+
+    // ✅ Default grid for other levels
+    return (
+      <div className="flex flex-wrap gap-4 mt-6">
+        {/* Add Button */}
+        <div
+          onClick={() => setIsModalOpen(true)}
+          className="w-32 h-40 rounded-lg cursor-pointer flex flex-col items-center justify-center"
+        >
+          <div className="w-24 h-20 flex items-center justify-center mb-2">
+            <img src="/public/AddIcon.svg" alt="" className="w-22 h-22" />
+          </div>
+          <h3 className="text-xl text-center font-medium leading-tight min-h-12">
+            Add New Project
+          </h3>
+        </div>
+
+        {/* Items */}
+        {currentLevelData.map((item) => (
+          <div
+            key={item._id}
+            onDoubleClick={() => handleNavigateToItem(item)}
+            className="w-32 h-40 rounded-lg cursor-pointer flex flex-col items-center justify-center hover:bg-gray-50 transition-colors"
+          >
+            {currentLevel === 'cities' ? (
+              <div className="w-24 h-20 flex items-center justify-center mb-2">
+                <img
+                  src={getProjectIcon()}
+                  alt={`${filters.projectType} ${filters.constructionStatus} icon`}
+                  className="w-22 h-22"
+                />
+              </div>
+            ) : (
+              <div className="w-24 h-20 flex items-center justify-center mb-2">
+                <AnimatedFolder />
+              </div>
+            )}
+            <h3 className="font-medium text-center text-gray-900 text-xl leading-tight min-h-12">
+              {levelConfig.getItemName(item)}
+            </h3>
+          </div>
+        ))}
+      </div>
     );
   };
 
+  // ✅ Final Render
   return (
     <div>
-      {currentLevel !== 'cities' && (
-        <div className="flex items-center space-x-2 mb-4 rounded-lg">
-          <button
-            onClick={() => handleNavigateBack(-1)}
-            className="flex items-center text-gray-700 hover:text-blue-800 transition-colors"
-          >
-            <Home className="h-4 w-4" />
-          </button>
-          {currentPath.map((p, i) => (
-            <React.Fragment key={p.id}>
-              <ChevronRight className="h-4 w-4 text-gray-400" />
-              <button
-                onClick={() => handleNavigateBack(i)}
-                className="text-gray-700 hover:text-blue-800 text-sm transition-colors"
-              >
-                {p.name}
-              </button>
-            </React.Fragment>
-          ))}
-        </div>
-      )}
+      {renderFilterSection()}
+      {currentLevel !== 'cities' && renderBreadcrumbs()}
 
-      {renderItemGrid()}
+      <div className="flex flex-row">{renderItemGrid()}</div>
 
-      {/* Project Modal */}
       <ProjectModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -489,13 +489,6 @@ const ProjectsWorking = () => {
           setIsModalOpen(false);
           toast.success('Project created successfully!');
         }}
-      />
-
-      {/* Unit Info Modal */}
-      <UnitInfoModal
-        isOpen={isUnitModalOpen}
-        onClose={() => setIsUnitModalOpen(false)}
-        unit={selectedUnit}
       />
     </div>
   );

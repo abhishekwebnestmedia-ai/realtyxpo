@@ -330,7 +330,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                           navigate("/all-leads", { state: { lead: row } });
                         }
                       }}
-                      className="text-blue-600 hover:text-blue-800"
+                      className="text-[#00E029]"
                     >
                       <Pencil size={16} />
                     </button>

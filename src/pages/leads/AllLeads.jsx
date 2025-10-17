@@ -1,10 +1,12 @@
 // src/pages/leads/AllLeads.jsx
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useContext } from "react";
 import { useLeads } from "../../hooks/useLeads";
 import { ScrollableLeads } from "../../components/dashboard";
 
 import { useNavigate } from "react-router-dom";
 import { AddBulkLead } from "../../components/modals";
+import { AuthContext } from '../../context/AuthContext';
+import { getViewerPerms, hasAnyLeadAccess, canViewLead } from '../../utils/permissions';
 
 const AllLeads = () => {
   const navigate = useNavigate();
@@ -26,17 +28,37 @@ const AllLeads = () => {
   const isDead = (lead) =>
     typeof lead?.status === "string" && /dead/i.test(lead.status);
 
+  const { user: authUser } = useContext(AuthContext) || {};
+
   const filteredLeads = useMemo(() => {
+    const viewerPerms = getViewerPerms(authUser || {});
     if (!Array.isArray(leads)) return [];
-    if (filter === "buyers")
-      return leads.filter((l) => l?.leadType === "Buyer" && !isDead(l));
-    if (filter === "rental")
-      return leads.filter((l) => l?.leadType === "Rental" && !isDead(l));
-    if (filter === "dead") return leads.filter((l) => isDead(l));
-    return leads.filter((l) => !isDead(l));
-  }, [leads, filter]);
+
+    // First filter by permission per item
+    const permissionFiltered = leads.filter((item) => canViewLead(viewerPerms, item));
+
+    if (filter === "buyers") return permissionFiltered.filter((l) => String(l?.leadType).toLowerCase().includes('buyer') && !isDead(l));
+    if (filter === "rental") return permissionFiltered.filter((l) => String(l?.leadType).toLowerCase().includes('rental') || String(l?.leadType).toLowerCase().includes('rent'));
+    if (filter === "dead") return permissionFiltered.filter((l) => isDead(l));
+
+    return permissionFiltered.filter((l) => !isDead(l));
+  }, [leads, filter, authUser]);
 
   const filteredAndTableFilteredLeads = filteredLeads;
+
+  // derive viewer permissions and admin flag for UI gating/reactive resets
+  const viewerPerms = getViewerPerms(authUser || {});
+  const isAdmin = Boolean(viewerPerms?.superAdmin);
+
+  // If the current filter is 'dead' but the viewer is not allowed to see dead leads,
+  // reset back to buyers so they don't stay stuck on an inaccessible view.
+  React.useEffect(() => {
+    if (filter === 'dead' && !isAdmin) {
+      setFilter('buyers');
+    }
+  }, [filter, isAdmin]);
+
+  // removed dev debug logging
 
   if (isLoading) return <p className="p-4">Loading leads...</p>;
   if (error) return <p className="p-4 text-red-500">Error loading leads</p>;
@@ -101,15 +123,17 @@ const AllLeads = () => {
             <span className="relative z-10">Rental Business</span>
           </button>
 
-          {/* Dead */}
-          <button
-            onClick={() => setFilter("dead")}
-            className={`relative flex-1 px-3 py-[0.65rem] text-sm font-medium transition-colors z-10 whitespace-nowrap ${
-              filter === "dead" ? "text-white" : "text-gray-700"
-            }`}
-          >
-            <span className="relative z-10">Dead Leads</span>
-          </button>
+          {/* Dead - only visible to super admins */}
+          {Boolean(authUser?.permissions?.superAdmin) && (
+            <button
+              onClick={() => setFilter("dead")}
+              className={`relative flex-1 px-3 py-[0.65rem] text-sm font-medium transition-colors z-10 whitespace-nowrap ${
+                filter === "dead" ? "text-white" : "text-gray-700"
+              }`}
+            >
+              <span className="relative z-10">Dead Leads</span>
+            </button>
+          )}
         </div>
 
         {/* Search and Controls */}

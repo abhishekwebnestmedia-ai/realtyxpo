@@ -1,16 +1,16 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { AuthContext } from "../../../../context/AuthContext";
 import { useUsers } from "../../../../hooks/useBroadcast";
+import { AuthContext } from "../../../../context/AuthContext";
 import api from "../../../../api/api";
 
 const Step3EmployeeDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const { user } = useContext(AuthContext);
+  const queryClient = useQueryClient(); 
   const { users: allUsers } = useUsers();
+  const { user } = useContext(AuthContext);
 
   const [formData, setFormData] = useState({
     capturedBy: "",
@@ -29,16 +29,29 @@ const Step3EmployeeDetails = () => {
   // new saving state
   const [isSaving, setIsSaving] = useState(false);
 
-  // Filter users based on role for assignTo dropdown
+  // Filter users for Assign To dropdown: admin sees all, regular users see only themselves
   const getFilteredUsersForAssignTo = () => {
-    if (user?.role === 'admin') {
-      return allUsers || users; // Admin sees all users
-    } else {
-      // Regular users see only themselves
-      const currentUser = allUsers?.find(u => u._id === user?._id) || 
-                         users?.find(u => u._id === user?._id);
-      return currentUser ? [currentUser] : [];
-    }
+    const pool = getUserPool();
+    if (user?.role === "admin") return pool;
+    // try to find the current user in the pool
+    const current = pool.find((u) => u._id === user?._id || u.id === user?._id);
+    if (current) return [current];
+    // fallback to constructing a minimal option from the logged-in user
+    if (user) return [{ _id: user._id || user.id, name: user.name || user.username }];
+    return [];
+  };
+
+  // Merge realtime allUsers and locally fetched users into a de-duped pool
+  const getUserPool = () => {
+    const a = Array.isArray(allUsers) ? allUsers : [];
+    const b = Array.isArray(users) ? users : [];
+    const map = new Map();
+    // prefer entries from a (realtime) when keys collide
+    a.concat(b).forEach((u) => {
+      const key = u._id || u.id || u.name || u.email;
+      if (!map.has(key)) map.set(key, u);
+    });
+    return Array.from(map.values());
   };
 
   useEffect(() => {
@@ -66,20 +79,18 @@ const Step3EmployeeDetails = () => {
         const fetchedSources = dropdownRes.data?.source || [];
         setSources(fetchedSources);
 
-        // helper to resolve a user identifier to a user._id if possible
-        const resolveToUserId = (val) => {
+        
+
+        // helper to resolve a user identifier to a user.name if possible
+        const resolveToUserName = (val) => {
           if (!val) return "";
-          // if it's already an id and exists in users list, keep it
-          const byId = fetchedUsers.find((u) => u._id === val);
-          if (byId) return byId._id;
-          // if val is an object with _id
-          if (typeof val === "object" && val !== null && val._id) return val._id;
-          // try to match by name or email
-          const byName = fetchedUsers.find(
-            (u) => (u.name && u.name === val) || (u.email && u.email === val)
-          );
-          if (byName) return byName._id;
-          // fallback to original value (string) so UI can still show something
+          // if it's already an object with a name
+          if (typeof val === "object" && val !== null && val.name) return val.name;
+          // try to match by id or name or email
+          const byId = fetchedUsers.find((u) => u._id === val || u.id === val);
+          if (byId) return byId.name || byId.email || "";
+          const byName = fetchedUsers.find((u) => u.name === val || u.email === val);
+          if (byName) return byName.name || byName.email || "";
           return val;
         };
 
@@ -96,9 +107,9 @@ const Step3EmployeeDetails = () => {
         const inventoryRemark = inventoryData.remarks ?? inventoryData.remark ?? "";
 
         setFormData({
-          capturedBy: resolveToUserId(inventoryData.capturedBy),
-          assignTo: resolveToUserId(inventoryData.assignTo),
-          transferTo: resolveToUserId(inventoryData.transferTo),
+          capturedBy: resolveToUserName(inventoryData.capturedBy),
+          assignTo: resolveToUserName(inventoryData.assignTo),
+          transferTo: resolveToUserName(inventoryData.transferTo),
           followUp: inventoryFollowUp,
           remark: inventoryRemark,
           source: inventorySource,
@@ -122,13 +133,17 @@ const Step3EmployeeDetails = () => {
   // Map an id (or value) to the corresponding user name/email if possible
   const resolveUserToString = (val) => {
     if (!val) return "";
-    // if already a name-like string, return it
-    if (typeof val === "string" && !users.find((u) => u._id === val)) {
+    const pool = getUserPool();
+
+    // if already a name-like string and not an id in pool, return it
+    if (typeof val === "string" && !pool.find((u) => u._id === val || u.id === val)) {
       return val;
     }
-    // if it's an ID, map to user.name || user.email
-    const u = users.find((user) => user._id === val);
+
+    // if it's an ID or id-like, map to user.name || user.email
+    const u = pool.find((user) => user._id === val || user.id === val);
     if (u) return u.name || u.email || "";
+
     return val; // fallback to original value
   };
 
@@ -179,8 +194,8 @@ const Step3EmployeeDetails = () => {
           disabled
         >
           <option value="">-- Select User --</option>
-          {users.map((u) => (
-            <option key={u._id} value={u._id}>
+          {getUserPool().map((u) => (
+            <option key={u._id || u.id || u.email} value={u.name || u.email}>
               {u.name || u.email}
             </option>
           ))}
@@ -198,7 +213,7 @@ const Step3EmployeeDetails = () => {
         >
           <option value="">-- Select User --</option>
           {getFilteredUsersForAssignTo().map((u) => (
-            <option key={u._id} value={u._id}>
+            <option key={u._id || u.id || u.email} value={u.name || u.email}>
               {u.name || u.email}
             </option>
           ))}
@@ -215,8 +230,8 @@ const Step3EmployeeDetails = () => {
           className="w-full border px-3 py-2 rounded-lg bg-[#FAFBFC]"
         >
           <option value="">-- Select User --</option>
-          {users.map((u) => (
-            <option key={u._id} value={u._id}>
+          {getUserPool().map((u) => (
+            <option key={u._id || u.id || u.email} value={u.name || u.email}>
               {u.name || u.email}
             </option>
           ))}
@@ -227,14 +242,14 @@ const Step3EmployeeDetails = () => {
       <div>
         <label className="block mb-2 font-medium">Source</label>
         <input
-          list="sourceList"
+          list="sourceOptions"
           name="source"
           value={formData.source}
           onChange={handleChange}
           className="w-full border px-3 py-2 rounded-lg"
           placeholder="Select or type source"
         />
-        <datalist id="sourceList">
+        <datalist id="sourceOptions">
           {sources.map((s, i) => (
             <option key={i} value={s} />
           ))}

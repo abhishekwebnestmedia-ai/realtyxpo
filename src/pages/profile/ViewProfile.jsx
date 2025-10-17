@@ -18,11 +18,20 @@ const ViewProfile = ({ profileUser = null, customHeading = null, showEditButton 
   };
 
   // Function to get full image URL
+  // Function to get full image URL. If imagePath is not provided, try common user image fields.
   const getImageUrl = (imagePath) => {
-    if (!imagePath) return null;
-    if (imagePath.startsWith('http')) return imagePath;
-    return `https://backend.realtyxpo.in${imagePath}`;
+    let path = imagePath;
+    if (!path) {
+      // Try common fields on displayUser
+      path = displayUser?.profileImage || displayUser?.profilePicture || displayUser?.avatar || displayUser?.profilePhoto;
+    }
+    if (!path) return null;
+    if (path.startsWith('http')) return path;
+    return `https://backend.realtyxpo.in${path}`;
   };
+
+  // Compute profile src once so JSX can use it
+  const profileSrc = getImageUrl();
 
   // Mock data for leads with useMemo to prevent re-renders
   const mockLeadsData = useMemo(() => [
@@ -476,10 +485,11 @@ const ViewProfile = ({ profileUser = null, customHeading = null, showEditButton 
             <div className=" rounded-xl  ">
               {/* Profile Image */}
               <div className="rounded-xl p-6 mb-6 text-center">
-                {displayUser?.profileImage ? (
+                {profileSrc ? (
                   <img
-                    src={getImageUrl(displayUser.profileImage)}
+                    src={profileSrc}
                     alt="Profile"
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
                     className="w-24 h-24 rounded-full object-cover mx-auto mb-4 border-4 border-gray-200"
                   />
                 ) : (

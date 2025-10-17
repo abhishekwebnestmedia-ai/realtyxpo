@@ -1,5 +1,6 @@
 // UI Components Barrel Export
 export { default as ToggleSwitch } from './ToggleSwitch';
+export { default as SmallSwitch } from './SmallSwitch';
 export { default as ErrorState } from './ErrorState';
 export { default as Pagination } from './Pagination';
 export { default as ScrollToTop } from './ScrollToTop';

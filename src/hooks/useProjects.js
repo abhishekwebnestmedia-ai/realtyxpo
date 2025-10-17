@@ -242,4 +242,3 @@ const useProjects = (filters = {}) => {
 };
 
 export default useProjects;
-

@@ -152,7 +152,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                 <input type="checkbox" />
               </th>
               <th
-                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
+                className="px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
                 onClick={() => handleSort("sellerName")}
               >
                 Seller Name{" "}
@@ -163,7 +163,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                   : ""}
               </th>
               <th
-                className="min-w-32 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
+                className="px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
                 onClick={() => handleSort("project")}
               >
                 Project{" "}
@@ -174,7 +174,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                   : ""}
               </th>
               <th
-                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
+                className="px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
                 onClick={() => handleSort("sectorNo")}
               >
                 Sector No{" "}
@@ -185,7 +185,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                   : ""}
               </th>
               <th
-                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
+                className="px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
                 onClick={() => handleSort("unitNo")}
               >
                 Unit No{" "}
@@ -196,7 +196,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                   : ""}
               </th>
               <th
-                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
+                className="px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
                 onClick={() => handleSort("towerNo")}
               >
                 Tower No{" "}
@@ -207,7 +207,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                   : ""}
               </th>
               <th
-                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
+                className="px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
                 onClick={() => handleSort("typology")}
               >
                 Typology{" "}
@@ -218,7 +218,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                   : ""}
               </th>
               <th
-                className="min-w-28 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
+                className="px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
                 onClick={() => handleSort("size")}
               >
                 Size{" "}
@@ -229,7 +229,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                   : ""}
               </th>
               <th
-                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
+                className="px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
                 onClick={() => handleSort("demand")}
               >
                 Demand{" "}
@@ -240,10 +240,10 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                   : ""}
               </th>
               <th
-                className="min-w-40 px-4 py-2 cursor-pointer hover:bg-gray-200 whitespace-nowrap theading font-semibold"
+                className="px-4 py-2 cursor-pointer hover:bg-gray-200 whitespace-nowrap theading font-semibold"
                 onClick={() => handleSort("contactNumbers")}
               >
-                Contact Numbers{" "}
+                Contact No.{" "}
                 {sortConfig.key === "contactNumbers"
                   ? sortConfig.direction === "asc"
                     ? " ▲"
@@ -251,7 +251,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                   : ""}
               </th>
               <th
-                className="min-w-40 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
+                className="px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
                 onClick={() => handleSort("email")}
               >
                 Email{" "}
@@ -262,7 +262,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                   : ""}
               </th>
               <th
-                className="min-w-40 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
+                className="px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
                 onClick={() => handleSort("paymentStatus")}
               >
                 Payment Status{" "}
@@ -273,7 +273,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                   : ""}
               </th>
               <th
-                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
+                className="px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
                 onClick={() => handleSort("registryType")}
               >
                 Registry Type{" "}
@@ -284,7 +284,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                   : ""}
               </th>
               <th
-                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
+                className="px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
                 onClick={() => handleSort("requirement")}
               >
                 Requirement{" "}
@@ -295,7 +295,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                   : ""}
               </th>
               <th
-                className="min-w-28 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
+                className="px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
                 onClick={() => handleSort("date")}
               >
                 Date{" "}
@@ -306,7 +306,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                   : ""}
               </th>
               <th
-                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
+                className="px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
                 onClick={() => handleSort("capturedBy")}
               >
                 Captured By{" "}
@@ -317,7 +317,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                   : ""}
               </th>
               <th
-                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
+                className="px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
                 onClick={() => handleSort("assignTo")}
               >
                 Assign To{" "}
@@ -328,7 +328,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                   : ""}
               </th>
               <th
-                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
+                className="px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
                 onClick={() => handleSort("transferTo")}
               >
                 Transfer To{" "}
@@ -339,7 +339,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                   : ""}
               </th>
               <th
-                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
+                className="px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
                 onClick={() => handleSort("followUpDate")}
               >
                 Follow-up Date{" "}
@@ -350,7 +350,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                   : ""}
               </th>
               <th
-                className="min-w-28 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
+                className="px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
                 onClick={() => handleSort("source")}
               >
                 Source{" "}
@@ -361,7 +361,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                   : ""}
               </th>
               <th
-                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
+                className="px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
                 onClick={() => handleSort("loanStatus")}
               >
                 Loan Status{" "}
@@ -372,7 +372,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                   : ""}
               </th>
               <th
-                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
+                className="px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
                 onClick={() => handleSort("remarks")}
               >
                 Remarks{" "}
@@ -382,7 +382,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                     : " ▼"
                   : ""}
               </th>
-              <th className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold">
+              <th className="px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold">
                 Action
               </th>
             </tr>
@@ -415,7 +415,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                       row.contactNumbers.map((num, idx) => (
                         <span
                           key={idx}
-                          className=" text-gray-700 px-2 rounded-full text-sm"
+                          className=" text-[#020E4F] px-2 rounded-full text-sm"
                         >
                           {num}
                         </span>
@@ -458,7 +458,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                           e.stopPropagation();
                           handleEditClick(row._id);
                         }}
-                        className="p-1 hover:bg-gray-100 rounded transition-colors"
+                        className="p-1 text-[#00E029] hover:bg-gray-100 rounded transition-colors"
                         title={`Edit ${row.sellerName}`}
                       >
                         <Pencil size={16}/>

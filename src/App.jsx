@@ -12,6 +12,8 @@ import MyTeam from "./pages/team/MyTeam";
 import UserDetails from "./pages/team/UserDetails";
 import FindOpportunity from "./pages/resources/FindOpportunity";
 import LearnGrow from "./pages/resources/LearnGrow";
+import AddBrokerRequirement from "./pages/resources/AddBrokerRequirement";
+import EditBrokerRequirement from "./pages/resources/EditBrokerRequirement";
 import { Profile } from "./pages/profile";
 import EditProfile from "./pages/profile/EditProfile";
 import { Broadcast } from "./pages/broadcast";
@@ -78,6 +80,8 @@ const App = () => {
             <Route path="broadcast" element={<Broadcast />} />
             <Route path="profile" element={<Profile />} />
             <Route path="profile/edit" element={<EditProfile />} />
+            <Route path="brokers-requirements/add" element={<AddBrokerRequirement />} />
+            <Route path="brokers-requirements/edit/:id" element={<EditBrokerRequirement />} />
             <Route path="notifications" element={<NotificationsPage />} />
           </Route>
         </Routes>

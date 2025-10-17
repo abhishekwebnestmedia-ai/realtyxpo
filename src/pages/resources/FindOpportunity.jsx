@@ -21,6 +21,14 @@ const FindOpportunity = () => {
     return [];
   }, [leadsData]);
 
+  // Normalize inventory data (defensive)
+  const inventory = useMemo(() => {
+    if (Array.isArray(inventoryData)) return inventoryData;
+    if (inventoryData && Array.isArray(inventoryData.data)) return inventoryData.data;
+    if (inventoryData && Array.isArray(inventoryData.docs)) return inventoryData.docs;
+    return [];
+  }, [inventoryData]);
+
   // Primary toggle options
   const primaryOptions = [
     { value: 'Leads', label: 'Leads' },
@@ -88,19 +96,19 @@ const FindOpportunity = () => {
       }
     } else if (primaryFilter === 'Inventory') {
       if (secondaryFilter === 'Sale') {
-        return inventoryData.filter((item) => 
+        return inventory.filter((item) => 
           item.inventoryType === 'Sales' && 
           isUnassigned(item)
         );
       } else if (secondaryFilter === 'Rent') {
-        return inventoryData.filter((item) => 
+        return inventory.filter((item) => 
           item.inventoryType === 'Rent' && 
           isUnassigned(item)
         );
       }
     }
     return [];
-  }, [primaryFilter, secondaryFilter, leads, inventoryData]);
+  }, [primaryFilter, secondaryFilter, leads, inventory]);
 
   // Loading and error states
   const isLoading = leadsLoading || inventoryLoading;

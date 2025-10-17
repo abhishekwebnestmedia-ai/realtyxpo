@@ -42,6 +42,12 @@ const TopBar = ({ toggleSidebar }) => {
       .slice(0, 2);
   };
 
+  // Build full image URL for relative paths returned by the API
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    if (imagePath.startsWith('http')) return imagePath;
+    return `https://backend.realtyxpo.in${imagePath}`;
+  };
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -56,15 +62,18 @@ const TopBar = ({ toggleSidebar }) => {
     };
   }, []);
 
+  // Compute profile image src (supports multiple possible field names)
+  const profileSrc = getImageUrl(user?.profileImage || user?.profilePicture || user?.avatar || user?.profilePhoto);
+
   return (
-  <header className="flex justify-between items-center px-5 py-[6px] bg-white sticky top-0 z-50 transition-all duration-300 border-b border-gray-200">
+    <header className="flex justify-between items-center px-5 py-[6px] bg-white sticky top-0 z-50 transition-all duration-300 border-b border-gray-200">
       {/* Left side */}
       <div className="flex items-center space-x-4">
-  <div className="cursor-pointer" onClick={toggleSidebar}>
+        <div className="cursor-pointer" onClick={toggleSidebar}>
           <PanelsTopLeft size={24} color="black" className="object-contain" />
         </div>
         <div>
-          <p className="text-lg font-medium">Welcome {user.name}</p>
+          <p className="text-lg font-medium">Welcome {user?.name}</p>
         </div>
       </div>
 
@@ -100,10 +109,11 @@ const TopBar = ({ toggleSidebar }) => {
           >
             {/* Profile Circle */}
             <div className="flex items-center space-x-3">
-              {user?.profileImage ? (
+              {profileSrc ? (
                 <img
-                  src={user.profileImage}
+                  src={profileSrc}
                   alt="Profile"
+                  onError={(e) => { e.target.style.display = 'none'; }}
                   className="w-10 h-10 rounded-full border-2 border-gray-200 object-cover transition-all duration-300 hover:scale-105 focus:scale-105"
                 />
               ) : (

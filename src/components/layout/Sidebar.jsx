@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useContext } from "react";
 import { Link, useLocation } from "react-router-dom";
 import icon1 from "/menuicons/1.svg";
 import icon2 from "/menuicons/2.svg";
@@ -10,6 +10,9 @@ import icon7 from "/menuicons/7.svg";
 import icon8 from "/menuicons/8.svg";
 import icon9 from "/menuicons/9.svg";
 import icon10 from "/menuicons/10.svg";
+import { AuthContext } from "../../context/AuthContext";
+import { getViewerPerms, hasAnyLeadAccess, hasAnyInventoryAccess } from '../../utils/permissions';
+
 const SidebarMenu = ({ isOpen }) => {
   const [indicatorTop, setIndicatorTop] = useState(0);
   const [indicatorHeight, setIndicatorHeight] = useState(0);
@@ -31,22 +34,53 @@ const SidebarMenu = ({ isOpen }) => {
     { icon: icon10, text: "Database", path: "/learn-grow" },
   ];
 
+  // permission-aware filtering
+  const { user } = useContext(AuthContext) || {};
+  const vp = getViewerPerms(user || {});
+  const visibleItems = menuItems.filter(item => {
+    switch (item.text) {
+      case 'Dashboard':
+        return Boolean(vp.dashboard);
+      case 'Daily Plan':
+        return Boolean(vp.dailyPlans);
+      case 'All Leads':
+        return hasAnyLeadAccess(vp);
+      case 'Inventory':
+        return hasAnyInventoryAccess(vp);
+      case 'Projects Working':
+        return Boolean(vp.projectsWorking);
+      case 'Brokers Requirements':
+        return Boolean(vp.brokersRequirements);
+      case 'My Team':
+        return Boolean(vp.myTeam);
+      case 'Find Opportunity':
+        return Boolean(vp.findOpportunity);
+      case 'Learn Grow':
+        return Boolean(vp.learnGrow);
+      case 'Database':
+        return Boolean(vp.dataBase);
+      default:
+        return true;
+    }
+  });
+
   // Get current path for active tab highlighting (reactive)
   const location = useLocation();
   const currentPath = location.pathname;
 
   // Animate indicator position when active tab changes
   useEffect(() => {
-    const activeIndex = menuItems.findIndex(
-      (item) => item.path === currentPath
-    );
+    const activeIndex = visibleItems.findIndex(item => item.path === currentPath);
     const activeRef = itemRefs.current[activeIndex];
     if (activeRef) {
       const { offsetTop, offsetHeight } = activeRef;
       setIndicatorTop(offsetTop);
       setIndicatorHeight(offsetHeight);
+    } else {
+      setIndicatorTop(0);
+      setIndicatorHeight(0);
     }
-  }, [currentPath, isOpen]);
+  }, [currentPath, isOpen, visibleItems]);
 
   return (
     <div className="relative flex flex-col h-full py-4">
@@ -58,7 +92,7 @@ const SidebarMenu = ({ isOpen }) => {
             "width 0.3s ease, height 0.3s ease, margin-left 0.3s ease",
           width: isOpen ? "11rem" : "2.5rem",
           height: "2.5rem",
-          marginLeft: isOpen ? "20px" : "10px",
+          marginLeft: isOpen ? "20px" : "5px",
         }}
       >
         <img
@@ -74,7 +108,7 @@ const SidebarMenu = ({ isOpen }) => {
       </div>
 
       {/* Menu Items */}
-  <div className="mt-6 relative flex flex-col gap-y-2">
+      <div className="mt-6 relative flex flex-col gap-y-2">
         {/* Animated indicator */}
         <span
           style={{
@@ -90,17 +124,15 @@ const SidebarMenu = ({ isOpen }) => {
             zIndex: 1,
           }}
         />
-        {menuItems.map((item, index) => {
+        {visibleItems.map((item, index) => {
           const isActive = currentPath === item.path;
-          if (isActive) {
-            console.debug("Active tab:", item.text, "Path:", item.path);
-          }
+          // don't log here in production
           return (
             <Link
               key={index}
               to={item.path}
               ref={(el) => (itemRefs.current[index] = el)}
-              className={`relative flex items-center py-2 transition-colors duration-300 rounded-lg group hover:bg-slate-700${
+              className={`relative flex items-center py-2 transition-colors duration-300  group hover:bg-slate-700${
                 isActive ? " bg-slate-700" : ""
               }`}
               style={{ overflow: "hidden" }}
@@ -132,7 +164,7 @@ const SidebarMenu = ({ isOpen }) => {
             "width 0.3s ease, height 0.3s ease, margin-left 0.3s ease",
           width: isOpen ? "11rem" : "2.5rem",
           height: "2.5rem",
-          marginLeft: isOpen ? "20px" : "10px",
+          marginLeft: isOpen ? "20px" : "5px",
         }}
       >
         <img

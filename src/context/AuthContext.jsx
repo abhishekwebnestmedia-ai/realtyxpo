@@ -1,7 +1,9 @@
-import React, { createContext, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import api from "../api/api";
-
-export const AuthContext = createContext();
+import queryClient from "../queryClient";
+import { AuthContext } from "./AuthContextCore";
+// Re-export the context so existing imports using named export keep working
+export { AuthContext };
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -31,8 +33,43 @@ export const AuthProvider = ({ children }) => {
     try {
       // rely on api defaults if Authorization header is set
       const res = await api.get("/auth/profile");
-      setUser(res.data); // Set full user profile
-      console.log(res.data);
+      // normalize response shapes
+      const raw = res.data?.data || res.data || null;
+      const profile = raw?.user || raw || null;
+
+      // default permissions shape - include all known flags the UI expects
+      const defaultPermissions = {
+        superAdmin: false,
+        dashboard: false,
+        dailyPlans: false,
+        allLeads: false,
+        inventory: false,
+        projectsWorking: false,
+        brokersRequirements: false,
+        myTeam: false,
+        findOpportunity: false,
+        learnGrow: false,
+        dataBase: false,
+        rentalLeads: false,
+        buyerLeads: false,
+        deadLeads: false,
+        completedLeads: false,
+        rentalInventory: false,
+        saleInventory: false,
+        completedInventory: false
+      };
+
+      // permissions may be present under profile.permissions or as top-level keys on profile
+      const permsSource = (profile && (profile.permissions || profile)) || {};
+      const normalizedPermissions = { ...defaultPermissions };
+      Object.keys(defaultPermissions).forEach((k) => {
+        // support snake_case variants too
+        const snake = k.replace(/([A-Z])/g, '_$1').toLowerCase();
+        normalizedPermissions[k] = Boolean(permsSource[k] ?? permsSource[snake] ?? false);
+      });
+
+      const finalProfile = profile ? { ...profile, permissions: normalizedPermissions } : null;
+      setUser(finalProfile); // Set full user profile with normalized permissions
     } catch (error) {
       console.error(
         "Failed to fetch user profile:",
@@ -119,6 +156,12 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     // remove default header so api requests aren't sent with stale token
     delete api.defaults.headers.common["Authorization"];
+    // Clear react-query cache immediately on logout to avoid showing stale data
+    try {
+      queryClient.clear();
+    } catch (err) {
+      console.error("Failed to clear queryClient on logout:", err);
+    }
   };
 
   return (
