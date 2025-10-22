@@ -149,9 +149,7 @@ const TopBar = ({ toggleSidebar }) => {
               >
                 Edit Profile
               </button>
-              <div className="px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer transition-all duration-200">
-                Settings
-              </div>
+              {/* Settings removed as per request */}
               <button
                 className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 cursor-pointer rounded-b-lg transition-all duration-200"
                 onClick={handleLogout}

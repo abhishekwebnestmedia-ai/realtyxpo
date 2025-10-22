@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import api from "../api/api";
+import { setCookie, getCookie, deleteCookie } from '../utils/cookies';
 import queryClient from "../queryClient";
 import { AuthContext } from "./AuthContextCore";
 // Re-export the context so existing imports using named export keep working
@@ -82,7 +83,7 @@ export const AuthProvider = ({ children }) => {
   // Restore user from token on page refresh
   useEffect(() => {
     const checkUser = async () => {
-      const token = localStorage.getItem("token");
+      const token = getCookie('token');
       if (token) {
         // set api default header so all api requests include token
         api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -91,8 +92,8 @@ export const AuthProvider = ({ children }) => {
         const payload = parseJwt(token);
         if (payload && payload.exp && Date.now() > payload.exp * 1000) {
           // token expired -> clear and don't try to fetch profile
-          console.warn("Token expired, clearing stored token");
-          localStorage.removeItem("token");
+            console.warn("Token expired, clearing stored token");
+            deleteCookie('token');
           delete api.defaults.headers.common["Authorization"];
           setUser(null);
           setLoading(false);
@@ -117,9 +118,10 @@ export const AuthProvider = ({ children }) => {
 
       const token = res.data.token;
 
-      localStorage.setItem("token", token);
-      // set default Authorization header for api instance
-      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  // Store token in cookie (note: HttpOnly must be set by server for stronger security)
+  setCookie('token', token, { days: 7 });
+  // set default Authorization header for api instance
+  api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
       await fetchUserProfile(); // Fetch profile after login
 
@@ -152,7 +154,7 @@ export const AuthProvider = ({ children }) => {
 
   // Logout function
   const logout = () => {
-    localStorage.removeItem("token");
+    deleteCookie('token');
     setUser(null);
     // remove default header so api requests aren't sent with stale token
     delete api.defaults.headers.common["Authorization"];

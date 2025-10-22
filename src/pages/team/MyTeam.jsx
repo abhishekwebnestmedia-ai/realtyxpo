@@ -377,7 +377,7 @@ const MyTeam = () => {
         {users.map(u => {
           const profileSrc = getImageUrl(u.profileImage || u.profilePicture || u.avatar || u.profilePhoto);
           return (
-            <div key={u._id || u.id} className="p-6 cursor-pointer" onClick={() => handleUserClick(u)}>
+            <div key={u._id || u.id} className="p-4 cursor-pointer" onClick={() => handleUserClick(u)}>
               <div className="flex flex-col items-center text-center">
                 <div className="mb-4">
                   {profileSrc ? (

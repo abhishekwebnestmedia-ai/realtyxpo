@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import TokenSearch from '../ui/TokenSearch';
 import { useUserAllDailyPlans } from "../../hooks/useDailyTasks";
 import { CheckSquare, NotebookPen } from "lucide-react";
 
@@ -7,6 +8,7 @@ const UserDailyPlanTable = ({ userName }) => {
 
   // Search and pagination state
   const [search, setSearch] = useState("");
+  const [searchTokens, setSearchTokens] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(8);
   // Notes popup state
@@ -18,13 +20,14 @@ const UserDailyPlanTable = ({ userName }) => {
   };
   // Filtered data
   const filteredPlans = useMemo(() => {
-    if (!search.trim()) return dailyPlans;
-    return dailyPlans.filter(plan =>
-      Object.values(plan).some(val => String(val).toLowerCase().includes(search.toLowerCase()))
-    );
-  }, [dailyPlans, search]);
+    const tokens = (searchTokens && searchTokens.length) ? searchTokens.map(t => String(t).toLowerCase()) : (search ? [search.toLowerCase()] : []);
+    if (!tokens || tokens.length === 0) return dailyPlans;
+    return dailyPlans.filter(plan => {
+      const hay = Object.values(plan).join(' ').toLowerCase();
+      return tokens.every(tok => hay.includes(tok));
+    });
+  }, [dailyPlans, search, searchTokens]);
   const totalRows = filteredPlans.length;
-  const totalPages = Math.max(1, Math.ceil(totalRows / rowsPerPage));
   const paginatedRows = useMemo(() => {
     const startIdx = (currentPage - 1) * rowsPerPage;
     return filteredPlans.slice(startIdx, startIdx + rowsPerPage);
@@ -37,40 +40,22 @@ const UserDailyPlanTable = ({ userName }) => {
     <div className="rounded-lg">
       {/* Search + Rows per page */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-3">
-        <input
-          type="text"
-          placeholder="Search..."
-          className="border px-3 py-2 rounded-full w-full md:w-1/3"
+        <TokenSearch
           value={search}
-          onChange={e => {
-            setSearch(e.target.value);
-            setCurrentPage(1);
-          }}
+          onChange={(v) => { setSearch(v); setCurrentPage(1); }}
+          tokens={searchTokens}
+          onTokensChange={(t) => { setSearchTokens(t); setCurrentPage(1); }}
+          className="w-full md:w-1/3"
+          inputClassName="w-full"
         />
-        <div className="flex items-center gap-2">
-          <label className="text-sm font-semibold text-gray-800 whitespace-nowrap">Rows per page:</label>
-          <select
-            className="border border-gray-200 rounded-lg p-2 text-sm hover:border-gray-300 focus:outline-none focus:ring-2 min-w-10 cursor-pointer appearance-none"
-            value={rowsPerPage}
-            onChange={e => {
-              setRowsPerPage(Number(e.target.value));
-              setCurrentPage(1);
-            }}
-          >
-            {[4, 8, 12, 20].map(n => (
-              <option key={n} value={n}>{n} rows</option>
-            ))}
-          </select>
-        </div>
+        {/* rows-per-page control removed from header; inline select will be in pagination */}
       </div>
       {/* Table */}
       <div className="overflow-x-auto scrollbar-hidden bg-white rounded-tr-3xl rounded-tl-3xl">
         <table className="w-full border-collapse">
         <thead className="sticky top-0 z-20 bg-[#FAFBFC]">
           <tr className="bg-[#FAFBFC] text-gray-700">
-            <th className="px-6 py-6 text-sm text-center whitespace-nowrap bg-[#FAFBFC] font-medium">
-              <CheckSquare size={18} />
-            </th>
+            <th className="px-6 py-6 text-sm text-center whitespace-nowrap bg-[#FAFBFC] font-medium theading">S.No</th>
             <th className="px-6 py-6 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium">
               Date
             </th>
@@ -94,7 +79,7 @@ const UserDailyPlanTable = ({ userName }) => {
               <React.Fragment key={plan._id || idx}>
                 <tr className="bg-[#FFF4BD]">
                   <td className="px-6 py-4 text-center" rowSpan={2}>
-                    <CheckSquare size={18} className="text-blue-500" />
+                    {(currentPage - 1) * rowsPerPage + idx + 1}
                   </td>
                   <td className="px-6 py-4 font-medium text-gray-800 whitespace-nowrap" rowSpan={2}>
                     {plan.date}
@@ -156,8 +141,16 @@ const UserDailyPlanTable = ({ userName }) => {
       </div>
       {/* Pagination below table, no internal scroll */}
   <div className="flex justify-between items-center mt-4 mb-1 text-sm text-gray-600">
-        <span>
-          Showing {(currentPage - 1) * rowsPerPage + 1} - {Math.min(currentPage * rowsPerPage, totalRows)} of {totalRows}
+        <span className="flex items-center gap-2">
+          <span>Showing {(currentPage - 1) * rowsPerPage + 1} -</span>
+          <select
+            value={rowsPerPage}
+            onChange={(e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+            className="border rounded px-2 py-1 text-sm"
+          >
+            {[4,8,12,20].map(n => <option key={n} value={n}>{n}</option>)}
+          </select>
+          <span>of {totalRows}</span>
         </span>
         <div className="flex gap-2">
           <button

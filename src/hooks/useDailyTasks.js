@@ -7,13 +7,29 @@ export const useTodaysDailyTask = (userName = "User") => {
     queryKey: ["todaysDailyTask", userName],
     queryFn: async () => {
       try {
-        // Use GET to fetch all tasks, then filter for today and user
-        const response = await api.get("/dailytask/task");
-        const allTasks = Array.isArray(response.data) ? response.data : [response.data];
+  // Use GET to fetch today's tasks for all users (admin endpoint)
+  // This hits: /api/dailytask/task/today
+  const response = await api.get("/dailytask/task/today");
+        // Normalize response: server may return { success, count, data: { name: [tasks] } }
+        let allTasks = [];
+        if (response?.data?.data && typeof response.data.data === 'object' && !Array.isArray(response.data.data)) {
+          // flatten all arrays inside the data object
+          Object.values(response.data.data).forEach((arr) => {
+            if (Array.isArray(arr)) allTasks.push(...arr);
+          });
+        } else if (Array.isArray(response.data)) {
+          allTasks = response.data;
+        } else if (Array.isArray(response.data.data)) {
+          allTasks = response.data.data;
+        } else if (response.data) {
+          // fallback: if it's a single object
+          allTasks = [response.data];
+        }
+
         const today = new Date().toISOString().slice(0, 10);
         const todaysTask = allTasks.find(task => {
-          const taskDate = task.date ? task.date.slice(0, 10) : null;
-          return task.name === userName && taskDate === today;
+          const taskDate = (task?.date || task?.createdAt || '').slice(0, 10);
+          return String(task?.name).toLowerCase() === String(userName).toLowerCase() && taskDate === today;
         });
         return todaysTask || null;
       } catch (error) {
@@ -34,9 +50,23 @@ export const useDailyTasks = () => {
     queryKey: ["dailyTasks"],
     queryFn: async () => {
       try {
-        // Use GET to fetch all daily tasks
-        const response = await api.get("/dailytask/task");
-        return Array.isArray(response.data) ? response.data : [response.data];
+  // Use GET to fetch today's tasks for all users (admin endpoint)
+  // This hits: /api/dailytask/task/today
+  const response = await api.get("/dailytask/task/today");
+        // Normalize like in useTodaysDailyTask
+        let allTasks = [];
+        if (response?.data?.data && typeof response.data.data === 'object' && !Array.isArray(response.data.data)) {
+          Object.values(response.data.data).forEach((arr) => {
+            if (Array.isArray(arr)) allTasks.push(...arr);
+          });
+        } else if (Array.isArray(response.data)) {
+          allTasks = response.data;
+        } else if (Array.isArray(response.data.data)) {
+          allTasks = response.data.data;
+        } else if (response.data) {
+          allTasks = [response.data];
+        }
+        return allTasks;
       } catch (error) {
         console.error('Error fetching daily tasks (GET /task):', error.message);
         return [];
@@ -49,8 +79,6 @@ export const useDailyTasks = () => {
   });
 };
 
-
-// Hook to create a daily task
 export const useCreateDailyTask = () => {
   const queryClient = useQueryClient();
 

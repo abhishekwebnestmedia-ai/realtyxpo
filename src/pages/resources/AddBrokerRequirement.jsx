@@ -52,7 +52,7 @@ const AddBrokerRequirement = () => {
   };
 
   return (
-    <div>
+    <div className="p-4 bg-white rounded-2xl">
       <h2 className="text-2xl font-medium">Add Broker Requirement</h2>
       <form onSubmit={handleSubmit} className="mt-5">
         <div className="grid grid-cols-2 gap-4">
@@ -97,7 +97,7 @@ const AddBrokerRequirement = () => {
 
         {error && <p className="text-red-500 mt-3">{error}</p>}
 
-        <div className="mt-6 flex gap-3">
+        <div className="mt-6 flex gap-3 justify-end">
           <button type="button" onClick={() => navigate(-1)} className="btn px-4 py-2">Cancel</button>
           <button type="submit" disabled={loading} className="btn px-4 py-2">{loading ? 'Saving...' : 'Save'}</button>
         </div>

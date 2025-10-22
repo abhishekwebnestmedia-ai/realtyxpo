@@ -3,6 +3,7 @@ import { Users, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/api';
 import { toast } from 'react-hot-toast';
+import { resolveImageSrc } from '../../utils/image';
 
 const MyTeam = () => {
   const [users, setUsers] = useState([]);
@@ -19,9 +20,7 @@ const MyTeam = () => {
       setLoading(true);
       setError(null);
       
-      console.log('Fetching team members from: /auth/teams');
-      const response = await api.get('/auth/teams');
-      console.log('Teams API response:', response.data);
+  const response = await api.get('/auth/teams');
       
       let usersData = [];
       if (response.data.users && Array.isArray(response.data.users)) {
@@ -37,12 +36,9 @@ const MyTeam = () => {
         console.log('No recognizable user data structure found:', response.data);
       }
       
-      console.log('Processed users:', usersData);
       setUsers(usersData);
     } catch (error) {
-      console.error('Error fetching users:', error);
-      console.error('Error status:', error.response?.status);
-      console.error('Error message:', error.response?.data?.message || error.message);
+  // silently capture and show friendly toast
       
       if (error.response?.status === 401) {
         setError('Authentication failed. Please login again.');
@@ -130,29 +126,45 @@ const MyTeam = () => {
         {users.map((user) => (
           <div
             key={user._id || user.id}
-            className="bg-white rounded-lg shadow border border-gray-200 p-6 cursor-pointer hover:shadow-md hover:border-blue-300 transition-all duration-200"
+            className="bg-white rounded-lg shadow border border-gray-200 p-4 cursor-pointer hover:shadow-md hover:border-blue-300 transition-all duration-200"
             onClick={() => handleUserClick(user)}
           >
             <div className="flex flex-col items-center text-center">
               <div className="mb-4">
-                {user.profilePicture ? (
-                  <img
-                    src={user.profilePicture}
-                    alt={user.name || 'Profile'}
-                    className="w-20 h-20 rounded-full object-cover"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.nextSibling.style.display = 'flex';
-                    }}
-                  />
-                ) : null}
-                <div
-                  className={`w-20 h-20 rounded-full bg-gray-600 flex items-center justify-center text-white text-lg font-semibold ${
-                    user.profilePicture ? 'hidden' : 'flex'
-                  }`}
-                >
-                  {getInitials(user.name || user.username || user.email)}
-                </div>
+                {(() => {
+                  const src = resolveImageSrc(user);
+                  if (src) {
+                    return (
+                      <>
+                        <img
+                          src={src}
+                          alt={user.name || 'Profile'}
+                          className="w-20 h-20 rounded-full object-cover"
+                          onError={(e) => {
+                            // hide broken image and show initials fallback
+                            e.target.style.display = 'none';
+                            const fallback = e.target.nextSibling;
+                            if (fallback) fallback.style.display = 'flex';
+                          }}
+                        />
+                        <div
+                          className={`w-20 h-20 rounded-full bg-gray-600 items-center justify-center text-white text-lg font-semibold hidden`}
+                          style={{ display: 'none' }}
+                        >
+                          {getInitials(user.name || user.username || user.email)}
+                        </div>
+                      </>
+                    );
+                  }
+
+                  return (
+                    <div
+                      className={`w-20 h-20 rounded-full bg-gray-600 flex items-center justify-center text-white text-lg font-semibold`}
+                    >
+                      {getInitials(user.name || user.username || user.email)}
+                    </div>
+                  );
+                })()}
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-1">
                 {user.name || user.username || 'Unknown User'}

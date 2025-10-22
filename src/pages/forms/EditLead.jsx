@@ -161,7 +161,7 @@ const EditLead = () => {
   }
 
   return (
-    <div>
+    <div className="p-4 bg-white rounded-2xl">
       <h2 className='text-2xl font-medium'>Edit Lead</h2>
 
       {loading ? (

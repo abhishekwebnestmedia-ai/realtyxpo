@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/api";
@@ -45,8 +45,27 @@ const getStatusStyles = (status) => {
       };
   }
 };
-const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalSearch = "", externalRowsPerPage = 10 }) => {
+const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalSearch = "", externalRowsPerPage = 10, onPageRowsChange = null, externalTokens = [], onExternalTokensChange = undefined }) => {
   const [search, setSearch] = useState("");
+  // tokenized search keys (entered words/tokens)
+  const [searchTokens, setSearchTokens] = useState([]);
+  // helper to add a token safely (dedupe)
+  const addToken = (token) => {
+    const t = String(token || '').trim();
+    if (!t) return;
+    setSearchTokens((prev) => {
+      if (prev.includes(t)) return prev;
+      return [...prev, t];
+    });
+    setSearch('');
+    setCurrentPage(1);
+    // keep input focused to avoid scroll/visual jumps when the token chip appears
+    if (inputRef.current) {
+      // small timeout to let React render the new chip, then refocus
+      setTimeout(() => inputRef.current.focus(), 0);
+    }
+  };
+  const inputRef = useRef(null);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState(null);
@@ -56,9 +75,10 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
   const [localData, setLocalData] = useState(data);
   const navigate = useNavigate();
 
-  // Use external search and rows per page when provided
+  // Use external search and rows-per-page when provided. Use local state so we can render an inline select.
   const activeSearch = hideSearch ? externalSearch : search;
-  const activeRowsPerPage = externalRowsPerPage;
+  const [rowsPerPage, setRowsPerPage] = useState(externalRowsPerPage);
+  useEffect(() => setRowsPerPage(externalRowsPerPage), [externalRowsPerPage]);
 
   // Function to fetch lead details
   const fetchLeadDetails = async (leadId) => {
@@ -99,14 +119,20 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
     setLocalData(data);
   }, [data]);
 
-  // 🔍 Filtering
+  // 🔍 Tokenized Filtering (AND semantics)
   const filteredData = useMemo(() => {
-    return (localData || []).filter((row) =>
-      Object.values(row).some((value) =>
-        String(value).toLowerCase().includes(activeSearch.toLowerCase())
-      )
-    );
-  }, [localData, activeSearch]);
+    // priority: internal tokens > externalTokens (from parent) > activeSearch
+    const tokens = (searchTokens && searchTokens.length) ? searchTokens : ((externalTokens && externalTokens.length) ? externalTokens : (activeSearch ? [activeSearch] : []));
+    if (!tokens || tokens.length === 0) return localData || [];
+    return (localData || []).filter((row) => {
+      // for each token, row must contain it in at least one field
+      return tokens.every((t) => {
+        const token = String(t || '').toLowerCase().trim();
+        if (!token) return true;
+        return Object.values(row).some((value) => String(value || '').toLowerCase().includes(token));
+      });
+    });
+  }, [localData, activeSearch, searchTokens, externalTokens]);
 
   // ↕️ Sorting
   const sortedData = useMemo(() => {
@@ -122,9 +148,24 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
 
   // 📄 Pagination
   const paginatedData = useMemo(() => {
-    const start = (currentPage - 1) * activeRowsPerPage;
-    return sortedData.slice(start, start + activeRowsPerPage);
-  }, [sortedData, currentPage, activeRowsPerPage]);
+    const start = (currentPage - 1) * rowsPerPage;
+    return sortedData.slice(start, start + rowsPerPage);
+  }, [sortedData, currentPage, rowsPerPage]);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+
+  // Inform parent about current rendered rows (for export) when paginatedData changes
+  React.useEffect(() => {
+    if (typeof onPageRowsChange === 'function') {
+      onPageRowsChange(paginatedData);
+    }
+  }, [paginatedData, onPageRowsChange]);
+
+  // propagate internal token changes to parent if they provided a setter
+  useEffect(() => {
+    if (typeof onExternalTokensChange === 'function') {
+      onExternalTokensChange(searchTokens);
+    }
+  }, [searchTokens, onExternalTokensChange]);
 
   // 📌 Sorting handler
   const handleSort = (key) => {
@@ -158,17 +199,67 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
     <div className="  rounded-lg ">
       {/* 🔍 Search + Rows per page */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-3 ">
-        {!hideSearch && ( 
-          <input
-            type="text"
-            placeholder="Search..."
-            className="border px-3 py-2 rounded-full w-full md:w-1/3"
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setCurrentPage(1);
-            }}
-          />
+        {!hideSearch && (
+          <div className="w-full md:w-1/3">
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="Type a keyword and press Enter or +"
+                className="border px-3 py-2 rounded-full w-full"
+                value={search}
+                ref={inputRef}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setCurrentPage(1);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const token = String(search || '').trim();
+                    if (token) {
+                      addToken(token);
+                    }
+                  } else if (e.key === 'Backspace' && !search) {
+                    // remove last token when input empty
+                    setSearchTokens((prev) => prev.slice(0, Math.max(0, prev.length - 1)));
+                  }
+                }}
+              />
+
+              <button
+                type="button"
+                onClick={() => {
+                  const token = String(search || '').trim();
+                  if (token) addToken(token);
+                }}
+                className="px-3 py-2 bg-blue-600 text-white rounded-full"
+                aria-label="Add token"
+              >
+                +
+              </button>
+            </div>
+
+            {/* Tokens / chips */}
+            {/* reserve vertical space for chips to avoid layout shift when tokens are added */}
+            <div className="mt-2">
+              {searchTokens && searchTokens.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                {searchTokens.map((t, i) => (
+                  <div key={i} className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full text-sm">
+                    <span>{t}</span>
+                    <button
+                      onClick={() => setSearchTokens((prev) => prev.filter((x) => x !== t))}
+                      className="text-gray-500 hover:text-gray-700"
+                      aria-label={`Remove ${t}`}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+                </div>
+              )}
+            </div>
+          </div>
         )}
       </div>
 
@@ -177,9 +268,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
         <table className="w-full border-collapse">
           <thead className="bg-gray-100 text-gray-600 uppercase text-xs sticky top-0 z-10">
             <tr>
-              <th className="px-4 py-2 font-medium">
-                <input type="checkbox" />
-              </th>
+              <th className="px-4 py-2 font-medium text-center theading">S.No</th>
               <th
                 className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading "
                 onClick={() => handleSort("customerName")}
@@ -286,9 +375,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                 className="border-b hover:bg-gray-50 transition cursor-pointer"
                 onClick={() => handleRowClick(row)}
               >
-                <td className="px-4 py-2 font-medium">
-                  <input type="checkbox" />
-                </td>
+                <td className="px-4 py-2 text-center font-medium">{startIndex + idx + 1}</td>
                 <td className="px-4 py-4  whitespace-nowrap ">{row.customerName}</td>
                 <td className="px-4 py-4 whitespace-nowrap ">{row.contactNumber || row.contactNo || 'N/A'}</td>
                 <td className="px-4 py-4 whitespace-nowrap ">{row.email}</td>
@@ -353,10 +440,23 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
 
       {/* 📌 Pagination */}
       <div className="flex justify-between items-center mt-4 text-sm text-gray-600">
-        <span>
-          Showing {(currentPage - 1) * activeRowsPerPage + 1} -{" "}
-          {Math.min(currentPage * activeRowsPerPage, sortedData.length)} of{" "}
-          {sortedData.length}
+        <span className="flex items-center gap-2">
+          <span>Showing {startIndex + 1} -</span>
+          <select
+            value={rowsPerPage}
+            onChange={(e) => {
+              setRowsPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            className="border rounded px-2 py-1 text-sm"
+          >
+            <option value={5}>5</option>
+            <option value={8}>8</option>
+            <option value={10}>10</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+          </select>
+          <span>of {sortedData.length}</span>
         </span>
         <div className="flex gap-2">
           <button
@@ -368,7 +468,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
           </button>
           <button
             className="px-3 py-1 border rounded disabled:opacity-50"
-            disabled={currentPage * activeRowsPerPage >= sortedData.length}
+            disabled={currentPage * rowsPerPage >= sortedData.length}
             onClick={() => setCurrentPage((p) => p + 1)}
           >
             Next

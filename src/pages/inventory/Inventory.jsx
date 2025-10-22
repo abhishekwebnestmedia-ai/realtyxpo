@@ -1,53 +1,55 @@
 import React, { useState, useMemo, useContext } from "react";
+import TokenSearch from '../../components/ui/TokenSearch';
 import { useInventory } from "../../hooks/useInventory";
 import { InventoryTable } from "../../components/tables";
 import { useNavigate } from "react-router-dom";
 import { AddBulkInventry } from "../../components/modals";
 import { AuthContext } from '../../context/AuthContext';
 import { getViewerPerms, canViewInventory } from '../../utils/permissions';
+import { exportRowsAsPdf } from '../../utils/exportPdf';
 
-// Reusable ToggleSwitch component (framer-motion sliding rounded background)
+// Reusable ToggleSwitch component (small pill with sliding highlight)
 const ToggleSwitch = ({ viewType, setViewType }) => (
- <div className="relative flex w-[30%] mb-4 bg-white rounded-full p-1 overflow-hidden border border-gray-200">
-  {/* Highlight */}
-  <div
-    className="absolute top-1 bottom-1 left-[2px] w-[calc(50%-6px)] bg-[#000D55] rounded-full transition-transform duration-300 ease-in-out"
-    style={{
-      transform: viewType === "Sales" ? "translateX(2px)" : "translateX(calc(100% + 6px))",
-    }}
-  />
+  <div className="relative flex w-[30%] mb-4 bg-white rounded-full p-1 overflow-hidden border border-gray-200 h-10">
+    {/* Highlight */}
+    <div
+      className="absolute top-1 bottom-1 left-[2px] w-[calc(50%-6px)] bg-[#000D55] rounded-full transition-transform duration-300 ease-in-out"
+      style={{
+        transform: viewType === "Sales" ? "translateX(2px)" : "translateX(calc(100% + 6px))",
+      }}
+    />
 
-  {/* Sales */}
-  <button
-    onClick={() => setViewType("Sales")}
-    className={`relative flex-1 px-3 py-2 text-base font-medium transition-colors z-10 whitespace-nowrap ${
-      viewType === "Sales" ? "text-white" : "text-gray-700"
-    }`}
-  >
-    Sales
-  </button>
+    <button
+      onClick={() => setViewType("Sales")}
+      className={`relative flex-1 h-full flex items-center justify-center px-3 text-base font-medium transition-colors z-10 whitespace-nowrap ${
+        viewType === "Sales" ? "text-white" : "text-gray-700"
+      }`}
+    >
+      Sales
+    </button>
 
-  {/* Rent */}
-  <button
-    onClick={() => setViewType("Rent")}
-    className={`relative flex-1 px-3 py-2 text-base font-medium transition-colors z-10 whitespace-nowrap ${
-      viewType === "Rent" ? "text-white" : "text-gray-700"
-    }`}
-  >
-    Rent
-  </button>
-</div>
-
+    <button
+      onClick={() => setViewType("Rent")}
+      className={`relative flex-1 h-full flex items-center justify-center px-3 text-base font-medium transition-colors z-10 whitespace-nowrap ${
+        viewType === "Rent" ? "text-white" : "text-gray-700"
+      }`}
+    >
+      Rent
+    </button>
+  </div>
 );
 
 const InventoryPage = () => {
   const navigate = useNavigate();
-  const { data: allInventory = [], isLoading, isError } = useInventory();
-  const [viewType, setViewType] = useState("Sales");
+  const { data: allInventory = [], isLoading, error: isError } = useInventory();
+  const [viewType, setViewType] = useState('Sales');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [externalTokens, setExternalTokens] = useState([]);
+  const [currentPageRows, setCurrentPageRows] = useState([]);
   const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+
   const { user: authUser } = useContext(AuthContext) || {};
+
   // Normalize inventory data: backend may return an array or an object wrapper
   const inventoryArray = React.useMemo(() => {
     if (Array.isArray(allInventory)) return allInventory;
@@ -147,26 +149,48 @@ const InventoryPage = () => {
 
         {/* Search and Controls */}
         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-          <input
-            type="text"
-            placeholder="Search..."
-            className="border px-3 py-2 rounded-full w-full sm:w-64"
+          <TokenSearch
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={setSearchTerm}
+            tokens={externalTokens}
+            onTokensChange={setExternalTokens}
           />
-          <div className="flex items-center gap-4">
-            <label className="text-sm font-semibold text-gray-800 whitespace-nowrap">Rows per page:</label>
-            <select
-              value={rowsPerPage}
-              onChange={(e) => setRowsPerPage(Number(e.target.value))}
-              className="border border-gray-200 rounded-lg p-2 text-sm  hover:border-gray-300 focus:outline-none focus:ring-2  min-w-10 cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 4 5%22><path fill=%22%23666%22 d=%22M2 0L0 2h4zm0 5L0 3h4z%22/></svg>')] bg-no-repeat bg-right bg-[length:12px] "
-            >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-            </select>
-          </div>
+          <button
+            className="btn ml-2"
+            onClick={() => {
+              const columns = [
+                { key: 'sellerName', label: 'Seller' },
+                { key: 'Project', label: 'Project' },
+                { key: 'sector', label: 'Sector' },
+                { key: 'unitNo', label: 'Unit No' },
+                { key: 'towerNo', label: 'Tower No' },
+                { key: 'demand', label: 'Demand' },
+                { key: 'contactNumbers', label: 'Contact' },
+                { key: 'date', label: 'Date' }
+              ];
+              const sourceRows = (currentPageRows && currentPageRows.length) ? currentPageRows : (filteredData || []);
+              const rows = sourceRows.map(r => ({
+                sellerName: r.sellerName || '',
+                Project: r.Project || r.project || '',
+                sector: r.sector || r.sectorNo || '',
+                unitNo: r.unitNo || '',
+                towerNo: r.towerNo || '',
+                demand: r.demand || '',
+                contactNumbers: Array.isArray(r.contactNumbers) ? r.contactNumbers.join(', ') : r.contactNumbers || '',
+                date: r.date || ''
+              }));
+              exportRowsAsPdf({ 
+                columns, 
+                rows, 
+                fileName: 'inventory.pdf', 
+                title: 'Inventory Export',
+                watermark: { src: '/watermark.svg', opacity: 0.06, scale: 0.5, raw: true }
+              });
+            }}
+          >
+            Export all
+          </button>
+          {/* rows-per-page removed; InventoryTable renders inline entries select in its pagination */}
         </div>
       </div>
 
@@ -176,7 +200,7 @@ const InventoryPage = () => {
           data={filteredData} 
           hideSearch={true}
           externalSearch={searchTerm}
-          externalRowsPerPage={rowsPerPage}
+          onPageRowsChange={(rows) => setCurrentPageRows(rows)}
         />
       ) : (
         <p className="text-gray-500 text-center py-10">

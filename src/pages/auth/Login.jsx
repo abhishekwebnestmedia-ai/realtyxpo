@@ -2,6 +2,7 @@ import React, { useState, useContext } from "react";
 import logo from "/logo.svg";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext"; // ✅ Add this
+import { Eye, EyeOff } from 'lucide-react';
 
 
 const Login = () => {
@@ -10,6 +11,8 @@ const Login = () => {
   const [signupName, setSignupName] = useState("");
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
   const { login, register } = useContext(AuthContext);
   const handleLogin = async () => {
     const success = await login(loginEmail, loginPassword);
@@ -70,13 +73,23 @@ const Login = () => {
                   onChange={(e) => setLoginEmail(e.target.value)}
                   className="w-full px-2 py-1 text-base border rounded-md mt-11"
                 />
-                <input
-                  type="password"
-                  placeholder="Password"
-                  value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
-                  className="w-full px-2 py-1 mt-3 text-base border rounded-md"
-                />
+                <div className="relative mt-3">
+                  <input
+                    type={showLoginPassword ? 'text' : 'password'}
+                    placeholder="Password"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    className="w-full px-2 py-1 text-base border rounded-md"
+                  />
+                  <button
+                    type="button"
+                    aria-label={showLoginPassword ? 'Hide password' : 'Show password'}
+                    onClick={() => setShowLoginPassword(s => !s)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 focus:outline-none"
+                  >
+                    {showLoginPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
 
                 <div className="flex flex-row items-start justify-between mt-2">
                   <div className="flex items-center gap-1">
@@ -128,13 +141,23 @@ const Login = () => {
                   onChange={(e) => setSignupEmail(e.target.value)}
                   className="w-full px-2 py-1 mt-3 border rounded-md"
                 />
-                <input
-                  type="password"
-                  placeholder="Password"
-                  value={signupPassword}
-                  onChange={(e) => setSignupPassword(e.target.value)}
-                  className="w-full px-2 py-1 mt-3 border rounded-md"
-                />
+                <div className="relative mt-3">
+                  <input
+                    type={showSignupPassword ? 'text' : 'password'}
+                    placeholder="Password"
+                    value={signupPassword}
+                    onChange={(e) => setSignupPassword(e.target.value)}
+                    className="w-full px-2 py-1 border rounded-md"
+                  />
+                  <button
+                    type="button"
+                    aria-label={showSignupPassword ? 'Hide password' : 'Show password'}
+                    onClick={() => setShowSignupPassword(s => !s)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 focus:outline-none"
+                  >
+                    {showSignupPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
 
                 <p className="mt-2 text-xs">
                   Already have an account?{" "}
@@ -182,7 +205,7 @@ const Login = () => {
 
       {/* Footer */}
       <p className="text-xs absolute bottom-[18px] left-5 text-gray-500">
-        Powered By WebnestMedia
+        Developed By WebnestMedia
       </p>
 
       {/* Extra CSS for flip */}

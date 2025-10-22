@@ -6,7 +6,9 @@ import { ScrollableLeads } from "../../components/dashboard";
 import { useNavigate } from "react-router-dom";
 import { AddBulkLead } from "../../components/modals";
 import { AuthContext } from '../../context/AuthContext';
-import { getViewerPerms, hasAnyLeadAccess, canViewLead } from '../../utils/permissions';
+import { getViewerPerms, canViewLead } from '../../utils/permissions';
+import { exportRowsAsPdf } from '../../utils/exportPdf';
+import TokenSearch from '../../components/ui/TokenSearch';
 
 const AllLeads = () => {
   const navigate = useNavigate();
@@ -22,7 +24,10 @@ const AllLeads = () => {
   const [filter, setFilter] = useState("buyers");
   const [showBulkUploadPopup, setShowBulkUploadPopup] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  // tokens when parent wants to control search tokens (used when table hides its own search)
+  const [externalTokens, setExternalTokens] = useState([]);
+  const [currentPageRows, setCurrentPageRows] = useState([]);
+  
   // table-specific filters removed — using page-level filteredLeads only
 
   const isDead = (lead) =>
@@ -87,16 +92,19 @@ const AllLeads = () => {
       </div>
 
       {/* Toggle Switch with Search and Controls */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mt-4">
-        {/* Toggle Switch */}
-        <div className="relative flex w-full lg:w-[49%] bg-white rounded-full p-1 overflow-hidden border border-gray-200">
+      <div className="flex flex-col lg:flex-row justify-between items-center gap-4 mt-4">
+        <div className="w-full lg:w-1/2 flex items-center">
+          {/* Toggle Switch (left) */}
+          <div className="relative flex w-full items-center bg-white rounded-full p-1 overflow-hidden border border-gray-200 h-10">
           {/* Highlight */}
           <div
-            className="absolute top-1 bottom-1 left-[2px] w-[calc(33.333%-6px)] bg-[#000D55] rounded-full transition-transform duration-300 ease-in-out"
+            className="absolute left-[2px] w-[calc(33.333%-6px)] bg-[#000D55] rounded-full transition-transform duration-300 ease-in-out"
             style={{
+              top: 2,
+              bottom: 2,
               transform:
                 filter === "buyers"
-                  ? "translateX(2px)"
+                  ? "translateX(0px)"
                   : filter === "rental"
                   ? "translateX(calc(100% + 6px))"
                   : "translateX(calc(200% + 12px))",
@@ -106,7 +114,7 @@ const AllLeads = () => {
           {/* Buyers */}
           <button
             onClick={() => setFilter("buyers")}
-            className={`relative flex-1 px-3 py-[0.65rem] text-sm font-medium transition-colors z-10 whitespace-nowrap ${
+            className={`relative flex-1 h-full flex items-center justify-center px-3 text-sm font-medium transition-colors z-10 whitespace-nowrap ${
               filter === "buyers" ? "text-white" : "text-gray-700"
             }`}
           >
@@ -116,7 +124,7 @@ const AllLeads = () => {
           {/* Rental */}
           <button
             onClick={() => setFilter("rental")}
-            className={`relative flex-1 px-3 py-[0.65rem] text-sm font-medium transition-colors z-10 whitespace-nowrap ${
+            className={`relative flex-1 h-full flex items-center justify-center px-3 text-sm font-medium transition-colors z-10 whitespace-nowrap ${
               filter === "rental" ? "text-white" : "text-gray-700"
             }`}
           >
@@ -127,36 +135,55 @@ const AllLeads = () => {
           {Boolean(authUser?.permissions?.superAdmin) && (
             <button
               onClick={() => setFilter("dead")}
-              className={`relative flex-1 px-3 py-[0.65rem] text-sm font-medium transition-colors z-10 whitespace-nowrap ${
+              className={`relative flex-1 h-full flex items-center justify-center px-3 text-sm font-medium transition-colors z-10 whitespace-nowrap ${
                 filter === "dead" ? "text-white" : "text-gray-700"
               }`}
             >
               <span className="relative z-10">Dead Leads</span>
             </button>
           )}
+          </div>
         </div>
 
-        {/* Search and Controls */}
-        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-          <input
-            type="text"
-            placeholder="Search..."
-            className="border px-3 py-2 rounded-full w-full sm:w-64"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <div className="flex items-center gap-4">
-            <label className="text-sm font-semibold text-gray-800 whitespace-nowrap">Rows per page:</label>
-            <select
-              value={rowsPerPage}
-              onChange={(e) => setRowsPerPage(Number(e.target.value))}
-              className="border border-gray-200 rounded-lg p-2 text-sm  hover:border-gray-300 focus:outline-none focus:ring-2  min-w-10 cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 4 5%22><path fill=%22%23666%22 d=%22M2 0L0 2h4zm0 5L0 3h4z%22/></svg>')] bg-no-repeat bg-right bg-[length:12px] "
-            >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-            </select>
+        {/* Search and Controls (right) */}
+        <div className="w-full lg:w-1/2 flex items-center justify-end">
+          <div className="flex flex-col sm:flex-row gap-3 items-center">
+          <div>
+            <TokenSearch
+              value={searchTerm}
+              onChange={setSearchTerm}
+              tokens={externalTokens}
+              onTokensChange={setExternalTokens}
+            />
+          </div>
+          <button
+            className="btn ml-2"
+            onClick={() => {
+              // build columns and rows from filteredAndTableFilteredLeads
+              const columns = [
+                { key: 'customerName', label: 'Customer' },
+                { key: 'contactNumber', label: 'Contact' },
+                { key: 'email', label: 'Email' },
+                { key: 'status', label: 'Status' },
+                { key: 'followUp', label: 'Follow Up' },
+                { key: 'requirement', label: 'Requirement' },
+                { key: 'date', label: 'Date' }
+              ];
+              const rows = (currentPageRows && currentPageRows.length ? currentPageRows : filteredAndTableFilteredLeads || []).map(r => ({
+                customerName: r.customerName || r.name || r.customer || '',
+                contactNumber: r.contactNumber || r.contactNo || '',
+                email: r.email || '',
+                status: r.status || '',
+                followUp: r.followUp || r.followUpDate || '',
+                requirement: r.requirement || r.remark || '',
+                date: r.date || ''
+              }));
+              exportRowsAsPdf({ columns, rows, fileName: 'leads.pdf', title: 'Leads Export' });
+            }}
+          >
+            Export all
+          </button>
+            {/* rows-per-page control removed; table now shows inline entries select in pagination */}
           </div>
         </div>
       </div>
@@ -167,7 +194,9 @@ const AllLeads = () => {
         data={filteredAndTableFilteredLeads} 
         hideSearch={true}
         externalSearch={searchTerm}
-        externalRowsPerPage={rowsPerPage}
+        externalTokens={externalTokens}
+        onExternalTokensChange={setExternalTokens}
+        onPageRowsChange={(rows) => setCurrentPageRows(rows)}
       />
 
       {/* Bulk Upload Popup */}

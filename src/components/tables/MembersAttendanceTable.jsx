@@ -253,20 +253,7 @@ const MembersAttendanceTable = ({ isDashboard = true, onClose = null }) => {
               </div>
 
               <div className="flex items-center gap-4">
-                {/* Rows per page */}
-                <div className="flex items-center gap-4">
-                  <span className="text-sm font-semibold text-gray-800 whitespace-nowrap">Rows per page:</span>
-                  <select
-                    value={rowsPerPage}
-                    onChange={(e) => setRowsPerPage(Number(e.target.value))}
-                    className="border border-gray-200 rounded-lg p-2 text-sm  hover:border-gray-300 focus:outline-none focus:ring-2  min-w-10 cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 4 5%22><path fill=%22%23666%22 d=%22M2 0L0 2h4zm0 5L0 3h4z%22/></svg>')] bg-no-repeat bg-right bg-[length:12px] "
-                  >
-                    <option value={10}>10</option>
-                    <option value={25}>25</option>
-                    <option value={50}>50</option>
-                    <option value={100}>100</option>
-                  </select>
-                </div>
+                {/* rows-per-page removed from header; will render inline select in pagination */}
               </div>
             </div>
           </div>
@@ -326,9 +313,20 @@ const MembersAttendanceTable = ({ isDashboard = true, onClose = null }) => {
           {/* Pagination - Only in full view */}
           {!isDashboard && totalPages > 1 && (
             <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-              <div className="text-sm text-gray-600">
-                Showing {startIndex + 1}-{Math.min(startIndex + rowsPerPage, filteredMembers.length)} of {filteredMembers.length} members
-              </div>
+              <div className="text-sm text-gray-600 flex items-center gap-2">
+                    <span>Showing {startIndex + 1}-</span>
+                    <select
+                      value={rowsPerPage}
+                      onChange={(e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+                      className="border rounded px-2 py-1 text-sm"
+                    >
+                      <option value={10}>10</option>
+                      <option value={25}>25</option>
+                      <option value={50}>50</option>
+                      <option value={100}>100</option>
+                    </select>
+                    <span>of {filteredMembers.length} members</span>
+                  </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}

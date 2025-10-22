@@ -20,7 +20,7 @@ style.textContent = scrollbarCSS;
 document.head.appendChild(style);
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
+  
     <QueryClientProvider client={queryClient}>
       <NotificationsProvider>
         <App />
@@ -28,5 +28,5 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <ReactQueryDevtools initialIsOpen={false} />
       </NotificationsProvider>
     </QueryClientProvider>
-  </React.StrictMode>
+ 
 );

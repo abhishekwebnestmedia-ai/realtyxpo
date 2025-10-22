@@ -3,17 +3,20 @@ import { Pencil, Trash2 } from "lucide-react";
 import api from "../../api/api"; // ✅ axios instance
 import ConfirmDeleteButton from "../ui/notifications/ConfirmDelete"; // adjust path
 import EditOptionsPopup from "../modals/EditInventry"; // adjust path
-const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, externalSearch = "", externalRowsPerPage = 10 }) => {
+import TokenSearch from '../ui/TokenSearch';
+const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, externalSearch = "", externalRowsPerPage = 10, onPageRowsChange = null }) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [searchTokens, setSearchTokens] = useState([]);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
   const [currentPage, setCurrentPage] = useState(1);
   const [deletingId, setDeletingId] = useState(null);
   const [localData, setLocalData] = useState(data); // ✅ maintain local copy
   const [editingRowId, setEditingRowId] = useState(null); // ✅ Track specific row being edited
+  // local rows per page (sync with external prop)
+  const [rowsPerPage, setRowsPerPage] = useState(externalRowsPerPage);
   
-  // Use external search and rows per page when provided
+  // Use external search when provided
   const activeSearch = hideSearch ? externalSearch : searchTerm;
-  const activeRowsPerPage = externalRowsPerPage;
   
   // ✅ Popup state management
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -29,16 +32,20 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
     }
   }, [data, editingRowId]);
 
-  // ✅ Search filter
+  // keep rowsPerPage in sync if parent changes externalRowsPerPage
+  React.useEffect(() => {
+    setRowsPerPage(externalRowsPerPage);
+  }, [externalRowsPerPage]);
+
+  // ✅ Search filter supporting tokenized AND search
   const filteredData = useMemo(() => {
-    if (!activeSearch) return localData;
-    return localData.filter((row) =>
-      Object.values(row)
-        .join(" ")
-        .toLowerCase()
-        .includes(activeSearch.toLowerCase())
-    );
-  }, [localData, activeSearch]);
+    const tokens = (searchTokens && searchTokens.length) ? searchTokens.map(t => String(t).toLowerCase()) : (activeSearch ? [String(activeSearch).toLowerCase()] : []);
+    if (!tokens || tokens.length === 0) return localData;
+    return localData.filter((row) => {
+      const hay = Object.values(row).join(' ').toLowerCase();
+      return tokens.every(tok => hay.includes(tok));
+    });
+  }, [localData, activeSearch, searchTokens]);
 
   // ✅ Sorting
   const sortedData = useMemo(() => {
@@ -54,9 +61,14 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
 
   // ✅ Pagination
   const paginatedData = useMemo(() => {
-    const start = (currentPage - 1) * activeRowsPerPage;
-    return sortedData.slice(start, start + activeRowsPerPage);
-  }, [sortedData, currentPage, activeRowsPerPage]);
+    const start = (currentPage - 1) * rowsPerPage;
+    return sortedData.slice(start, start + rowsPerPage);
+  }, [sortedData, currentPage, rowsPerPage]);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+
+  React.useEffect(() => {
+    if (typeof onPageRowsChange === 'function') onPageRowsChange(paginatedData);
+  }, [paginatedData, onPageRowsChange]);
 
   // ✅ Sort handler
   const handleSort = (key) => {
@@ -131,15 +143,11 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
       {/* ✅ Controls */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-2 mb-4">
         {!hideSearch && (
-          <input
-            type="text"
-            placeholder="Search..."
-            className="border px-3 py-2 rounded-full w-full sm:w-64"
+          <TokenSearch
             value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setCurrentPage(1);
-            }}
+            onChange={(v) => { setSearchTerm(v); setCurrentPage(1); }}
+            tokens={searchTokens}
+            onTokensChange={(t) => { setSearchTokens(t); setCurrentPage(1); }}
           />
         )}
       </div>
@@ -148,9 +156,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
         <table className="w-full border-collapse text-sm">
           <thead className="bg-gray-100 text-gray-600 uppercase text-xs sticky top-0 z-10 font-bold">
             <tr>
-              <th className="px-4 py-2 font-semibold ">
-                <input type="checkbox" />
-              </th>
+              <th className="px-4 py-2 font-semibold text-center theading">S.No</th>
               <th
                 className="px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
                 onClick={() => handleSort("sellerName")}
@@ -389,15 +395,13 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
           </thead>
           <tbody>
             {paginatedData.length > 0 ? (
-              paginatedData.map((row) => (
+              paginatedData.map((row, idx) => (
                 <tr
                   key={row._id}
                   className="border-b hover:bg-gray-50 transition-colors cursor-pointer"
                   onClick={() => handleRowClick(row)}
                 >
-                  <td className="px-4 py-4">
-                    <input type="checkbox" />
-                  </td>
+                  <td className="px-4 py-4 text-center">{startIndex + idx + 1}</td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     {row.sellerName}
                   </td>
@@ -492,10 +496,20 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
       </div>
       {/* ✅ Pagination */}
       <div className="flex justify-between items-center mt-4 text-sm text-gray-600">
-        <span>
-          Showing {Math.min((currentPage - 1) * activeRowsPerPage + 1, sortedData.length)} -{" "}
-          {Math.min(currentPage * activeRowsPerPage, sortedData.length)} of{" "}
-          {sortedData.length}
+        <span className="flex items-center gap-2">
+          <span>Showing {startIndex + 1} -</span>
+          <select
+            value={rowsPerPage}
+            onChange={(e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+            className="border rounded px-2 py-1 text-sm"
+          >
+            <option value={5}>5</option>
+            <option value={8}>8</option>
+            <option value={10}>10</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+          </select>
+          <span>of {sortedData.length}</span>
         </span>
         <div className="flex gap-2">
           <button
@@ -507,7 +521,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
           </button>
           <button
             className="px-3 py-1 border rounded disabled:opacity-50"
-            disabled={currentPage * activeRowsPerPage >= sortedData.length}
+            disabled={currentPage * rowsPerPage >= sortedData.length}
             onClick={() => setCurrentPage((p) => p + 1)}
           >
             Next

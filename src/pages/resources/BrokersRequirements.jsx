@@ -1,13 +1,15 @@
 import React, { useState, useMemo } from 'react';
+import TokenSearch from '../../components/ui/TokenSearch';
 import { Pencil, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import AddBulkBrokerRequirements from '../../components/modals/AddBulkBrokerRequirements';
 import Pagination from '../../components/ui/Pagination';
 import { useBrokers } from '../../hooks/useBrokers';
-
 const BrokersRequirements = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [searchTokens, setSearchTokens] = useState([]);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  
   const [currentPage, setCurrentPage] = useState(1);
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
 
@@ -21,13 +23,15 @@ const BrokersRequirements = () => {
     return [];
   }, [brokersData]);
 
-  // Filter data based on search term
-  const filteredData = brokers.filter((row) =>
-    Object.values(row)
-      .join(" ")
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase())
-  );
+  // Filter data based on tokenized search (AND semantics)
+  const filteredData = useMemo(() => {
+    const tokens = (searchTokens && searchTokens.length) ? searchTokens.map(t => String(t).toLowerCase()) : (searchTerm ? [searchTerm.toLowerCase()] : []);
+    if (!tokens || tokens.length === 0) return brokers;
+    return brokers.filter(row => {
+      const hay = Object.values(row).join(' ').toLowerCase();
+      return tokens.every(tok => hay.includes(tok));
+    });
+  }, [brokers, searchTerm, searchTokens]);
 
   // Loading and error states
   if (isLoading) {
@@ -84,32 +88,13 @@ const BrokersRequirements = () => {
 
       {/* Controls */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-2 mb-4">
-        <input
-          type="text"
-          placeholder="Search..."
-          className="border px-3 py-2 rounded-full w-full sm:w-64"
+        <TokenSearch
           value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-            setCurrentPage(1);
-          }}
+          onChange={(v) => { setSearchTerm(v); setCurrentPage(1); }}
+          tokens={searchTokens}
+          onTokensChange={(t) => { setSearchTokens(t); setCurrentPage(1); }}
         />
-        <div className="flex items-center gap-4">
-          <label className="text-sm font-semibold text-gray-800 whitespace-nowrap">Rows per page:</label>
-          <select
-            value={rowsPerPage}
-            onChange={(e) => {
-              setRowsPerPage(Number(e.target.value));
-              setCurrentPage(1);
-            }}
-            className="border border-gray-200 rounded-lg p-2 text-sm  hover:border-gray-300 focus:outline-none focus:ring-2  min-w-10 cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 4 5%22><path fill=%22%23666%22 d=%22M2 0L0 2h4zm0 5L0 3h4z%22/></svg>')] bg-no-repeat bg-right bg-[length:12px] "
-          >
-            <option value={5}>5</option>
-            <option value={10}>10</option>
-            <option value={25}>25</option>
-            <option value={50}>50</option>
-          </select>
-        </div>
+        {/* rows-per-page removed; pagination renders inline select */}
       </div>
 
       {/* Table */}
@@ -117,9 +102,7 @@ const BrokersRequirements = () => {
         <table className="w-full border-collapse text-sm">
           <thead className="bg-gray-100 text-gray-600 uppercase text-xs sticky top-0 z-10">
             <tr>
-              <th className="px-4 py-2 font-medium">
-                <input type="checkbox" />
-              </th>
+              <th className="px-4 py-2 font-medium theading">S.No</th>
               <th className="min-w-20 px-4 py-6 whitespace-nowrap theading text-left font-medium">
                 Captured By
               </th>
@@ -159,9 +142,7 @@ const BrokersRequirements = () => {
                   key={row.id}
                   className="border-b hover:bg-gray-50 transition-colors"
                 >
-                  <td className="px-4 py-4">
-                    <input type="checkbox" />
-                  </td>
+                  <td className="px-4 py-4 text-center">{startIndex + paginatedData.indexOf(row) + 1}</td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     {row.capturedBy || row.sellerName || 'N/A'}
                   </td>
@@ -220,8 +201,19 @@ const BrokersRequirements = () => {
 
       {/* Pagination */}
       <div className="flex justify-between items-center mt-4">
-        <div className="text-sm text-gray-600">
-          Showing {startIndex + 1} to {Math.min(startIndex + rowsPerPage, filteredData.length)} of {filteredData.length} entries
+        <div className="text-sm text-gray-600 flex items-center gap-2">
+          <span>Showing {startIndex + 1} -</span>
+          <select
+            value={rowsPerPage}
+            onChange={(e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+            className="border rounded px-2 py-1 text-sm"
+          >
+            <option value={5}>5</option>
+            <option value={10}>10</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+          </select>
+          <span>of {filteredData.length} entries</span>
         </div>
         <div className="flex gap-2">
           <button

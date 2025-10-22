@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { AuthContext } from "../../context/AuthContext";
 import api from "../../api/api";
 import showToast from "../../components/ui/notifications/AddSuccess";
+import CustomSelect from "../../components/ui/CustomSelect";
 
 const AddLead = () => {
   const navigate = useNavigate();
@@ -133,7 +134,7 @@ const AddLead = () => {
   };
 
   return (
-    <div>
+    <div className="p-4 bg-white rounded-2xl" >
       <h2 className="text-2xl font-medium">Add Lead</h2>
       <form onSubmit={handleSubmit} className="mt-5">
         <div className="grid grid-cols-2 gap-4">
@@ -187,20 +188,20 @@ const AddLead = () => {
             <label htmlFor="status" className="block mb-1 font-medium">
               Status
             </label>
-            <select
+            <CustomSelect
+              id="status"
               name="status"
               value={form.status}
               onChange={handleChange}
-              id="status"
-              className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2"
-            >
-              <option value="Hot">Hot</option>
-              <option value="Not connected">Not connected</option>
-              <option value="Serious">Serious</option>
-              <option value="Potential">Potential</option>
-              <option value="Futuristic">Futuristic</option>
-              <option value="Dead Lead">Dead Lead</option>
-            </select>
+              options={[
+                { value: 'Hot', label: 'Hot' },
+                { value: 'Not connected', label: 'Not connected' },
+                { value: 'Serious', label: 'Serious' },
+                { value: 'Potential', label: 'Potential' },
+                { value: 'Futuristic', label: 'Futuristic' },
+                { value: 'Dead Lead', label: 'Dead Lead' },
+              ]}
+            />
           </div>
 
           {/* Follow-up Date */}
@@ -223,21 +224,15 @@ const AddLead = () => {
             <label htmlFor="capturedBy" className="block mb-1 font-medium">
               Captured by
             </label>
-            <select
+            <CustomSelect
+              id="capturedBy"
               name="capturedBy"
               value={form.capturedBy}
               onChange={handleChange}
-              id="capturedBy"
-              className="w-full border border-gray-300 bg-gray-100 cursor-not-allowed rounded px-3 py-2"
               disabled
-            >
-              <option value="">-- Select User --</option>
-              {users.map((u) => (
-                <option key={u._id} value={u.name}>
-                  {u.name}
-                </option>
-              ))}
-            </select>
+              options={users.map(u => ({ value: u.name, label: u.name }))}
+              placeholder="-- Select User --"
+            />
           </div>
 
           {/* Assign To */}
@@ -245,20 +240,14 @@ const AddLead = () => {
             <label htmlFor="assignTo" className="block mb-1 font-medium">
               Assign to
             </label>
-            <select
+            <CustomSelect
+              id="assignTo"
               name="assignTo"
               value={form.assignTo}
               onChange={handleChange}
-              id="assignTo"
-              className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2"
-            >
-              <option value="">-- Select User --</option>
-              {getFilteredUsersForAssignTo().map((u) => (
-                <option key={u._id} value={u._id}>
-                  {u.name}
-                </option>
-              ))}
-            </select>
+              options={getFilteredUsersForAssignTo().map(u => ({ value: u._id, label: u.name }))}
+              placeholder="-- Select User --"
+            />
           </div>
 
           {/* Transfer To */}
@@ -266,43 +255,53 @@ const AddLead = () => {
             <label htmlFor="transferTo" className="block mb-1 font-medium">
               Transfer To
             </label>
-            <select
+            <CustomSelect
+              id="transferTo"
               name="transferTo"
               value={form.transferTo}
               onChange={handleChange}
-              id="transferTo"
-              className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2"
-            >
-              <option value="">-- Select User --</option>
-              {getFilteredUsersForAssignTo().map((u) => (
-                <option key={u._id} value={u._id}>
-                  {u.name}
-                </option>
-              ))}
-            </select>
+              options={getFilteredUsersForAssignTo().map(u => ({ value: u._id, label: u.name }))}
+              placeholder="-- Select User --"
+            />
           </div>
 
-          {/* Source (with datalist) */}
-          {/* Source Dropdown */}
-          <div>
-  <label htmlFor="source" className="block mb-1 font-medium">
-    Source
-  </label>
-  <input
-    list="sourceOptions"
-    name="source"
-    value={form.source}
-    onChange={handleChange}
-    id="source"
-    className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2"
-    placeholder="Select or type source"
-  />
-  <datalist id="sourceOptions">
-    {dropdowns.source.map((src, i) => (
-      <option key={i} value={src} />
-    ))}
-  </datalist>
-</div>
+                    {/* Source (with datalist) */}
+                    <div>
+                      <label htmlFor="source" className="block mb-1 font-medium">
+                        Source
+                      </label>
+                      <div className="custom-select-wrapper">
+                        <input
+                          list="sourceOptions"
+                          name="source"
+                          value={form.source}
+                          onChange={handleChange}
+                          id="source"
+                          className="custom-select"
+                          placeholder="Select or type source"
+                        />
+                        <svg className="custom-select-caret" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M5.23 7.21a.75.75 0 011.06-.02L10 10.67l3.71-3.48a.75.75 0 111.02 1.1l-4.2 3.94a.75.75 0 01-1.02 0L5.25 8.29a.75.75 0 01-.02-1.08z"/></svg>
+                        <datalist id="sourceOptions">
+                          {dropdowns.source.map((src, i) => (
+                            <option key={i} value={src} />
+                          ))}
+                        </datalist>
+                      </div>
+                    </div>
+
+                    {/* Lead Type - moved next to Source to render in the same row */}
+                    <div>
+                      <label htmlFor="leadType" className="block mb-1 font-medium">
+                        Lead Type
+                      </label>
+                      <CustomSelect
+                        id="leadType"
+                        name="leadType"
+                        value={form.leadType}
+                        onChange={handleChange}
+                        options={[{ value: '', label: '-- Select Lead Type --' }, { value: 'Buyer', label: 'Buyer' }, { value: 'Rental', label: 'Rental' }]}
+                      />
+                    </div>
 
 
           {/* Requirement */}
@@ -349,23 +348,6 @@ const AddLead = () => {
               value={form.date}
               readOnly
             />
-          </div>
-          {/* Lead Type */}
-          <div>
-            <label htmlFor="leadType" className="block mb-1 font-medium">
-              Lead Type
-            </label>
-            <select
-              name="leadType"
-              value={form.leadType}
-              onChange={handleChange}
-              id="leadType"
-              className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2"
-            >
-              <option value="">-- Select Lead Type --</option>
-              <option value="Buyer">Buyer</option>
-              <option value="Rental">Rental</option>
-            </select>
           </div>
         </div>
 

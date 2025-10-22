@@ -165,3 +165,84 @@ body {
 }
 
 /* Remove the old .html class - not needed */
+
+/* Global dropdown component styles (use these classes for all dropdown panels/items) */
+:root{
+  --dropdown-bg: #ffffff;
+  --dropdown-border: #e5e7eb;
+  --dropdown-item-color: #374151;
+  --dropdown-shadow: 0 10px 30px rgba(15,23,42,0.08);
+}
+
+/* Panel wrapper for dropdowns */
+.dropdown-panel{
+  position: absolute;
+  right: 0;
+  margin-top: 0.5rem;
+  border-radius: 0.75rem; /* slightly larger radius */
+  transition: all 0.15s ease-in-out;
+  z-index: 50;
+  background-color: var(--dropdown-bg);
+  border: 1px solid rgba(15,23,42,0.06); /* subtle border */
+  box-shadow: 0 6px 18px rgba(15,23,42,0.06); /* gentler shadow */
+}
+
+/* Dropdown item */
+.dropdown-item{
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 1rem;
+  color: var(--dropdown-item-color);
+  cursor: pointer;
+}
+.dropdown-item:hover{ background-color: var(--blue100); color: var(--blue700); }
+.dropdown-item--danger{ color: #dc2626; }
+
+/* Width helpers */
+.dropdown-w-40{ width: 10rem; }
+.dropdown-w-48{ width: 12rem; }
+.dropdown-w-64{ width: 16rem; }
+
+
+/* Custom select styling for consistent dropdown appearance (plain CSS, avoids @apply) */
+.custom-select-wrapper{ position: relative; }
+.custom-select{
+  width: 100%;
+  border: 1px solid rgba(15,23,42,0.06); /* subtle border */
+  background-color: #FFFFFF; /* white box for contrast */
+  border-radius: 0.5rem; /* slightly larger radius */
+  padding: 0.5rem 0.75rem;
+  padding-right: 2.5rem; /* room for caret */
+  color: var(--dropdown-item-color);
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  box-shadow: 0 2px 8px rgba(15,23,42,0.04);
+}
+.custom-select:disabled{ opacity: 1; }
+.custom-select-caret{
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1rem;
+  height: 1rem;
+  pointer-events: none;
+  color: #6b7280;
+}
+
+/* Hover state: light blue background on items and blue border/halo for control */
+.custom-select:hover{
+  border-color: var(--blue700);
+  box-shadow: 0 6px 18px rgba(29,78,216,0.06);
+}
+.custom-select-wrapper:hover .custom-select-caret{
+  color: var(--blue700);
+}
+
+/* Focus state for accessibility */
+.custom-select:focus{
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(81,105,243,0.08);
+  border-color: rgba(81,105,243,0.6);
+}
