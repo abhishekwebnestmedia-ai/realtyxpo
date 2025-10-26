@@ -209,7 +209,7 @@ const EditLead = () => {
             </div>
             <div>
               <label htmlFor="capturedBy" className='block mb-1 font-medium'>Captured by</label>
-              <input name="capturedBy" value={form.capturedBy} type="text" id='capturedBy' className='w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2' readOnly disabled />
+              <input name="capturedBy" value={form.capturedBy} onChange={handleChange} type="text" id='capturedBy' className='w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2' />
             </div>
             <div>
               <label htmlFor="assignTo" className='block mb-1 font-medium'>Assign to</label>

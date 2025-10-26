@@ -229,7 +229,6 @@ const AddLead = () => {
               name="capturedBy"
               value={form.capturedBy}
               onChange={handleChange}
-              disabled
               options={users.map(u => ({ value: u.name, label: u.name }))}
               placeholder="-- Select User --"
             />

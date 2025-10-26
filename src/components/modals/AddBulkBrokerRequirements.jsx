@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import { X, Upload, FileSpreadsheet, AlertCircle } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import * as XLSX from 'xlsx';
 import api from "../../api/api";
 
 const AddBulkBrokerRequirements = ({ isOpen, onClose }) => {
@@ -74,7 +75,25 @@ const AddBulkBrokerRequirements = ({ isOpen, onClose }) => {
             });
             resolve(records);
           } else {
-            reject(new Error("Excel file parsing requires additional setup. Please use CSV format."));
+            // Parse Excel files using xlsx library
+            const workbook = XLSX.read(content, { type: 'binary' });
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+            
+            if (jsonData.length < 2) {
+              throw new Error("Excel file must have at least a header row and one data row.");
+            }
+            
+            const headers = jsonData[0];
+            const records = jsonData.slice(1).map(row => {
+              const record = {};
+              headers.forEach((header, index) => {
+                record[header] = row[index] || '';
+              });
+              return record;
+            });
+            resolve(records);
           }
         } catch (parseError) {
           console.error('File parsing error:', parseError);
@@ -82,7 +101,12 @@ const AddBulkBrokerRequirements = ({ isOpen, onClose }) => {
         }
       };
       reader.onerror = () => reject(new Error("Failed to read file."));
-      reader.readAsText(file);
+      
+      if (file.type === 'text/csv') {
+        reader.readAsText(file);
+      } else {
+        reader.readAsBinaryString(file);
+      }
     });
   };
 

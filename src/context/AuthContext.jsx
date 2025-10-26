@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import api from "../api/api";
-import { setCookie, getCookie, deleteCookie } from '../utils/cookies';
 import queryClient from "../queryClient";
 import { AuthContext } from "./AuthContextCore";
 // Re-export the context so existing imports using named export keep working
@@ -10,7 +9,9 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Helper: parse JWT payload safely
+  // Helper: parse JWT payload safely (used only for fallback when token is
+  // available client-side). When using HttpOnly cookies this is not possible
+  // and the server should provide profile via /auth/profile.
   const parseJwt = (token) => {
     try {
       const base64Payload = token.split(".")[1];
@@ -32,7 +33,8 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUserProfile = async () => {
     try {
-      // rely on api defaults if Authorization header is set
+      // When server manages auth with HttpOnly cookies, this endpoint will
+      // return the current user's profile based on the cookie.
       const res = await api.get("/auth/profile");
       // normalize response shapes
       const raw = res.data?.data || res.data || null;
@@ -71,40 +73,70 @@ export const AuthProvider = ({ children }) => {
 
       const finalProfile = profile ? { ...profile, permissions: normalizedPermissions } : null;
       setUser(finalProfile); // Set full user profile with normalized permissions
+      return true;
     } catch (error) {
-      console.error(
-        "Failed to fetch user profile:",
-        error.response?.data || error.message
-      );
+      // Detailed debug output to help diagnose auth failures
+      const serverData = error.response?.data;
+      console.error("Failed to fetch user profile:", serverData || error.message);
+      if (error.response?.status === 401) {
+        console.warn('Auth profile returned 401. Server message:', serverData?.message || serverData);
+      }
       setUser(null);
+      return false;
     }
   };
 
-  // Restore user from token on page refresh
+  // Restore user on page load. Prefer server-side (HttpOnly cookie) session by
+  // calling /auth/profile directly. If that fails but a client-side token is
+  // present (fallback), try to use it.
   useEffect(() => {
     const checkUser = async () => {
-      const token = getCookie('token');
-      if (token) {
-        // set api default header so all api requests include token
-        api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      // If a readable token exists in cookie (fallback storage), set the
+      // Authorization header BEFORE calling /auth/profile so servers that
+      // expect a Bearer header receive it on the first request. Note: if
+      // the cookie is HttpOnly this will be null and we rely on cookie auth.
+      try {
+        const preToken = localStorage.getItem('token');
+        if (preToken) api.defaults.headers.common["Authorization"] = `Bearer ${preToken}`;
+      } catch {
+        // ignore
+      }
 
-        // decode and validate expiry
+      // Try server-managed cookie session first
+      const ok = await fetchUserProfile();
+      if (ok) {
+        setLoading(false);
+        return;
+      }
+      // If server profile failed, continue to fallback handling below.
+
+      // Fallback: if an old client-side token exists (non-HttpOnly cookie),
+      // attach it to Authorization header and try again.
+  const token = localStorage.getItem('token');
+      if (token) {
+        // check expiry client-side if possible
         const payload = parseJwt(token);
         if (payload && payload.exp && Date.now() > payload.exp * 1000) {
-          // token expired -> clear and don't try to fetch profile
-            console.warn("Token expired, clearing stored token");
-            deleteCookie('token');
+          console.warn("Token expired, clearing stored token");
+          try { localStorage.removeItem('token'); } catch { /* ignore */ }
           delete api.defaults.headers.common["Authorization"];
           setUser(null);
           setLoading(false);
           return;
         }
 
-        // token valid - fetch profile
-        await fetchUserProfile();
+        api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        const ok2 = await fetchUserProfile();
+        if (!ok2) {
+          // fallback failed - clear
+          try { localStorage.removeItem('token'); } catch { /* ignore */ }
+          delete api.defaults.headers.common["Authorization"];
+          setUser(null);
+        }
       } else {
         setUser(null);
       }
+
       setLoading(false);
     };
 
@@ -116,12 +148,16 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await api.post("/auth/login", { email, password });
 
-      const token = res.data.token;
-
-  // Store token in cookie (note: HttpOnly must be set by server for stronger security)
-  setCookie('token', token, { days: 7 });
-  // set default Authorization header for api instance
-  api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      // Preferred flow: server sets an HttpOnly cookie and we can fetch the
+      // profile immediately. For backward compatibility, if the server
+      // returns a token in the response body, we fall back to setting it
+      // client-side (not HttpOnly).
+      // Check whether server set a cookie by attempting to read it.
+      if (res.data?.token) {
+        const token = res.data.token;
+  try { localStorage.setItem('token', token); } catch { /* ignore */ }
+        api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      }
 
       await fetchUserProfile(); // Fetch profile after login
 
@@ -153,11 +189,20 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Logout function
-  const logout = () => {
-    deleteCookie('token');
+  const logout = async () => {
+    try {
+      // Ask server to clear HttpOnly cookie if supported
+      await api.post('/auth/logout');
+    } catch (err) {
+      // ignore - may not exist on server (fallback below will clear client-side)
+      console.warn('Server logout failed or not available:', err?.message || err);
+    }
+
+    // Clear any client-side stored token and headers
+  try { localStorage.removeItem('token'); } catch { /* ignore */ }
     setUser(null);
-    // remove default header so api requests aren't sent with stale token
     delete api.defaults.headers.common["Authorization"];
+
     // Clear react-query cache immediately on logout to avoid showing stale data
     try {
       queryClient.clear();

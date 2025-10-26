@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import api from '../../api/api';
+// Token is stored in localStorage now
 import { toast } from 'react-hot-toast';
 import ToggleSwitch from '../../components/ui/ToggleSwitch';
 import { ScrollableLeads } from '../../components/dashboard';
@@ -58,64 +59,42 @@ const UserDetails = () => {
     }
   };
 
+  // Simplified fetch logic: call the correct endpoint for the selected primaryOption
   const fetchUserData = async () => {
     if (!user) return;
-    
     setDataLoading(true);
     try {
+      const userName = user.name || user.username || '';
       let response;
-      const userName = user.name || user.username;
-      
-      console.log('Fetching data for user:', userName, 'Option:', primaryOption);
-      
+
       if (primaryOption === 'Leads') {
-        console.log('Making API call to: /realtleads/userbasedlead?name=' + userName);
-        response = await api.get(`/realtleads/userbasedlead?name=${userName}`);
-        console.log('Leads API response:', response.data);
+        // Leads endpoint requires Authorization header (token stored in localStorage)
+        const token = localStorage.getItem('token');
+        const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+        response = await api.get('/realtleads/userbasedlead', { params: { name: userName }, headers });
       } else if (primaryOption === 'Inventory') {
-        console.log('Making API call to: /inventry/userbasedinventry?assignTo=' + userName);
-        response = await api.get(`/inventry/userbasedinventry?assignTo=${userName}`);
-        console.log('Inventory API response:', response.data);
+        response = await api.get('/inventry/userbasedinventry', { params: { transferTo: userName } });
       } else {
         setUserData([]);
-        setDataLoading(false);
         return;
       }
-      
+
+      // Normalize response: backend may return array directly or wrapped object
       let data = [];
-      if (response.data.leads && Array.isArray(response.data.leads)) {
-        data = response.data.leads;
-        console.log('Found leads data:', data.length, 'items');
-      } else if (response.data.inventories && Array.isArray(response.data.inventories)) {
-        data = response.data.inventories;
-        console.log('Found inventories data:', data.length, 'items');
-      } else if (Array.isArray(response.data)) {
-        data = response.data;
-        console.log('Found direct array data:', data.length, 'items');
-      } else if (response.data.data && Array.isArray(response.data.data)) {
-        data = response.data.data;
-        console.log('Found nested data:', data.length, 'items');
-      } else {
-        console.log('No recognizable data structure found:', response.data);
-      }
-      
-      const filteredData = filterDataBySecondaryOption(data);
-      console.log('Filtered data:', filteredData.length, 'items after secondary filter');
-      setUserData(filteredData);
-      
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-      console.error('Error status:', error.response?.status);
-      console.error('Error message:', error.response?.data?.message || error.message);
-      
-      if (error.response?.status === 401) {
-        toast.error('Authentication failed. Please login again.');
-      } else if (error.response?.status === 404) {
-        toast.error(`No ${primaryOption.toLowerCase()} found for this user`);
-      } else {
-        toast.error(`Failed to load ${primaryOption.toLowerCase()}: ${error.response?.data?.message || error.message}`);
-      }
+      if (Array.isArray(response.data)) data = response.data;
+      else if (Array.isArray(response.data?.data)) data = response.data.data;
+      else if (Array.isArray(response.data?.leads)) data = response.data.leads;
+      else if (Array.isArray(response.data?.inventories)) data = response.data.inventories;
+
+      // Apply secondary filter (simple, predictable rules)
+      const filtered = filterDataBySecondaryOption(data || []);
+      setUserData(filtered);
+    } catch (err) {
+      console.error('Failed to fetch user data', err?.response?.data || err.message || err);
       setUserData([]);
+      if (err.response?.status === 401) toast.error('Authentication failed. Please login again.');
+      else if (err.response?.status === 404) toast.error(`No ${primaryOption.toLowerCase()} found for this user`);
+      else toast.error(`Failed to load ${primaryOption.toLowerCase()}`);
     } finally {
       setDataLoading(false);
     }
@@ -136,11 +115,17 @@ const UserDetails = () => {
     } else if (primaryOption === 'Inventory') {
       switch (secondaryOption) {
         case 'Sale':
-          return data.filter(item => item.type === 'sale' || item.category === 'sale');
+          return data.filter(item => {
+            const kind = String(item.type || item.category || item.inventoryType || item.inventory_type || '').toLowerCase();
+            return kind.includes('sale') || kind.includes('sales');
+          });
         case 'Rent':
-          return data.filter(item => item.type === 'rent' || item.category === 'rent');
+          return data.filter(item => {
+            const kind = String(item.type || item.category || item.inventoryType || item.inventory_type || '').toLowerCase();
+            return kind.includes('rent');
+          });
         case 'Completed Inventory':
-          return data.filter(item => item.status === 'completed' || item.status === 'sold');
+          return data.filter(item => String(item.status || '').toLowerCase() === 'completed' || String(item.status || '').toLowerCase() === 'sold');
         default:
           return data;
       }
@@ -169,7 +154,26 @@ const UserDetails = () => {
 
   const handlePrimaryOptionChange = (option) => {
     setPrimaryOption(option);
-    const secondaryOptions = getSecondaryOptions();
+    // Get secondary options based on the NEW option, not current state
+    let secondaryOptions = [];
+    switch (option) {
+      case 'Leads':
+        secondaryOptions = [
+          { value: 'All Buyers', label: 'All Buyers' },
+          { value: 'Rental Business', label: 'Rental Business' },
+          { value: 'Completed Leads', label: 'Completed Leads' }
+        ];
+        break;
+      case 'Inventory':
+        secondaryOptions = [
+          { value: 'Sale', label: 'Sale' },
+          { value: 'Rent', label: 'Rent' },
+          { value: 'Completed Inventory', label: 'Completed Inventory' }
+        ];
+        break;
+      default:
+        secondaryOptions = [];
+    }
     if (secondaryOptions.length > 0) {
       setSecondaryOption(secondaryOptions[0].value);
     }
@@ -182,7 +186,7 @@ const UserDetails = () => {
     { value: 'Info', label: 'Info' }
   ];
 
-  const getInitials = (name) => {
+  const _getInitials = (name) => {
     if (!name) return 'U';
     return name
       .split(' ')
@@ -282,45 +286,59 @@ const UserDetails = () => {
         ) : primaryOption === 'Inventory' ? (
           <div className="max-h-96 overflow-y-auto">
             {userData.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="min-w-full bg-white border border-gray-200">
-                  <thead className="bg-gray-50">
+              <div className="overflow-x-auto bg-white rounded-tr-3xl rounded-tl-3xl">
+                <table className="w-full border-collapse text-sm">
+                  <thead className="bg-gray-100 text-gray-600 uppercase text-xs sticky top-0 z-10 font-bold">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-medium">
-                        Property
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-medium">
-                        Type
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-medium">
-                        Status
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-medium">
-                        Price
-                      </th>
+                      <th className="px-4 py-2 font-semibold text-center theading">S.No</th>
+                      <th className="px-4 py-6 whitespace-nowrap theading text-left font-semibold">Seller Name</th>
+                      <th className="px-4 py-6 whitespace-nowrap theading text-left font-semibold">Project</th>
+                      <th className="px-4 py-6 whitespace-nowrap theading text-left font-semibold">Sector No</th>
+                      <th className="px-4 py-6 whitespace-nowrap theading text-left font-semibold">Unit No</th>
+                      <th className="px-4 py-6 whitespace-nowrap theading text-left font-semibold">Tower No</th>
+                      <th className="px-4 py-6 whitespace-nowrap theading text-left font-semibold">Typology</th>
+                      <th className="px-4 py-6 whitespace-nowrap theading text-left font-semibold">Size</th>
+                      <th className="px-4 py-6 whitespace-nowrap theading text-left font-semibold">Demand</th>
+                      <th className="px-4 py-2 whitespace-nowrap theading font-semibold">Contact No.</th>
+                      <th className="px-4 py-6 whitespace-nowrap theading text-left font-semibold">Email</th>
+                      <th className="px-4 py-6 whitespace-nowrap theading text-left font-semibold">Payment Status</th>
+                      <th className="px-4 py-6 whitespace-nowrap theading text-left font-semibold">Registry Type</th>
+                      <th className="px-4 py-6 whitespace-nowrap theading text-left font-semibold">Requirement</th>
+                      <th className="px-4 py-6 whitespace-nowrap theading text-left font-semibold">Date</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody>
                     {userData.map((item, index) => (
-                      <tr key={item._id || index} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {item.propertyName || item.title || 'N/A'}
+                      <tr key={item._id || index} className="border-b hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-4 text-center">{index + 1}</td>
+                        <td className="px-4 py-4 whitespace-nowrap">{item.sellerName || 'N/A'}</td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          {Array.isArray(item.Project) ? item.Project.join(', ') : (item.Project || 'N/A')}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {item.type || item.category || 'N/A'}
+                        <td className="px-4 py-4 whitespace-nowrap">{item.sector || 'N/A'}</td>
+                        <td className="px-4 py-4 whitespace-nowrap">{item.unitNo || 'N/A'}</td>
+                        <td className="px-4 py-4 whitespace-nowrap">{item.towerNo || 'N/A'}</td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          {Array.isArray(item.typology) ? item.typology.join(', ') : (item.typology || 'N/A')}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            item.status === 'available' ? 'bg-green-100 text-green-800' :
-                            item.status === 'sold' ? 'bg-red-100 text-red-800' :
-                            'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {item.status || 'N/A'}
-                          </span>
+                        <td className="px-4 py-4 whitespace-nowrap">{item.size || 'N/A'}</td>
+                        <td className="px-4 py-4 whitespace-nowrap">{item.demand || 'N/A'}</td>
+                        <td className="px-4 py-4 whitespace-nowrap flex flex-wrap gap-1">
+                          {Array.isArray(item.contactNumbers) && item.contactNumbers.length > 0 ? 
+                            item.contactNumbers.map((num, idx) => (
+                              <span key={idx} className="text-[#020E4F] px-2 rounded-full text-sm">
+                                {num}
+                              </span>
+                            )) : 'N/A'
+                          }
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {item.price ? `₹${item.price.toLocaleString()}` : 'N/A'}
+                        <td className="px-4 py-4 whitespace-nowrap">{item.email || 'N/A'}</td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          {Array.isArray(item.paymentStatus) ? item.paymentStatus.join(', ') : (item.paymentStatus || 'N/A')}
                         </td>
+                        <td className="px-4 py-4 whitespace-nowrap">{item.registryType || 'N/A'}</td>
+                        <td className="px-4 py-4 whitespace-nowrap">{item.requirement || 'N/A'}</td>
+                        <td className="px-4 py-4 whitespace-nowrap">{item.date || 'N/A'}</td>
                       </tr>
                     ))}
                   </tbody>

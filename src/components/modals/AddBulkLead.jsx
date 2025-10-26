@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import { X, Upload, FileSpreadsheet, AlertCircle } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import * as XLSX from 'xlsx';
 import api from "../../api/api";
 
 const AddBulkLead = ({ isOpen, onClose }) => {
@@ -76,9 +77,25 @@ const AddBulkLead = ({ isOpen, onClose }) => {
             });
             resolve(leads);
           } else {
-            // For Excel files, you would need a library like xlsx
-            // For now, show error message
-            reject(new Error("Excel file parsing requires additional setup. Please use CSV format."));
+            // Parse Excel files using xlsx library
+            const workbook = XLSX.read(content, { type: 'binary' });
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+            
+            if (jsonData.length < 2) {
+              throw new Error("Excel file must have at least a header row and one data row.");
+            }
+            
+            const headers = jsonData[0];
+            const leads = jsonData.slice(1).map(row => {
+              const lead = {};
+              headers.forEach((header, index) => {
+                lead[header] = row[index] || '';
+              });
+              return lead;
+            });
+            resolve(leads);
           }
         } catch (parseError) {
           console.error('File parsing error:', parseError);
@@ -87,7 +104,12 @@ const AddBulkLead = ({ isOpen, onClose }) => {
       };
       
       reader.onerror = () => reject(new Error("Failed to read file."));
-      reader.readAsText(file);
+      
+      if (file.type === 'text/csv') {
+        reader.readAsText(file);
+      } else {
+        reader.readAsBinaryString(file);
+      }
     });
   };
 

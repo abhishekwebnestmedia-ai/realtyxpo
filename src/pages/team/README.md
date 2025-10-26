@@ -45,7 +45,7 @@ import { TeamList, UserDetails } from './pages/team';
 ## API Endpoints Used:
 - `/auth/teams` - Fetch all team members
 - `/realtleads/userbasedlead?name={userName}` - User specific leads (✅ IMPLEMENTED)
-- `/inventry/userbasedinventry?assignTo={userName}` - User specific inventory (✅ IMPLEMENTED)
+- `/inventry/userbasedinventry?transferTo={userName}` - User specific inventory (✅ IMPLEMENTED)
 
 ### API Implementation Details:
 - **Base URL**: `https://backend.realtyxpo.in/api`

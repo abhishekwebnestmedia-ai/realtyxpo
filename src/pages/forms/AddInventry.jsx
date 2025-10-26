@@ -102,6 +102,13 @@ const StepperForm = () => {
     };
   }, []);
 
+  // Prefill capturedBy with current user's name
+  useEffect(() => {
+    if (user?.name) {
+      setFormData((prev) => ({ ...prev, capturedBy: user.name }));
+    }
+  }, [user]);
+
 
 
   const handleSubmit = async (e) => {

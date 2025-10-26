@@ -44,8 +44,8 @@ const APITester = () => {
 
   const runAllTests = async () => {
     await testAPI('/auth/teams', 'Teams');
-    await testAPI('/realtleads/userbasedlead?name=shashank', 'User Leads');
-    await testAPI('/inventry/userbasedinventry?assignTo=shashank', 'User Inventory');
+  await testAPI('/realtleads/userbasedlead?name=Abhishek%20Singh', 'User Leads');
+  await testAPI('/inventry/userbasedinventry?transferTo=Abhishek', 'User Inventory');
   };
 
   return (
@@ -69,13 +69,13 @@ const APITester = () => {
             Test Teams API
           </button>
           <button
-            onClick={() => testAPI('/realtleads/userbasedlead?name=shashank', 'User Leads')}
+            onClick={() => testAPI('/realtleads/userbasedlead?name=Abhishek%20Singh', 'User Leads')}
             className="block px-3 py-1 bg-gray-100 rounded hover:bg-gray-200 text-sm"
           >
             Test User Leads API
           </button>
           <button
-            onClick={() => testAPI('/inventry/userbasedinventry?assignTo=shashank', 'User Inventory')}
+            onClick={() => testAPI('/inventry/userbasedinventry?transferTo=Abhishek', 'User Inventory')}
             className="block px-3 py-1 bg-gray-100 rounded hover:bg-gray-200 text-sm"
           >
             Test User Inventory API

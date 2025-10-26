@@ -190,8 +190,7 @@ const Step3EmployeeDetails = () => {
           name="capturedBy"
           value={formData.capturedBy || ""}
           onChange={handleChange}
-          className="w-full border px-3 py-2 rounded-lg bg-gray-100 cursor-not-allowed"
-          disabled
+          className="w-full border px-3 py-2 rounded-lg bg-[#FAFBFC]"
         >
           <option value="">-- Select User --</option>
           {getUserPool().map((u) => (

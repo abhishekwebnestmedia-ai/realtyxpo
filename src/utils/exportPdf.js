@@ -56,7 +56,7 @@ export function exportRowsAsPdf({ columns = [], rows = [], fileName = 'export.pd
         const srcLower = String(watermark.src || '').toLowerCase();
         const isSvg = srcLower.endsWith('.svg') || srcLower.startsWith('data:image/svg+xml');
         const rawRequested = !!watermark.raw;
-        let desiredOpacity = typeof watermark.opacity === 'number' ? watermark.opacity : 0.08;
+        let desiredOpacity = typeof watermark.opacity === 'number' ? watermark.opacity : 0.15;
 
         if (isSvg) {
           try {
@@ -79,7 +79,7 @@ export function exportRowsAsPdf({ columns = [], rows = [], fileName = 'export.pd
                 tmpCanvas.width = canvas.width;
                 tmpCanvas.height = canvas.height;
                 const tctx = tmpCanvas.getContext('2d');
-                tctx.globalAlpha = Math.max(desiredOpacity, 0.02);
+                tctx.globalAlpha = Math.max(desiredOpacity, 0.05);
                 tctx.drawImage(canvas, 0, 0);
                 processedWatermarkDataUrl = tmpCanvas.toDataURL('image/png');
               } else {
@@ -102,7 +102,7 @@ export function exportRowsAsPdf({ columns = [], rows = [], fileName = 'export.pd
           if (img) {
             // If it's not SVG or canvg failed, attempt processing via canvas (honoring raw flag)
             if (isSvg && !rawRequested) {
-              desiredOpacity = Math.max(desiredOpacity, 0.22);
+              desiredOpacity = Math.max(desiredOpacity, 0.25);
             }
             processedWatermarkDataUrl = createProcessedDataUrl(img, desiredOpacity, rawRequested);
             if (!processedWatermarkDataUrl) console.warn('Watermark processing returned null; using image element fallback');
@@ -166,28 +166,26 @@ export function exportRowsAsPdf({ columns = [], rows = [], fileName = 'export.pd
       }
 
       // Draw table and ensure watermark is rendered as a background for each page.
-      // We use the `willDrawCell` hook to detect when a new page's cells are about to be drawn
-      // and render the watermark at that time (so it sits behind the table cells).
-      let _lastWatermarkPage = 0;
+      // We render the watermark first, then draw table with transparent/background cells so watermark shows through
       doc.autoTable({
         startY: title ? 60 : 40,
         head: head,
         body: body,
-        styles: { fontSize: 9 },
-        headStyles: { fillColor: [245, 245, 245], textColor: 40 },
+        styles: { 
+          fontSize: 9,
+          fillColor: false, // Make cells transparent so watermark shows through
+        },
+        headStyles: { 
+          fillColor: [245, 245, 245, 0.8], // Semi-transparent header
+          textColor: 40 
+        },
+        alternateRowStyles: {
+          fillColor: false // Remove alternate row coloring to show watermark
+        },
         margin: { left: 20, right: 20 },
-        willDrawCell: function (data) {
-          try {
-            // data.pageNumber is available and indicates the page where the cell will be drawn
-            if (processedWatermarkDataUrl && data.pageNumber && data.pageNumber !== _lastWatermarkPage) {
-              // Render watermark on this page before any cells are drawn so it acts as a background
-              renderWatermarkOnDoc(doc, data.pageNumber);
-              _lastWatermarkPage = data.pageNumber;
-            }
-          } catch (err) {
-            // swallow errors so table rendering continues
-            console.warn('Watermark draw error in willDrawCell', err);
-          }
+        willDrawPage: function (data) {
+          // Draw watermark on every page before table content
+          renderWatermarkOnDoc(doc, data.pageNumber);
         }
       });
 

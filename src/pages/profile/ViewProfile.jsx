@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import Chart from 'react-apexcharts';
 import api from '../../api/api';
+// token is read from localStorage
 
 const ViewProfile = ({ profileUser = null, customHeading = null, showEditButton = true }) => {
   const navigate = useNavigate();
@@ -114,7 +115,9 @@ const ViewProfile = ({ profileUser = null, customHeading = null, showEditButton 
       const userName = displayUser?.name || displayUser?.userName;
       if (!userName) return;
 
-      const response = await api.get(`/realtleads/userbasedlead?name=${userName}`);
+  const token = localStorage.getItem('token');
+  const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+  const response = await api.get('/realtleads/userbasedlead', { params: { name: userName }, headers });
       let data = [];
       
       if (response.data.leads && Array.isArray(response.data.leads)) {
@@ -150,7 +153,7 @@ const ViewProfile = ({ profileUser = null, customHeading = null, showEditButton 
     try {
       if (displayUser?.userName || displayUser?.name) {
         const userName = displayUser?.userName || displayUser?.name;
-        const response = await api.get(`/inventry/userbasedinventry?assignTo=${userName}`);
+  const response = await api.get('/inventry/userbasedinventry', { params: { transferTo: userName } });
         
         if (response.data && Array.isArray(response.data)) {
           let data = response.data;
