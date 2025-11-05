@@ -354,70 +354,46 @@ const ProjectsWorking = () => {
 
 
 <div className="grid justify-center w-full gap-10">
-  {sortedFloors.map(([floor, units]) => {
-    // sort units by numeric part for stable ordering
-    const sortedUnits = [...units].sort((a, b) => {
-      const unitA = parseInt((a.cleanedUnitNumber || '').match(/\d+/)?.[0] || 0);
-      const unitB = parseInt((b.cleanedUnitNumber || '').match(/\d+/)?.[0] || 0);
-      return unitA - unitB;
-    });
-
-    // split into rows of 5 units each to render across the 5 columns
-    const rows = [];
-    for (let i = 0; i < sortedUnits.length; i += 5) rows.push(sortedUnits.slice(i, i + 5));
-
-    return (
-      <div key={floor} className="w-full max-w-6xl mx-auto">
-        {rows.map((rowUnits, rowIndex) => (
-          <div key={rowIndex} className="grid grid-cols-6 gap-4 items-start mb-4">
-            {/* Floor column: show on the first row only; responsive alignment (right on small, start on md+) */}
-            <div className="text-right md:text-start pr-4">
-              {rowIndex === 0 ? (
-                <h2 className="text-2xl font-semibold text-gray-800">{floor}</h2>
-              ) : (
-                <div />
-              )}
-            </div>
-
-            {/* Five unit columns */}
-            {Array.from({ length: 5 }).map((_, colIdx) => {
-              const unit = rowUnits[colIdx];
-              if (!unit) {
-                return (
-                  <div key={colIdx} className="w-32 h-40 rounded-lg flex items-center justify-center bg-transparent" />
-                );
-              }
-
-              return (
-                <div
-                  key={unit._id || unit.id || `${floor}-${rowIndex}-${colIdx}`}
-                  onDoubleClick={() => handleNavigateToItem(unit)}
-                  className="w-32 h-40 rounded-lg cursor-pointer flex flex-col items-center justify-center hover:bg-gray-50 transition-colors"
-                >
-                  <div className="w-24 h-20 flex items-center justify-center mb-2">
-                    <AnimatedFolder
-                      tipColor={getStatusColor(unit.status).tipColor}
-                      coverColor={getStatusColor(unit.status).coverColor}
-                    />
-                  </div>
-                  <h3 className="font-medium text-center text-gray-900 text-xl leading-tight min-h-12">
-                    {unit.cleanedUnitNumber}
-                  </h3>
-                </div>
-              );
-            })}
-          </div>
-        ))}
-        {/* If there are no units, show an empty row with floor label */}
-        {rows.length === 0 && (
-          <div className="grid grid-cols-6 gap-4 items-start mb-4">
-            <div className="text-right md:text-start pr-4"><h2 className="text-2xl font-semibold text-gray-800">{floor}</h2></div>
-            <div className="col-span-5 text-center py-6 text-gray-500">No units</div>
-          </div>
-        )}
+  {sortedFloors.map(([floor, units]) => (
+    <div
+      key={floor}
+      className="grid grid-cols-[150px_minmax(400px,_1fr)] items-center justify-center gap-10 max-w-6xl mx-auto"
+    >
+      {/* Floor Label Column */}
+      <div className="text-right">
+        <h2 className="text-2xl font-semibold text-gray-800">
+        {floor}
+        </h2>
       </div>
-    );
-  })}
+
+      {/* Units Grid */}
+      <div className="grid grid-cols-[repeat(auto-fill,_minmax(128px,_1fr))] gap-4 justify-start">
+        {units
+          .sort((a, b) => {
+            const unitA = parseInt(a.cleanedUnitNumber.match(/\d+/)?.[0] || 0);
+            const unitB = parseInt(b.cleanedUnitNumber.match(/\d+/)?.[0] || 0);
+            return unitA - unitB;
+          })
+          .map((unit) => (
+            <div
+              key={unit._id}
+              onDoubleClick={() => handleNavigateToItem(unit)}
+              className="w-32 h-40 rounded-lg cursor-pointer flex flex-col items-center justify-center hover:bg-gray-50 transition-colors"
+            >
+              <div className="w-24 h-20 flex items-center justify-center mb-2">
+                <AnimatedFolder
+                  tipColor={getStatusColor(unit.status).tipColor}
+                  coverColor={getStatusColor(unit.status).coverColor}
+                />
+              </div>
+              <h3 className="font-medium text-center text-gray-900 text-xl leading-tight min-h-12">
+                {unit.cleanedUnitNumber}
+              </h3>
+            </div>
+          ))}
+      </div>
+    </div>
+  ))}
 </div>
 
           
