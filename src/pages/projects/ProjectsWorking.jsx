@@ -261,7 +261,7 @@ const ProjectsWorking = () => {
             className="w-32 h-40 rounded-lg cursor-pointer flex flex-col items-center justify-center hover:bg-gray-50 transition-colors"
           >
             <div className="w-24 h-20 flex items-center justify-center mb-2">
-              <img src="/public/AddIcon.svg" alt="" className="w-22 h-22" />
+              <img src="/AddIcon.svg" alt="" className="w-22 h-22" />
             </div>
             <h3 className="text-xl text-center font-medium leading-tight min-h-12">
               Add New Unit
@@ -411,7 +411,7 @@ const ProjectsWorking = () => {
           className="w-32 h-40 rounded-lg cursor-pointer flex flex-col items-center justify-center"
         >
           <div className="w-24 h-20 flex items-center justify-center mb-2">
-            <img src="/public/AddIcon.svg" alt="" className="w-22 h-22" />
+            <img src="/AddIcon.svg" alt="" className="w-22 h-22" />
           </div>
           <h3 className="text-xl text-center font-medium leading-tight min-h-12">
             Add New Project
