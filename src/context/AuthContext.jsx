@@ -172,21 +172,43 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Register function
-  const register = async (name, email, password) => {
-    try {
-      const res = await api.post("/auth/register", { name, email, password });
-      return { success: true, data: res.data };
-    } catch (error) {
-      console.error(
-        "Registration failed:",
-        error.response?.data || error.message
-      );
-      return {
-        success: false,
-        message: error.response?.data?.message || "Registration failed",
-      };
-    }
-  };
+  // const register = async (name, email, password) => {
+  //   try {
+  //     const res = await api.post("/auth/register", { name, email, password });
+  //     return { success: true, data: res.data };
+  //   } catch (error) {
+  //     console.error(
+  //       "Registration failed:",
+  //       error.response?.data || error.message
+  //     );
+  //     return {
+  //       success: false,
+  //       message: error.response?.data?.message || "Registration failed",
+  //     };
+  //   }
+  // };
+
+  // Register function
+
+
+  // ✅ FIXED REGISTER FUNCTION
+const register = async (userData) => {
+  try {
+    const res = await api.post("/auth/register", userData);
+    return { success: true, data: res.data };
+  } catch (error) {
+    console.error(
+      "Registration failed:",
+      error.response?.data || error.message
+    );
+    return {
+      success: false,
+      message: error.response?.data?.message || "Registration failed",
+    };
+  }
+};
+
+
 
   // Logout function
   const logout = async () => {
