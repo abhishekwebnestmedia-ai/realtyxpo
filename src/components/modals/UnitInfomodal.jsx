@@ -37,12 +37,12 @@ const UnitInfoModal = ({ isOpen, onClose, unit }) => {
             <strong>Email:</strong> {unit.email || "—"}
           </p>
 
-          <p>
+          {/* <p>
             <strong>Follow-up Date:</strong>{" "}
             {unit.followUpDate
               ? dayjs(unit.followUpDate).format("DD MMM YYYY")
               : "—"}
-          </p>
+          </p> */}
 
           <p>
             <strong>Status:</strong>{" "}
