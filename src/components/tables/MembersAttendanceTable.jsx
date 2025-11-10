@@ -84,12 +84,12 @@ const MembersAttendanceTable = ({ isDashboard = true, onClose = null }) => {
             )}
             {isDashboard && (
               <>
-                <button 
+                {/* <button 
                   onClick={handleViewAll}
                   className="flex items-center gap-1 hover:text-cyan-600 transition"
                 >
                   View All <ArrowUpRight size={16} />
-                </button>
+                </button> */}
                 
               </>
             )}
@@ -124,7 +124,7 @@ const MembersAttendanceTable = ({ isDashboard = true, onClose = null }) => {
             )}
             {isDashboard && (
               <>
-                <button 
+                {/* <button 
                   onClick={handleViewAll}
                   className="flex items-center gap-1 hover:text-cyan-600 transition"
                 >
@@ -132,7 +132,7 @@ const MembersAttendanceTable = ({ isDashboard = true, onClose = null }) => {
                 </button>
                 <button className="flex items-center gap-1 hover:text-cyan-600 transition">
                   Filter <Filter size={16} />
-                </button>
+                </button> */}
               </>
             )}
           </div>
@@ -211,12 +211,12 @@ const MembersAttendanceTable = ({ isDashboard = true, onClose = null }) => {
               </>
             ) : (
               <>
-                <button 
+                {/* <button 
                   onClick={handleViewAll}
                   className="flex items-center gap-1 hover:text-cyan-600 transition"
                 >
                   View All <ArrowUpRight size={16} />
-                </button>
+                </button> */}
                 
               </>
             )}
@@ -310,7 +310,7 @@ const MembersAttendanceTable = ({ isDashboard = true, onClose = null }) => {
             </table>
           </div>
 
-          {/* Pagination - Only in full view */}
+        
           {!isDashboard && totalPages > 1 && (
             <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
               <div className="text-sm text-gray-600 flex items-center gap-2">
@@ -350,7 +350,7 @@ const MembersAttendanceTable = ({ isDashboard = true, onClose = null }) => {
           )}
         </div>
 
-        {/* Footer with summary - Only in dashboard view */}
+     
         {isDashboard && (
           <div className="px-5 py-2 text-xs text-gray-500  border-gray-200">
             <div className="flex justify-between items-center">
@@ -364,16 +364,16 @@ const MembersAttendanceTable = ({ isDashboard = true, onClose = null }) => {
         )}
       </div>
 
-      {/* Full Screen Modal */}
-      {isModalOpen && !isDashboard && (
+   
+      {/* {isModalOpen && !isDashboard && (
         <div className="fixed inset-0 z-50 overflow-hidden">
-          {/* Backdrop */}
+    
           <div 
             className="absolute inset-0 bg-black bg-opacity-50 transition-opacity"
             onClick={handleCloseModal}
           />
           
-          {/* Modal Content */}
+       
           <div className="relative w-full h-full flex items-center justify-center p-4">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-7xl h-[95vh] overflow-hidden">
               <MembersAttendanceTable 
@@ -383,18 +383,18 @@ const MembersAttendanceTable = ({ isDashboard = true, onClose = null }) => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
-      {/* Modal for dashboard view */}
-      {isModalOpen && isDashboard && (
+   
+      {/* {isModalOpen && isDashboard && (
         <div className="fixed inset-0 z-50 overflow-hidden">
-          {/* Backdrop */}
+         
           <div 
             className="absolute inset-0 bg-black bg-opacity-50 transition-opacity"
             onClick={handleCloseModal}
           />
           
-          {/* Modal Content */}
+       
           <div className="relative w-full h-full flex items-center justify-center p-4">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-7xl h-[95vh] overflow-hidden">
               <MembersAttendanceTable 
@@ -404,7 +404,7 @@ const MembersAttendanceTable = ({ isDashboard = true, onClose = null }) => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </>
   );
 };
