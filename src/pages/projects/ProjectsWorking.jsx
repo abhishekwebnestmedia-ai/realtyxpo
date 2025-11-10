@@ -495,20 +495,38 @@ const ProjectsWorking = () => {
     setCurrentLevel('cities');
   };
 
+  // const getStatusColor = (status) => {
+  //   switch (status?.toLowerCase()) {
+  //     case 'vacant':
+  //       return { tipColor: '#4b5563', coverColor: '#4b5563' };
+  //     case 'rental':
+  //       return { tipColor: '#22c55e', coverColor: '#22c55e' };
+  //     case 'interested in selling':
+  //       return { tipColor: '#ef4444', coverColor: '#ef4444' };
+  //     case 'self occupied':
+  //       return { tipColor: '#eab308', coverColor: '#eab308' };
+  //     default:
+  //       return { tipColor: '#6b7280', coverColor: '#6b7280' };
+  //   }
+  // };
+
+
   const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'vacant':
-        return { tipColor: '#4b5563', coverColor: '#4b5563' };
-      case 'rental':
-        return { tipColor: '#22c55e', coverColor: '#22c55e' };
-      case 'interested in selling':
-        return { tipColor: '#ef4444', coverColor: '#ef4444' };
-      case 'self occupied':
-        return { tipColor: '#eab308', coverColor: '#eab308' };
-      default:
-        return { tipColor: '#6b7280', coverColor: '#6b7280' };
-    }
-  };
+  switch (status?.toLowerCase()) {
+    case 'vacant':
+      return { tipColor: '#ffffff', coverColor: '#ffffff' }; // gray
+    case 'rental':
+      return { tipColor: '#22c55e', coverColor: '#22c55e' }; // green
+    case 'interested in calling':
+      return { tipColor: '#FF3131', coverColor: '#FF3131' }; // red
+    case 'self occupied':
+      return { tipColor: '#eab308', coverColor: '#eab308' }; // yellow
+    default:
+      return { tipColor: '#0000000', coverColor: '#000000' }; // default gray
+  }
+};
+
+  
 
   const getCurrentLevelData = () => {
     if (!projectData) return [];
@@ -709,47 +727,54 @@ const ProjectsWorking = () => {
             </h3>
           </div>
 
-          <div className="grid justify-center w-full gap-10">
-            {sortedFloors.map(([floor, units]) => (
+         <div className="grid justify-start w-full gap-10">
+  {sortedFloors.map(([floor, units]) => (
+    <div
+      key={floor}
+      className="flex items-start justify-start gap-6"
+    >
+      {/* Floor Label */}
+      <div className="text-right pt-3">
+        <h2 className="text-lg font-semibold text-gray-800 capitalize">
+          {floor}
+        </h2>
+      </div>
+      {/* Units Grid */}
+      <div className="flex flex-wrap gap-4 justify-start">
+        {units
+          .sort((a, b) => {
+            const unitA = parseInt(a.cleanedUnitNumber.match(/\d+/)?.[0] || 0);
+            const unitB = parseInt(b.cleanedUnitNumber.match(/\d+/)?.[0] || 0);
+            return unitA - unitB;
+          })
+          .map((unit) => (
+            <div
+              key={unit._id}
+              onDoubleClick={() => {
+                setSelectedUnit(unit);
+                setIsUnitModalOpen(true);
+              }}
+              className="flex flex-col items-center cursor-pointer hover:scale-105 transition-transform"
+            >
+              {/* Colored Box */}
               <div
-                key={floor}
-                className="grid grid-cols-[150px_minmax(400px,_1fr)] items-center justify-center gap-10 max-w-6xl mx-auto"
-              >
-                <div className="text-right">
-                  <h2 className="text-2xl font-semibold text-gray-800">{floor}</h2>
-                </div>
-
-                <div className="grid grid-cols-[repeat(auto-fill,_minmax(128px,_1fr))] gap-4 justify-start">
-                  {units
-                    .sort((a, b) => {
-                      const unitA = parseInt(a.cleanedUnitNumber.match(/\d+/)?.[0] || 0);
-                      const unitB = parseInt(b.cleanedUnitNumber.match(/\d+/)?.[0] || 0);
-                      return unitA - unitB;
-                    })
-                    .map((unit) => (
-                      <div
-                        key={unit._id}
-                        onDoubleClick={() => {
-                          setSelectedUnit(unit);
-                          setIsUnitModalOpen(true);
-                        }}
-                        className="w-32 h-40 rounded-lg cursor-pointer flex flex-col items-center justify-center hover:bg-gray-50 transition-colors"
-                      >
-                        <div className="w-24 h-20 flex items-center justify-center mb-2">
-                          <AnimatedFolder
-                            tipColor={getStatusColor(unit.status).tipColor}
-                            coverColor={getStatusColor(unit.status).coverColor}
-                          />
-                        </div>
-                        <h3 className="font-medium text-center text-gray-900 text-xl leading-tight min-h-12">
-                          {unit.cleanedUnitNumber}
-                        </h3>
-                      </div>
-                    ))}
-                </div>
+                className="w-24 h-20 rounded-t-md"
+                style={{
+                  backgroundColor: getStatusColor(unit.status).coverColor,
+                }}
+              ></div>
+              {/* Unit Number Label */}
+              <div className="w-24 h-7 flex items-center justify-center bg-gray-200 border border-t-0 border-gray-400 rounded-b-md text-[13px] font-medium text-gray-900">
+                {unit.cleanedUnitNumber}
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
+      </div>
+    </div>
+  ))}
+</div>
+
+
         </div>
       );
     }

@@ -428,7 +428,7 @@ const ProjectModal = ({
           Status
         </label>
         <div className="grid grid-cols-2 gap-4">
-          {['Vacant', 'Rental', 'Self Occupied', 'Interested in Selling'].map((status) => (
+          {['Vacant', 'Rental', 'Self Occupied', 'Interested in calling'].map((status) => (
             <label key={status} className="flex items-center space-x-2 cursor-pointer">
               <input
                 type="radio"
