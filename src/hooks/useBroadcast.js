@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import io from 'socket.io-client';
 import api from '../api/api';
 
 // Hook to manage teams/groups
@@ -123,13 +124,73 @@ export const useUsers = () => {
 };
 
 // Hook to manage broadcasts/messages per group
+let broadcastSocket = null;
+
+const ensureBroadcastSocket = () => {
+  if (broadcastSocket) return broadcastSocket;
+  const wsUrl = import.meta.env.VITE_WS_URL || (typeof window !== 'undefined' ? window.location.origin : '/');
+  broadcastSocket = io(wsUrl, {
+    auth: { token: localStorage.getItem('token') || undefined },
+    transports: ['websocket', 'polling']
+  });
+  return broadcastSocket;
+};
+
 export const useBroadcasts = (groupId) => {
   const [messagesPerGroup, setMessagesPerGroup] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const socketRef = useRef(null);
+  const previousGroupRef = useRef(null);
+  const currentUserIdRef = useRef(null);
 
   // Get messages for current group
   const messages = messagesPerGroup[groupId] || [];
+
+  const ensureCurrentUserId = () => {
+    if (currentUserIdRef.current) return currentUserIdRef.current;
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        const payload = JSON.parse(atob(token.split('.')[1] || ''));
+        currentUserIdRef.current = payload?.userId || payload?._id || payload?.id || null;
+        return currentUserIdRef.current;
+      }
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      currentUserIdRef.current = user?._id || user?.userId || user?.id || null;
+      return currentUserIdRef.current;
+    } catch (err) {
+      console.error('Failed to determine current user id', err);
+      currentUserIdRef.current = null;
+      return null;
+    }
+  };
+
+  const formatMessage = (broadcast) => {
+    if (!broadcast) return null;
+    const createdAt = broadcast.createdAt || broadcast.timestamp || new Date().toISOString();
+    const createdBy = broadcast.createdBy || {};
+    const createdById = typeof createdBy === 'object' ? (createdBy._id || createdBy.id) : createdBy;
+    const currentUserId = ensureCurrentUserId();
+    const id = broadcast._id || broadcast.id || broadcast.broadcastId;
+    return {
+      id,
+      _id: id,
+      text: broadcast.message || broadcast.text || '',
+      time: new Date(createdAt).toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      }),
+      isOwn: Boolean(currentUserId && createdById && String(createdById) === String(currentUserId)),
+      seen: broadcast.seen || false,
+      seenCount: broadcast.seenCount || broadcast.seenUsers?.length || 0,
+      attachmentUrl: broadcast.attachmentUrl || broadcast.fileUrl || null,
+      attachmentType: broadcast.attachmentType || broadcast.fileType || null,
+      createdAt,
+      createdBy
+    };
+  };
 
   // Fetch messages for a specific group
   const fetchMessages = async (targetGroupId) => {
@@ -141,23 +202,9 @@ export const useBroadcasts = (groupId) => {
       const response = await api.get(`/broadcasts/${targetGroupId}`);
       
       const formattedMessages = response.data.broadcasts
-        ?.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)) // Sort by creation date ascending
-        ?.map(broadcast => ({
-          id: broadcast._id,
-          text: broadcast.message,
-          time: new Date(broadcast.createdAt).toLocaleTimeString('en-US', { 
-            hour: '2-digit', 
-            minute: '2-digit', 
-            hour12: true 
-          }),
-          isOwn: broadcast.createdBy._id === getCurrentUserId(),
-          seen: broadcast.seen || false,
-          seenCount: broadcast.seenCount || 0,
-          attachmentUrl: broadcast.attachmentUrl,
-          attachmentType: broadcast.attachmentType,
-          createdBy: broadcast.createdBy,
-          createdAt: broadcast.createdAt
-        })) || [];
+        ?.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+        ?.map(formatMessage)
+        ?.filter(Boolean) || [];
 
       setMessagesPerGroup(prev => ({
         ...prev,
@@ -173,26 +220,6 @@ export const useBroadcasts = (groupId) => {
       }));
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Helper function to get current user ID
-  const getCurrentUserId = () => {
-    try {
-      // Try to get from localStorage first
-      const token = localStorage.getItem('token');
-      if (token) {
-        // Decode JWT token to get user ID
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        return payload.userId;
-      }
-      
-      // Fallback: try to get from user object in localStorage
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      return user._id || user.userId || null;
-    } catch (error) {
-      console.error('Error getting current user ID:', error);
-      return null;
     }
   };
 
@@ -218,29 +245,16 @@ export const useBroadcasts = (groupId) => {
         },
       });
 
-      const newMessage = {
-        id: response.data.broadcast._id,
-        text: response.data.broadcast.message,
-        time: new Date(response.data.broadcast.createdAt).toLocaleTimeString('en-US', { 
-          hour: '2-digit', 
-          minute: '2-digit', 
-          hour12: true 
-        }),
-        isOwn: true,
-        seen: false,
-        seenCount: 0,
-        attachmentUrl: response.data.broadcast.attachmentUrl,
-        attachmentType: response.data.broadcast.attachmentType
-        ,
-        // Ensure createdAt is present so MessageList grouping can include this message immediately
-        createdAt: response.data.broadcast.createdAt,
-        createdBy: response.data.broadcast.createdBy
-      };
+      const newMessage = formatMessage({
+        ...response.data.broadcast,
+        createdBy: response.data.broadcast.createdBy || { _id: ensureCurrentUserId() },
+        message: response.data.broadcast.message
+      });
 
       // Add message only to the current group
       setMessagesPerGroup(prev => ({
         ...prev,
-        [groupId]: [...(prev[groupId] || []), newMessage]
+        [groupId]: [...(prev[groupId] || []), newMessage].filter(Boolean)
       }));
       
       setError(null);
@@ -264,6 +278,76 @@ export const useBroadcasts = (groupId) => {
     }
     setError(null);
   };
+
+  useEffect(() => {
+    const socket = ensureBroadcastSocket();
+    socketRef.current = socket;
+
+    const handleConnect = () => {
+      const userId = ensureCurrentUserId();
+      if (userId) {
+        socket.emit('register_user', userId);
+      }
+      const activeGroup = previousGroupRef.current || (groupId && groupId !== 'all' ? groupId : null);
+      if (activeGroup) {
+        const payload = { groupId: activeGroup };
+        socket.emit('join_group', payload);
+        socket.emit('broadcast:join', payload);
+      }
+    };
+
+    const handleIncoming = (payload) => {
+      const targetGroup = payload?.groupId || (typeof payload?.group === 'string' ? payload.group : payload?.group?._id);
+      if (!targetGroup) return;
+      const formatted = formatMessage(payload);
+      if (!formatted) return;
+      setMessagesPerGroup(prev => {
+        const existing = prev[targetGroup] || [];
+        const already = formatted._id && existing.some(msg => (msg._id || msg.id) === formatted._id);
+        if (already) return prev;
+        return {
+          ...prev,
+          [targetGroup]: [...existing, formatted]
+        };
+      });
+    };
+
+    socket.on('connect', handleConnect);
+    socket.on('broadcast_message', handleIncoming);
+    socket.on('broadcast:new', handleIncoming);
+    socket.on('broadcast_received', handleIncoming);
+    socket.on('broadcast:message', handleIncoming);
+    socket.on('broadcast-message', handleIncoming);
+    socket.on('broadcast_new', handleIncoming);
+
+    return () => {
+      socket.off('connect', handleConnect);
+      socket.off('broadcast_message', handleIncoming);
+      socket.off('broadcast:new', handleIncoming);
+      socket.off('broadcast_received', handleIncoming);
+      socket.off('broadcast:message', handleIncoming);
+      socket.off('broadcast-message', handleIncoming);
+      socket.off('broadcast_new', handleIncoming);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const socket = socketRef.current || ensureBroadcastSocket();
+    socketRef.current = socket;
+    const prevGroup = previousGroupRef.current;
+    if (prevGroup && prevGroup !== 'all' && prevGroup !== groupId) {
+      const payload = { groupId: prevGroup };
+      socket.emit('leave_group', payload);
+      socket.emit('broadcast:leave', payload);
+    }
+    if (groupId && groupId !== 'all') {
+      const payload = { groupId };
+      socket.emit('join_group', payload);
+      socket.emit('broadcast:join', payload);
+    }
+    previousGroupRef.current = groupId || null;
+  }, [groupId]);
 
   // Fetch messages when groupId changes
   useEffect(() => {

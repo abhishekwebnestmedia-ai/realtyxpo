@@ -39,6 +39,21 @@ export const NotificationsProvider = ({ children }) => {
     }
   };
 
+  const getCurrentUserId = () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        const payload = JSON.parse(atob(token.split('.')[1] || ''));
+        return payload?.userId || payload?._id || payload?.id || null;
+      }
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      return user?._id || user?.userId || user?.id || null;
+    } catch (err) {
+      console.debug('Failed to decode user id for notifications', err);
+      return null;
+    }
+  };
+
   // fetch initial list
   useEffect(() => {
     let mounted = true;
@@ -75,13 +90,18 @@ export const NotificationsProvider = ({ children }) => {
         auth: { token }
       });
 
-      socketRef.current.on('connect', () => {
+      const onConnect = () => {
         console.debug('Notifications: socket connected', socketRef.current.id);
         // socket connected
         // stop polling when connected
         if (pollingRef.current) {
           clearInterval(pollingRef.current);
           pollingRef.current = null;
+        }
+        const userId = getCurrentUserId();
+        if (userId) {
+          socketRef.current.emit('register_user', userId);
+          socketRef.current.emit('subscribe_notifications', userId);
         }
         // one-time sync after connect to avoid missing notifications during the transition
         (async () => {
@@ -95,10 +115,20 @@ export const NotificationsProvider = ({ children }) => {
             }
           } catch { /* one-off sync failed, ignore */ }
         })();
+      };
+
+      socketRef.current.on('connect', onConnect);
+      socketRef.current.on('registered_success', (payload) => {
+        console.debug('Notifications: registered_success', payload);
       });
 
       socketRef.current.on('notification', (payload) => {
         console.debug('Notifications: received event "notification"', payload);
+        handlerRef.current?.(payload);
+      });
+
+      socketRef.current.on('notification_received', (payload) => {
+        console.debug('Notifications: received event "notification_received"', payload);
         handlerRef.current?.(payload);
       });
 
@@ -122,7 +152,15 @@ export const NotificationsProvider = ({ children }) => {
 
     // cleanup
     return () => {
-      socketRef.current?.disconnect();
+      if (socketRef.current) {
+        socketRef.current.off('connect');
+        socketRef.current.off('registered_success');
+        socketRef.current.off('notification');
+        socketRef.current.off('notification_received');
+        socketRef.current.off('followup_notification');
+        socketRef.current.off('disconnect');
+        socketRef.current?.disconnect();
+      }
       if (pollingRef.current) clearInterval(pollingRef.current);
     };
   }, []);

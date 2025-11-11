@@ -1,152 +1,493 @@
-import React, { useContext, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff } from "lucide-react";
-import { toast } from "react-toastify";
-import { AuthContext } from "../../context/AuthContext";
+// import React, { useState, useContext } from "react";
+// import logo from "/logo.svg";
+// import { Link, useNavigate } from "react-router-dom";
+// import { AuthContext } from "../../context/AuthContext"; // ✅ Add this
+// import { Eye, EyeOff } from 'lucide-react';
 
-// Compact Login/Signup component
-// Email & password required for both flows per requirements
-const emailPattern = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+
+// const Login = () => {
+//   const [loginEmail, setLoginEmail] = useState("");
+//   const [loginPassword, setLoginPassword] = useState("");
+//   const [signupName, setSignupName] = useState("");
+//   const [signupEmail, setSignupEmail] = useState("");
+//   const [signupPassword, setSignupPassword] = useState("");
+//   const [showLoginPassword, setShowLoginPassword] = useState(false);
+//   const [showSignupPassword, setShowSignupPassword] = useState(false);
+//   const { login, register } = useContext(AuthContext);
+//   const handleLogin = async () => {
+//     const success = await login(loginEmail, loginPassword);
+//     if (success) {
+//       navigate("/"); // ✅ Navigate to dashboard
+//     } else {
+//       alert("Invalid email or password");
+//     }
+//   };
+//   const handleRegister = async () => {
+//     try {
+//       await register(signupName, signupEmail, signupPassword);
+//       alert("Registration successful! Please login.");
+//       setIsFlipped(false); // Flip back to login
+//     } catch (error) {
+//       alert("Registration failed: " + error.response?.data?.message);
+//     }
+//   };
+
+//   const [isFlipped, setIsFlipped] = useState(false);
+//   const navigate = useNavigate();
+
+//   return (
+//     <div className="relative h-screen overflow-hidden">
+//       {/* Logo */}
+//       <div className="absolute m-5">
+//         <img src={logo} alt="" className="object-cover w-36" />
+//       </div>
+
+//       {/* Main Layout */}
+//       <div className="flex flex-row h-screen">
+//         {/* Left Panel with Flip */}
+//         <div
+//           className="w-[35%] flex items-center justify-center bg-center bg-cover"
+//           style={{
+//             backgroundImage:
+//               "linear-gradient(rgba(255,255,255,0.6), rgba(255,255,255,0.6)), url('/bgleft.png')",
+//           }}
+//         >
+//           {/* Card Container */}
+//           <div className="w-80 h-[400px] perspective mt-[30%]">
+//             <div
+//               className={`w-full h-full transition-transform duration-1000 transform-style-preserve-3d ${
+//                 isFlipped ? "rotate-y-180" : ""
+//               }`}
+//             >
+//               {/* Login Form (Front) */}
+//               <div className="absolute flex flex-col w-full h-full backface-hidden">
+//                 <div className="flex flex-row items-center justify-center gap-2">
+//                   <h2 className="text-2xl font-medium">Login to</h2>
+//                   <img src={logo} alt="" className="object-cover h-5 w-28" />
+//                 </div>
+
+//                 <input
+//                   type="text"
+//                   placeholder="Email"
+//                   value={loginEmail}
+//                   onChange={(e) => setLoginEmail(e.target.value)}
+//                   className="w-full px-2 py-1 text-base border rounded-md mt-11"
+//                 />
+//                 <div className="relative mt-3">
+//                   <input
+//                     type={showLoginPassword ? 'text' : 'password'}
+//                     placeholder="Password"
+//                     value={loginPassword}
+//                     onChange={(e) => setLoginPassword(e.target.value)}
+//                     className="w-full px-2 py-1 text-base border rounded-md"
+//                   />
+//                   <button
+//                     type="button"
+//                     aria-label={showLoginPassword ? 'Hide password' : 'Show password'}
+//                     onClick={() => setShowLoginPassword(s => !s)}
+//                     className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 focus:outline-none"
+//                   >
+//                     {showLoginPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+//                   </button>
+//                 </div>
+
+//                 <div className="flex flex-row items-start justify-between mt-2">
+//                   <div className="flex items-center gap-1">
+//                     <input type="checkbox" className="text-xs" />
+//                     <p className="text-xs">Keep Me Login</p>
+//                   </div>
+//                   <div className="flex flex-col items-end">
+//                     <button className="text-xs text-[#334DE5]">
+//                       Forgotten Password!
+//                     </button>
+//                     <p className="text-xs">
+//                       New Here?{" "}
+//                       <button
+//                         onClick={() => setIsFlipped(true)}
+//                         className="text-[#334DE5]"
+//                       >
+//                         Register here
+//                       </button>
+//                     </p>
+//                   </div>
+//                 </div>
+//                 <button
+//                   type="button"
+//                   className="w-full bg-[#334DE5] text-white rounded-md py-[6px] mt-10"
+//                   onClick={handleLogin}
+//                 >
+//                   Login
+//                 </button>
+//               </div>
+
+//               {/* Signup Form (Back) */}
+//               <div className="absolute flex flex-col w-full h-full rotate-y-180 backface-hidden">
+//                 <div className="flex flex-row items-center justify-center gap-2">
+//                   <h2 className="text-2xl font-medium">Sign Up</h2>
+//                   <img src={logo} alt="" className="object-cover h-5 w-28" />
+//                 </div>
+
+//                 <input
+//                   type="text"
+//                   placeholder="Name"
+//                   value={signupName}
+//                   onChange={(e) => setSignupName(e.target.value)}
+//                   className="w-full px-2 py-1 border rounded-md mt-11"
+//                 />
+//                 <input
+//                   type="text"
+//                   placeholder="Email"
+//                   value={signupEmail}
+//                   onChange={(e) => setSignupEmail(e.target.value)}
+//                   className="w-full px-2 py-1 mt-3 border rounded-md"
+//                 />
+//                 <div className="relative mt-3">
+//                   <input
+//                     type={showSignupPassword ? 'text' : 'password'}
+//                     placeholder="Password"
+//                     value={signupPassword}
+//                     onChange={(e) => setSignupPassword(e.target.value)}
+//                     className="w-full px-2 py-1 border rounded-md"
+//                   />
+//                   <button
+//                     type="button"
+//                     aria-label={showSignupPassword ? 'Hide password' : 'Show password'}
+//                     onClick={() => setShowSignupPassword(s => !s)}
+//                     className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 focus:outline-none"
+//                   >
+//                     {showSignupPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+//                   </button>
+//                 </div>
+
+//                 <p className="mt-2 text-xs">
+//                   Already have an account?{" "}
+//                   <button
+//                     onClick={() => setIsFlipped(false)}
+//                     className="text-[#334DE5]"
+//                   >
+//                     Login here
+//                   </button>
+//                 </p>
+
+//                 <button
+//                   type="button"
+//                   className="w-full bg-[#334DE5] text-white rounded-md py-[6px] mt-6"
+//                   onClick={handleRegister}
+//                 >
+//                   Sign Up
+//                 </button>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+
+//         {/* Right Panel */}
+//         <div className="relative w-[65%] perspective">
+//           <div
+//             className={`absolute inset-0 w-full h-full transition-transform duration-1000 transform-style-preserve-3d ${
+//               isFlipped ? "rotate-y-180" : ""
+//             }`}
+//           >
+//             {/* Front Side of Right BG */}
+//             <div
+//               className="absolute inset-0 bg-center bg-cover backface-hidden"
+//               style={{ backgroundImage: "url('/bgright.png')" }}
+//             ></div>
+
+//             {/* Back Side of Right BG */}
+//             <div
+//               className="absolute inset-0 bg-center bg-cover rotate-y-180 backface-hidden"
+//               style={{ backgroundImage: "url('/bg_right_back.png')" }}
+//             ></div>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Footer */}
+//       <p className="text-xs absolute bottom-[18px] left-5 text-gray-500">
+//         Developed By WebnestMedia
+//       </p>
+
+//       {/* Extra CSS for flip */}
+//       <style>{`
+//         .perspective { perspective: 1000px; }
+//         .transform-style-preserve-3d { transform-style: preserve-3d; }
+//         .backface-hidden { backface-visibility: hidden; }
+//         .rotate-y-180 { transform: rotateY(180deg); }
+//       `}</style>
+//     </div>
+//   );
+// };
+
+// export default Login;
+
+
+
+
+
+
+
+
+
+
+import React, { useState, useContext } from "react";
+import logo from "/logo.svg";
+import { Link, useNavigate } from "react-router-dom";
+import { AuthContext } from "../../context/AuthContext";
+import { Eye, EyeOff } from "lucide-react";
 
 const Login = () => {
-  const navigate = useNavigate();
-  const { login, register } = useContext(AuthContext);
-
-  const [mode, setMode] = useState("login"); // 'login' or 'signup'
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
-  const [showLoginPassword, setShowLoginPassword] = useState(false);
-
   const [signupName, setSignupName] = useState("");
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [designation, setDesignation] = useState("");
+  const [address, setAddress] = useState("");
+  const [empid, setEmpid] = useState("");
+
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
+  const [isFlipped, setIsFlipped] = useState(false);
+  const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    if (!emailPattern.test(loginEmail)) return toast.error("Enter valid email");
-    if (!loginPassword) return toast.error("Password required");
-    const res = await login(loginEmail, loginPassword);
-    if (res?.success) {
-      toast.success("Login successful");
+  const { login, register } = useContext(AuthContext);
+
+  const handleLogin = async () => {
+    const success = await login(loginEmail, loginPassword);
+    if (success) {
       navigate("/");
-    } else toast.error(res?.message || "Login failed");
+    } else {
+      alert("Invalid email or password");
+    }
   };
 
-  const handleSignup = async (e) => {
-    e.preventDefault();
-    if (!emailPattern.test(signupEmail)) return toast.error("Enter valid email");
-    if (!signupPassword) return toast.error("Password required");
-    const res = await register({ name: signupName || undefined, email: signupEmail, password: signupPassword });
-    if (res?.success) {
-      toast.success("Registered. Please login.");
-      setMode("login");
-      setSignupPassword("");
-    } else toast.error(res?.message || "Registration failed");
+  const handleRegister = async () => {
+    try {
+      await register({
+        name: signupName,
+        email: signupEmail,
+        password: signupPassword,
+        phoneNumber,
+        designation,
+        address,
+        empid,
+      });
+      alert("Registration successful! Please login.");
+      setIsFlipped(false);
+    } catch (error) {
+      alert("Registration failed: " + (error.response?.data?.message || error.message));
+    }
   };
+
+
+
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-md p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-xl font-semibold">{mode === "login" ? "Login" : "Sign Up"}</h1>
-          <button
-            type="button"
-            className="text-sm text-blue-600 hover:underline"
-            onClick={() => setMode(mode === "login" ? "signup" : "login")}
-          >
-            {mode === "login" ? "Create account" : "Have an account? Login"}
-          </button>
+    <div className="relative h-screen overflow-hidden">
+      {/* Logo */}
+      <div className="absolute m-5">
+        <img src={logo} alt="Logo" className="object-cover w-36" />
+      </div>
+
+      <div className="flex flex-row h-screen">
+        {/* LEFT PANEL (Form) */}
+        <div
+          className="lg:w-[35%] w-full lg:p-0 p-8 flex items-center justify-center bg-center bg-cover"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.6), rgba(255,255,255,0.6)), url('/bgleft.png')",
+          }}
+        >
+          <div className="w-80 h-[550px] perspective mt-[30%]">
+            <div
+              className={`w-full h-full transition-transform duration-1000 transform-style-preserve-3d ${
+                isFlipped ? "rotate-y-180" : ""
+              }`}
+            >
+              {/* LOGIN FORM */}
+              <div className="absolute flex flex-col w-full h-full backface-hidden">
+                <div className="flex flex-row items-center justify-center gap-2">
+                  <h2 className="text-2xl font-medium">Login to</h2>
+                  <img src={logo} alt="Logo" className="object-cover h-5 w-28" />
+                </div>
+
+                <input
+                  type="text"
+                  placeholder="Email"
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  className="w-full px-2 py-1 text-base border rounded-md mt-11"
+                />
+                <div className="relative mt-3">
+                  <input
+                    type={showLoginPassword ? "text" : "password"}
+                    placeholder="Password"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    className="w-full px-2 py-1 text-base border rounded-md"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowLoginPassword((s) => !s)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600"
+                  >
+                    {showLoginPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+
+                <div className="flex flex-row items-start justify-between mt-2">
+                  <div className="flex items-center gap-1">
+                    <input type="checkbox" className="text-xs" />
+                    <p className="text-xs">Keep Me Logged In</p>
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <button className="text-xs text-[#334DE5]">
+                      Forgotten Password?
+                    </button>
+                    <p className="text-xs">
+                      New Here?{" "}
+                      <button
+                        onClick={() => setIsFlipped(true)}
+                        className="text-[#334DE5]"
+                      >
+                        Register here
+                      </button>
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  className="w-full bg-[#334DE5] text-white rounded-md py-[6px] mt-10"
+                  onClick={handleLogin}
+                >
+                  Login
+                </button>
+              </div>
+
+              {/* REGISTER FORM */}
+              <div className="absolute flex flex-col w-full h-full rotate-y-180 backface-hidden overflow-y-auto p-2">
+                <div className="flex flex-row items-center justify-center gap-2">
+                  <h2 className="text-2xl font-medium">Sign Up</h2>
+                  <img src={logo} alt="Logo" className="object-cover h-5 w-28" />
+                </div>
+
+                <input
+                  type="text"
+                  placeholder="Name"
+                  value={signupName}
+                  onChange={(e) => setSignupName(e.target.value)}
+                  className="w-full px-2 py-1 border rounded-md mt-4"
+                />
+                <input
+                  type="text"
+                  placeholder="Email"
+                  value={signupEmail}
+                  onChange={(e) => setSignupEmail(e.target.value)}
+                  className="w-full px-2 py-1 mt-3 border rounded-md"
+                />
+                <div className="relative mt-3">
+                  <input
+                    type={showSignupPassword ? "text" : "password"}
+                    placeholder="Password"
+                    value={signupPassword}
+                    onChange={(e) => setSignupPassword(e.target.value)}
+                    className="w-full px-2 py-1 border rounded-md"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowSignupPassword((s) => !s)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600"
+                  >
+                    {showSignupPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+
+                <input
+                  type="text"
+                  placeholder="Phone Number"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  className="w-full px-2 py-1 mt-3 border rounded-md"
+                />
+                <input
+                  type="text"
+                  placeholder="Designation"
+                  value={designation}
+                  onChange={(e) => setDesignation(e.target.value)}
+                  className="w-full px-2 py-1 mt-3 border rounded-md"
+                />
+                <input
+                  type="text"
+                  placeholder="Address"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  className="w-full px-2 py-1 mt-3 border rounded-md"
+                />
+                <input
+                  type="text"
+                  placeholder="Employee ID"
+                  value={empid}
+                  onChange={(e) => setEmpid(e.target.value)}
+                  className="w-full px-2 py-1 mt-3 border rounded-md"
+                />
+
+                <p className="mt-2 text-xs">
+                  Already have an account?{" "}
+                  <button
+                    onClick={() => setIsFlipped(false)}
+                    className="text-[#334DE5]"
+                  >
+                    Login here
+                  </button>
+                </p>
+
+                <button
+                  type="button"
+                  className="w-full bg-[#334DE5] text-white rounded-md py-[6px] mt-4"
+                  onClick={handleRegister}
+                >
+                  Sign Up
+                </button>
+              </div>
+
+
+            </div>
+          </div>
         </div>
 
-        {mode === "login" ? (
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="block text-sm mb-1">Email</label>
-              <input
-                type="email"
-                value={loginEmail}
-                onChange={(e) => setLoginEmail(e.target.value)}
-                required
-                pattern={emailPattern.source}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="you@example.com"
-              />
-            </div>
-            <div className="relative">
-              <label className="block text-sm mb-1">Password</label>
-              <input
-                type={showLoginPassword ? "text" : "password"}
-                value={loginPassword}
-                onChange={(e) => setLoginPassword(e.target.value)}
-                required
-                className="w-full px-3 py-2 border rounded-md pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter password"
-              />
-              <button
-                type="button"
-                onClick={() => setShowLoginPassword((v) => !v)}
-                className="absolute right-2 top-9 -translate-y-1/2 text-gray-600"
-                aria-label="Toggle password visibility"
-              >
-                {showLoginPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
-            <button type="submit" className="w-full bg-blue-600 text-white rounded-md py-2 hover:bg-blue-700">
-              Login
-            </button>
-          </form>
-        ) : (
-          <form onSubmit={handleSignup} className="space-y-4">
-            <div>
-              <label className="block text-sm mb-1">Name (optional)</label>
-              <input
-                type="text"
-                value={signupName}
-                onChange={(e) => setSignupName(e.target.value)}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Your name"
-              />
-            </div>
-            <div>
-              <label className="block text-sm mb-1">Email</label>
-              <input
-                type="email"
-                value={signupEmail}
-                onChange={(e) => setSignupEmail(e.target.value)}
-                required
-                pattern={emailPattern.source}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="you@example.com"
-              />
-            </div>
-            <div className="relative">
-              <label className="block text-sm mb-1">Password</label>
-              <input
-                type={showSignupPassword ? "text" : "password"}
-                value={signupPassword}
-                onChange={(e) => setSignupPassword(e.target.value)}
-                required
-                className="w-full px-3 py-2 border rounded-md pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Create a password"
-              />
-              <button
-                type="button"
-                onClick={() => setShowSignupPassword((v) => !v)}
-                className="absolute right-2 top-9 -translate-y-1/2 text-gray-600"
-                aria-label="Toggle password visibility"
-              >
-                {showSignupPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
-            <button type="submit" className="w-full bg-blue-600 text-white rounded-md py-2 hover:bg-blue-700">
-              Sign Up
-            </button>
-          </form>
-        )}
-
-        <p className="text-xs text-gray-500 mt-6 text-center">Developed by WebnestMedia</p>
+        {/* RIGHT PANEL */}
+        <div className="relative w-[65%] perspective max-sm:hidden">
+          <div
+            className={`absolute inset-0 w-full h-full transition-transform duration-1000 transform-style-preserve-3d ${
+              isFlipped ? "rotate-y-180" : ""
+            }`}
+          >
+            <div
+              className="absolute inset-0 bg-center bg-cover backface-hidden"
+              style={{ backgroundImage: "url('/bgright.png')" }}
+            ></div>
+            <div
+              className="absolute inset-0 bg-center bg-cover rotate-y-180 backface-hidden"
+              style={{ backgroundImage: "url('/bg_right_back.png')" }}
+            ></div>
+          </div>
+        </div>
       </div>
+
+      {/* Footer */}
+      <p className="text-xs absolute bottom-[18px] left-5 text-gray-500">
+        Developed By WebnestMedia
+      </p>
+
+      <style>{`
+        .perspective { perspective: 1000px; }
+        .transform-style-preserve-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+      `}</style>
     </div>
   );
 };
