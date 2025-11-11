@@ -282,6 +282,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { AuthContext } from '../../context/AuthContext';
 import { useUsers } from '../../hooks/useBroadcast';
 import api from '../../api/api';
+import TimePicker from '../../components/ui/TimePicker';
 
 const EditLead = () => {
   const { id } = useParams();
@@ -297,7 +298,8 @@ const EditLead = () => {
     email: '',
     status: '',
     leadType: '',
-    followUp: '',
+    followUpDate: '',
+    followUpTime: '',
     requirement: '',
     remark: '',
     date: '',
@@ -340,13 +342,30 @@ const EditLead = () => {
           return;
         }
 
+        // Parse followUp into separate date and 12-hour time for editable inputs
+        let followUpDate = '';
+        let followUpTime = '';
+        const rawFollow = lead.followUp ?? lead.followUpDate ?? '';
+        if (rawFollow) {
+          const m = String(rawFollow).match(/^([0-9]{4}-[0-9]{2}-[0-9]{2})T([0-9]{2}):([0-9]{2})/);
+          if (m) {
+            followUpDate = m[1];
+            const hh = parseInt(m[2], 10);
+            const mm = m[3];
+            const ampm = hh >= 12 ? 'PM' : 'AM';
+            const hour12 = ((hh + 11) % 12) + 1;
+            followUpTime = `${String(hour12).padStart(2, '0')}:${mm} ${ampm}`;
+          }
+        }
+
         setForm({
           customerName: lead.customerName ?? lead.name ?? '',
           contactNumber: lead.contactNumber ?? lead.contactNo ?? '',
           email: lead.email ?? '',
           status: lead.status ?? '',
           leadType: lead.leadType ?? '',
-          followUp: lead.followUp ?? lead.followUpDate ?? '',
+          followUpDate,
+          followUpTime,
           requirement: lead.requirement ?? '',
           remark: lead.remark ?? lead.Remark ?? '',
           date: lead.date ?? '',
@@ -397,6 +416,25 @@ const EditLead = () => {
         return String(val);
       };
 
+      // Combine followUpDate and followUpTime into IST ISO string
+      let followUpCombined = form.followUpDate || '';
+      if (form.followUpDate) {
+        const timeStr = form.followUpTime || '';
+        let hour24 = 0, minute = '00';
+        if (timeStr) {
+          const parts = timeStr.split(' ');
+          const hm = parts[0] || '';
+          const ampm = (parts[1] || '').toLowerCase();
+          const [hh, mm] = hm.split(':');
+          let h = parseInt(hh || '0', 10);
+          minute = (mm || '00').padStart(2, '0');
+          if (ampm === 'pm' && h !== 12) h += 12;
+          if (ampm === 'am' && h === 12) h = 0;
+          hour24 = String(h).padStart(2, '0');
+        }
+        followUpCombined = `${form.followUpDate}T${hour24}:${minute}:00+05:30`;
+      }
+
       const payload = {
         status: form.status,
         leadType: form.leadType,
@@ -407,7 +445,7 @@ const EditLead = () => {
         contactNumber: form.contactNumber,
         email: form.email,
         requirement: form.requirement,
-        followUp: form.followUp,
+        followUp: followUpCombined,
         Budget: form.Budget
       };
 
@@ -521,16 +559,19 @@ const EditLead = () => {
             </div>
 
             <div>
-              <label htmlFor="followUp" className="block mb-1 font-medium">
-                Follow-up Date
-              </label>
+              <label className="block mb-1 font-medium">Follow-up</label>
               <input
-                name="followUp"
-                value={form.followUp}
+                name="followUpDate"
+                value={form.followUpDate}
                 onChange={handleChange}
                 type="date"
-                id="followUp"
-                className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2"
+                className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2 mb-2"
+              />
+              <TimePicker
+                name="followUpTime"
+                value={form.followUpTime}
+                onChange={handleChange}
+                className="w-full"
               />
             </div>
 

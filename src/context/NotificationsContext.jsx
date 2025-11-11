@@ -4,6 +4,22 @@ import api from '../api/api';
 
 const NotificationsContext = createContext(null);
 
+const resolveWsUrl = () => {
+  if (import.meta.env.VITE_WS_URL) return import.meta.env.VITE_WS_URL;
+  const apiBase = api?.defaults?.baseURL;
+  if (apiBase) {
+    try {
+      return new URL(apiBase).origin;
+    } catch {
+      return apiBase;
+    }
+  }
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  return 'http://localhost:5000';
+};
+
 export const NotificationsProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -85,9 +101,11 @@ export const NotificationsProvider = ({ children }) => {
     const token = localStorage.getItem('token');
     // create socket
     try {
-      const wsUrl = import.meta.env.VITE_WS_URL || '/';
+      const wsUrl = resolveWsUrl();
       socketRef.current = io(wsUrl, {
-        auth: { token }
+        auth: { token },
+        transports: ['websocket', 'polling'],
+        withCredentials: true
       });
 
       const onConnect = () => {

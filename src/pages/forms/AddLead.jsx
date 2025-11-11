@@ -5,6 +5,7 @@ import { AuthContext } from "../../context/AuthContext";
 import api from "../../api/api";
 import showToast from "../../components/ui/notifications/AddSuccess";
 import CustomSelect from "../../components/ui/CustomSelect";
+import TimePicker from "../../components/ui/TimePicker";
 
 const AddLead = () => {
   const navigate = useNavigate();
@@ -126,7 +127,8 @@ const AddLead = () => {
           if (ampm === 'am' && h === 12) h = 0;
           hour24 = String(h).padStart(2, '0');
         }
-        followUpCombined = `${form.followUpDate}T${hour24}:${minute}:00.000Z`;
+        // Send follow-up in IST timezone (+05:30) regardless of client timezone
+        followUpCombined = `${form.followUpDate}T${hour24}:${minute}:00+05:30`;
       }
 
       const normalizedStatus = (form.status || '').toLowerCase() === 'not connected' ? 'Not Connected' : form.status;
@@ -254,15 +256,11 @@ const AddLead = () => {
               type="date"
               className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2 mb-2"
             />
-            <input
+            <TimePicker
               name="followUpTime"
               value={form.followUpTime}
               onChange={handleChange}
-              type="text"
-              placeholder="HH:MM AM/PM"
-              pattern="^(0?[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$"
-              title="Enter time in 12-hour format e.g. 02:30 PM"
-              className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2"
+              className="w-full"
             />
           </div>
 

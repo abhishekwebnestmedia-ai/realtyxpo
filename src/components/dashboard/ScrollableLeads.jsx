@@ -105,6 +105,21 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
     }
   };
 
+  // Helper: split ISO datetime (YYYY-MM-DDTHH:mm:SS+TZ) into date and 12-hour time
+  const splitIsoDateTime = (iso) => {
+    if (!iso || typeof iso !== 'string') return { date: '', time: '' };
+  // match YYYY-MM-DDTHH:MM  (accept 'T' or 't' or a space between date and time)
+  const m = iso.match(/^(\d{4}-\d{2}-\d{2})[Tt\s](\d{2}):(\d{2})/);
+    if (!m) return { date: iso, time: '' };
+    const date = m[1];
+    const hh = parseInt(m[2], 10);
+    const mm = m[3];
+    const ampm = hh >= 12 ? 'PM' : 'AM';
+    const hour12 = ((hh + 11) % 12) + 1;
+    const time = `${String(hour12).padStart(2, '0')}:${mm} ${ampm}`;
+    return { date, time };
+  };
+
   // Function to handle row click
   const handleRowClick = (row) => {
     const leadId = row?._id || row?.id || row?.leadId;
@@ -410,10 +425,32 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                     {row.status}
                   </span>
                 </td>
-                <td className="px-4 py-4 whitespace-nowrap ">{row.followUp}</td>
+                <td className="px-4 py-4 whitespace-nowrap ">
+                  {(() => {
+                    const raw = row.followUp || row.followUpDate || '';
+                    const { date, time } = splitIsoDateTime(raw);
+                    return (
+                      <div>
+                        <div>{date || 'N/A'}</div>
+                        {time && <div className="text-sm text-gray-500">{time}</div>}
+                      </div>
+                    );
+                  })()}
+                </td>
                 <td className="px-4 py-4 whitespace-nowrap ">{row.requirement}</td>
                 <td className="px-4 py-4 whitespace-nowrap ">{row.remark}</td>
-                <td className="px-4 py-4 whitespace-nowrap ">{row.date}</td>
+                <td className="px-4 py-4 whitespace-nowrap ">
+                  {(() => {
+                    const raw = row.date || row.createdAt || '';
+                    const { date, time } = splitIsoDateTime(raw);
+                    return (
+                      <div>
+                        <div>{date || 'N/A'}</div>
+                        {time && <div className="text-sm text-gray-500">{time}</div>}
+                      </div>
+                    );
+                  })()}
+                </td>
                 <td className="px-4 py-4 whitespace-nowrap ">{row.capturedBy}</td>
                 <td className="px-4 py-4 whitespace-nowrap ">
                   {row.assignTo ? `${row.assignTo.name} ` : " "}{" "}
@@ -632,24 +669,43 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                         <p className="text-gray-800 mt-1">{leadDetails.remark || leadDetails.remarks || 'N/A'}</p>
                       </div>
                       <div>
-                        <span className="font-medium text-gray-600">Follow-up Date:</span>
-                        <p className="text-gray-800 mt-1">{leadDetails.followUp || leadDetails.followUpDate || 'N/A'}</p>
+                        <span className="font-medium text-gray-600">Follow-up:</span>
+                        {(() => {
+                          const raw = leadDetails.followUp || leadDetails.followUpDate || '';
+                          const { date, time } = splitIsoDateTime(raw);
+                          return (
+                            <div>
+                              <p className="text-gray-800 mt-1">{date || 'N/A'}</p>
+                              {time && <p className="text-gray-700 text-sm">{time}</p>}
+                            </div>
+                          );
+                        })()}
                       </div>
                       <div>
                         <span className="font-medium text-gray-600">Created Date:</span>
-                        <p className="text-gray-800 mt-1">
-                          {leadDetails.date || leadDetails.createdAt ? 
-                            new Date(leadDetails.date || leadDetails.createdAt).toLocaleDateString() : 'N/A'
-                          }
-                        </p>
+                        {(() => {
+                          const raw = leadDetails.date || leadDetails.createdAt || '';
+                          const { date, time } = splitIsoDateTime(raw);
+                          return (
+                            <div>
+                              <p className="text-gray-800 mt-1">{date || 'N/A'}</p>
+                              {time && <p className="text-gray-700 text-sm">{time}</p>}
+                            </div>
+                          );
+                        })()}
                       </div>
                       <div>
                         <span className="font-medium text-gray-600">Last Updated:</span>
-                        <p className="text-gray-800 mt-1">
-                          {leadDetails.updatedAt ? 
-                            new Date(leadDetails.updatedAt).toLocaleDateString() : 'N/A'
-                          }
-                        </p>
+                        {(() => {
+                          const raw = leadDetails.updatedAt || '';
+                          const { date, time } = splitIsoDateTime(raw);
+                          return (
+                            <div>
+                              <p className="text-gray-800 mt-1">{date || 'N/A'}</p>
+                              {time && <p className="text-gray-700 text-sm">{time}</p>}
+                            </div>
+                          );
+                        })()}
                       </div>
                     </div>
                   </div>

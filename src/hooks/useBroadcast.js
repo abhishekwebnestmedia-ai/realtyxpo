@@ -126,12 +126,30 @@ export const useUsers = () => {
 // Hook to manage broadcasts/messages per group
 let broadcastSocket = null;
 
+const resolveWsUrl = () => {
+  if (import.meta.env.VITE_WS_URL) return import.meta.env.VITE_WS_URL;
+  const apiBase = api?.defaults?.baseURL;
+  if (apiBase) {
+    try {
+      return new URL(apiBase).origin;
+    } catch {
+      return apiBase;
+    }
+  }
+  if (typeof window !== 'undefined') {
+    // Fallback to current origin; useful when backend is served from same host
+    return window.location.origin;
+  }
+  return 'http://localhost:5000';
+};
+
 const ensureBroadcastSocket = () => {
   if (broadcastSocket) return broadcastSocket;
-  const wsUrl = import.meta.env.VITE_WS_URL || (typeof window !== 'undefined' ? window.location.origin : '/');
+  const wsUrl = resolveWsUrl();
   broadcastSocket = io(wsUrl, {
     auth: { token: localStorage.getItem('token') || undefined },
-    transports: ['websocket', 'polling']
+    transports: ['websocket', 'polling'],
+    withCredentials: true
   });
   return broadcastSocket;
 };
