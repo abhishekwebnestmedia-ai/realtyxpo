@@ -1,87 +1,392 @@
+// import React, { useState, useMemo, useContext } from "react";
+// import TokenSearch from '../../components/ui/TokenSearch';
+// import { useInventory } from "../../hooks/useInventory";
+// import { InventoryTable } from "../../components/tables";
+// import { useNavigate } from "react-router-dom";
+// import { AddBulkInventry } from "../../components/modals";
+// import { AuthContext } from '../../context/AuthContext';
+// import { getViewerPerms, canViewInventory } from '../../utils/permissions';
+// import { exportRowsAsPdf } from '../../utils/exportPdf';
+
+// // Reusable ToggleSwitch component (small pill with sliding highlight)
+// const ToggleSwitch = ({ viewType, setViewType }) => (
+//   <div className="relative flex w-[30%] mb-4 bg-white rounded-full p-1 overflow-hidden border border-gray-200 h-10">
+//     {/* Highlight */}
+//     <div
+//       className="absolute top-1 bottom-1 left-[2px] w-[calc(50%-6px)] bg-[#000D55] rounded-full transition-transform duration-300 ease-in-out"
+//       style={{
+//         transform: viewType === "Sales" ? "translateX(2px)" : "translateX(calc(100% + 6px))",
+//       }}
+//     />
+
+//     <button
+//       onClick={() => setViewType("Sales")}
+//       className={`relative flex-1 h-full flex items-center justify-center px-3 text-base font-medium transition-colors z-10 whitespace-nowrap ${
+//         viewType === "Sales" ? "text-white" : "text-gray-700"
+//       }`}
+//     >
+//       Sales
+//     </button>
+
+//     <button
+//       onClick={() => setViewType("Rent")}
+//       className={`relative flex-1 h-full flex items-center justify-center px-3 text-base font-medium transition-colors z-10 whitespace-nowrap ${
+//         viewType === "Rent" ? "text-white" : "text-gray-700"
+//       }`}
+//     >
+//       Rent
+//     </button>
+//   </div>
+// );
+
+// const InventoryPage = () => {
+//   const navigate = useNavigate();
+//   const { data: allInventory = [], isLoading, error: isError } = useInventory();
+//   const [viewType, setViewType] = useState('Sales');
+//   const [searchTerm, setSearchTerm] = useState('');
+//   const [externalTokens, setExternalTokens] = useState([]);
+//   const [currentPageRows, setCurrentPageRows] = useState([]);
+//   const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
+
+//   const { user: authUser } = useContext(AuthContext) || {};
+
+//   // Normalize inventory data: backend may return an array or an object wrapper
+//   const inventoryArray = React.useMemo(() => {
+//     if (Array.isArray(allInventory)) return allInventory;
+//     // common wrappers: { data: [...] } or { docs: [...] } or { inventory: [...] }
+//     if (Array.isArray(allInventory?.data)) return allInventory.data;
+//     if (Array.isArray(allInventory?.docs)) return allInventory.docs;
+//     if (Array.isArray(allInventory?.inventory)) return allInventory.inventory;
+//     // fallback: return empty array and warn in dev
+//     if (allInventory && Object.keys(allInventory).length > 0) {
+//       console.warn("useInventory returned unexpected shape, expected array. Returning empty list.", allInventory);
+//     }
+//     return [];
+//   }, [allInventory]);
+
+//   // Memoized filter - recalculates only when dependencies change
+//   const filteredData = useMemo(() => {
+//     const viewerPerms = getViewerPerms(authUser || {});
+//     const viewLower = String(viewType || '').toLowerCase();
+
+//     // first filter by requested view type
+//     const arr = inventoryArray.filter((item) => {
+//       const t = String(item.inventoryType || item.type || item.category || '').toLowerCase();
+//       if (viewLower.includes('sale')) return t.includes('sale') || t.includes('sell');
+//       if (viewLower.includes('rent')) return t.includes('rent') || t.includes('rental');
+//       return true;
+//     });
+
+//     // now restrict per-item by permissions
+//     return arr.filter(item => canViewInventory(viewerPerms, item));
+//   }, [inventoryArray, viewType, authUser]);
+
+//   // removed dev debug logging
+
+//   if (isLoading)
+//     return (
+//       <div className="flex justify-center items-center h-64">
+//         <p className="text-gray-500 animate-pulse">Loading inventory...</p>
+//       </div>
+//     );
+
+//   if (isError)
+//     return (
+//       <div className="p-4 text-center text-red-600 font-medium">
+//         Failed to load inventory. Please try again later.
+//       </div>
+//     );
+
+//   return (
+//     <div className="p-1">
+//       {/* Toggle Switch */}
+//       <div className="flex flex-row justify-between mb-4">
+//         <h2 className="text-2xl font-medium"> Inventory</h2>
+//         <div className="flex flex-row gap-4">
+//           <button 
+//             className="btn"
+//             onClick={() => setIsBulkUploadOpen(true)}
+//           >
+//             Add Bulk Inventory
+//           </button>
+//           <button className="btn" onClick={()=>{
+//             navigate('/inventory/addInventory');
+//           }}>Add Inventory</button>
+//         </div>
+//       </div>
+//       {/* Toggle Switch with Search and Controls */}
+//       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 ">
+//         {/* Toggle Switch */}
+//         <div className="relative flex w-full lg:w-[30%] bg-white rounded-full p-1 overflow-hidden border border-gray-200">
+//           {/* Highlight */}
+//           <div
+//             className="absolute top-1 bottom-1 left-[2px] w-[calc(50%-6px)] bg-[#000D55] rounded-full transition-transform duration-300 ease-in-out"
+//             style={{
+//               transform: viewType === "Sales" ? "translateX(2px)" : "translateX(calc(100% + 6px))",
+//             }}
+//           />
+
+//           {/* Sales */}
+//           <button
+//             onClick={() => setViewType("Sales")}
+//             className={`relative flex-1 px-3 py-2 text-base font-medium transition-colors z-10 whitespace-nowrap ${
+//               viewType === "Sales" ? "text-white" : "text-gray-700"
+//             }`}
+//           >
+//             Sales
+//           </button>
+
+//           {/* Rent */}
+//           <button
+//             onClick={() => setViewType("Rent")}
+//             className={`relative flex-1 px-3 py-2 text-base font-medium transition-colors z-10 whitespace-nowrap ${
+//               viewType === "Rent" ? "text-white" : "text-gray-700"
+//             }`}
+//           >
+//             Rent
+//           </button>
+//         </div>
+
+//         {/* Search and Controls */}
+//         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+//           <TokenSearch
+//             value={searchTerm}
+//             onChange={setSearchTerm}
+//             tokens={externalTokens}
+//             onTokensChange={setExternalTokens}
+//           />
+//           <button
+//             className="btn ml-2"
+//             onClick={() => {
+//               const columns = [
+//                 { key: 'sellerName', label: 'Seller' },
+//                 { key: 'Project', label: 'Project' },
+//                 { key: 'sector', label: 'Sector' },
+//                 { key: 'unitNo', label: 'Unit No' },
+//                 { key: 'towerNo', label: 'Tower No' },
+//                 { key: 'demand', label: 'Demand' },
+//                 { key: 'contactNumbers', label: 'Contact' },
+//                 { key: 'date', label: 'Date' }
+//               ];
+//               const sourceRows = (currentPageRows && currentPageRows.length) ? currentPageRows : (filteredData || []);
+//               const rows = sourceRows.map(r => ({
+//                 sellerName: r.sellerName || '',
+//                 Project: r.Project || r.project || '',
+//                 sector: r.sector || r.sectorNo || '',
+//                 unitNo: r.unitNo || '',
+//                 towerNo: r.towerNo || '',
+//                 demand: r.demand || '',
+//                 contactNumbers: Array.isArray(r.contactNumbers) ? r.contactNumbers.join(', ') : r.contactNumbers || '',
+//                 date: r.date || ''
+//               }));
+//               exportRowsAsPdf({ 
+//                 columns, 
+//                 rows, 
+//                 fileName: 'inventory.pdf', 
+//                 title: 'Inventory Export',
+//                 watermark: { src: '/watermark.svg', opacity: 0.06, scale: 0.5, raw: true }
+//               });
+//             }}
+//           >
+//             Export all
+//           </button>
+//           {/* rows-per-page removed; InventoryTable renders inline entries select in its pagination */}
+//         </div>
+//       </div>
+
+//       {/* Inventory Table */}
+//       {filteredData.length > 0 ? (
+//         <InventoryTable 
+//           data={filteredData} 
+//           hideSearch={true}
+//           externalSearch={searchTerm}
+//           onPageRowsChange={(rows) => setCurrentPageRows(rows)}
+//         />
+//       ) : (
+//         <p className="text-gray-500 text-center py-10">
+//           No {viewType.toLowerCase()} inventory found.
+//         </p>
+//       )}
+
+//       {/* Bulk Upload Popup */}
+//       <AddBulkInventry 
+//         isOpen={isBulkUploadOpen} 
+//         onClose={() => setIsBulkUploadOpen(false)} 
+//       />
+//     </div>
+//   );
+// };
+
+// export default InventoryPage;
+
+
+
+
+
+
 import React, { useState, useMemo, useContext } from "react";
-import TokenSearch from '../../components/ui/TokenSearch';
+import dayjs from "dayjs";
+import TokenSearch from "../../components/ui/TokenSearch";
 import { useInventory } from "../../hooks/useInventory";
 import { InventoryTable } from "../../components/tables";
 import { useNavigate } from "react-router-dom";
 import { AddBulkInventry } from "../../components/modals";
-import { AuthContext } from '../../context/AuthContext';
-import { getViewerPerms, canViewInventory } from '../../utils/permissions';
-import { exportRowsAsPdf } from '../../utils/exportPdf';
+import { AuthContext } from "../../context/AuthContext";
+import { getViewerPerms, canViewInventory } from "../../utils/permissions";
+import { exportRowsAsPdf } from "../../utils/exportPdf";
 
-// Reusable ToggleSwitch component (small pill with sliding highlight)
-const ToggleSwitch = ({ viewType, setViewType }) => (
-  <div className="relative flex w-[30%] mb-4 bg-white rounded-full p-1 overflow-hidden border border-gray-200 h-10">
-    {/* Highlight */}
-    <div
-      className="absolute top-1 bottom-1 left-[2px] w-[calc(50%-6px)] bg-[#000D55] rounded-full transition-transform duration-300 ease-in-out"
-      style={{
-        transform: viewType === "Sales" ? "translateX(2px)" : "translateX(calc(100% + 6px))",
-      }}
-    />
+// ✅ Reusable Export Modal (select date range)
+const ExportDateModal = ({ isOpen, onClose, onExport }) => {
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
-    <button
-      onClick={() => setViewType("Sales")}
-      className={`relative flex-1 h-full flex items-center justify-center px-3 text-base font-medium transition-colors z-10 whitespace-nowrap ${
-        viewType === "Sales" ? "text-white" : "text-gray-700"
-      }`}
-    >
-      Sales
-    </button>
+  if (!isOpen) return null;
 
-    <button
-      onClick={() => setViewType("Rent")}
-      className={`relative flex-1 h-full flex items-center justify-center px-3 text-base font-medium transition-colors z-10 whitespace-nowrap ${
-        viewType === "Rent" ? "text-white" : "text-gray-700"
-      }`}
-    >
-      Rent
-    </button>
-  </div>
-);
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">
+          Export Inventory by Date Range
+        </h2>
+
+        <div className="flex flex-col gap-4 mb-6">
+          <div className="flex flex-col">
+            <label className="text-sm font-medium text-gray-600">From:</label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="border rounded px-2 py-1 text-sm"
+            />
+          </div>
+          <div className="flex flex-col">
+            <label className="text-sm font-medium text-gray-600">To:</label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="border rounded px-2 py-1 text-sm"
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 rounded border text-gray-600 hover:bg-gray-100"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => {
+              onExport({ startDate, endDate });
+              onClose();
+            }}
+            className="px-4 py-2 rounded bg-[#000D55] text-white hover:bg-[#001066]"
+          >
+            Export PDF
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const InventoryPage = () => {
   const navigate = useNavigate();
   const { data: allInventory = [], isLoading, error: isError } = useInventory();
-  const [viewType, setViewType] = useState('Sales');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [viewType, setViewType] = useState("Sales");
+  const [searchTerm, setSearchTerm] = useState("");
   const [externalTokens, setExternalTokens] = useState([]);
-  const [currentPageRows, setCurrentPageRows] = useState([]);
   const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   const { user: authUser } = useContext(AuthContext) || {};
 
-  // Normalize inventory data: backend may return an array or an object wrapper
-  const inventoryArray = React.useMemo(() => {
+  // ✅ Normalize API response
+  const inventoryArray = useMemo(() => {
     if (Array.isArray(allInventory)) return allInventory;
-    // common wrappers: { data: [...] } or { docs: [...] } or { inventory: [...] }
     if (Array.isArray(allInventory?.data)) return allInventory.data;
     if (Array.isArray(allInventory?.docs)) return allInventory.docs;
     if (Array.isArray(allInventory?.inventory)) return allInventory.inventory;
-    // fallback: return empty array and warn in dev
-    if (allInventory && Object.keys(allInventory).length > 0) {
-      console.warn("useInventory returned unexpected shape, expected array. Returning empty list.", allInventory);
-    }
     return [];
   }, [allInventory]);
 
-  // Memoized filter - recalculates only when dependencies change
+  // ✅ Filter logic
   const filteredData = useMemo(() => {
     const viewerPerms = getViewerPerms(authUser || {});
-    const viewLower = String(viewType || '').toLowerCase();
+    const viewLower = String(viewType || "").toLowerCase();
 
-    // first filter by requested view type
     const arr = inventoryArray.filter((item) => {
-      const t = String(item.inventoryType || item.type || item.category || '').toLowerCase();
-      if (viewLower.includes('sale')) return t.includes('sale') || t.includes('sell');
-      if (viewLower.includes('rent')) return t.includes('rent') || t.includes('rental');
+      const type = String(item.inventoryType || item.type || item.category || "").toLowerCase();
+      if (viewLower.includes("sale")) return type.includes("sale") || type.includes("sell");
+      if (viewLower.includes("rent")) return type.includes("rent") || type.includes("rental");
       return true;
     });
 
-    // now restrict per-item by permissions
-    return arr.filter(item => canViewInventory(viewerPerms, item));
+    return arr.filter((item) => canViewInventory(viewerPerms, item));
   }, [inventoryArray, viewType, authUser]);
 
-  // removed dev debug logging
+  // ✅ Export logic (only 8 columns)
+  const handleExport = ({ startDate, endDate }) => {
+    let sourceRows = filteredData || [];
+
+    // Apply date range filter
+    if (startDate || endDate) {
+      const start = startDate ? dayjs(startDate).startOf("day") : null;
+      const end = endDate ? dayjs(endDate).endOf("day") : null;
+
+      sourceRows = sourceRows.filter((row) => {
+        if (!row.date) return false;
+        const rowDate = dayjs(row.date);
+        if (!rowDate.isValid()) return false;
+        if (start && rowDate.isBefore(start)) return false;
+        if (end && rowDate.isAfter(end)) return false;
+        return true;
+      });
+    }
+
+    // ✅ Columns (as requested)
+    const columns = [
+      { key: "sellerName", label: "Seller" },
+      { key: "Project", label: "Project" },
+      { key: "sector", label: "Sector" },
+      { key: "unitNo", label: "Unit No" },
+      { key: "towerNo", label: "Tower No" },
+      { key: "demand", label: "Demand" },
+      { key: "contactNumbers", label: "Contact" },
+      { key: "date", label: "Date" },
+    ];
+
+    // ✅ Map data properly
+    const rows = sourceRows.map((r) => ({
+      sellerName: r.sellerName || "",
+      Project: Array.isArray(r.Project)
+        ? r.Project.join(", ")
+        : r.Project || "",
+      sector: r.sector || "",
+      unitNo: r.unitNo || "",
+      towerNo: r.towerNo || "",
+      demand: r.demand || "",
+      contactNumbers: Array.isArray(r.contactNumbers)
+        ? r.contactNumbers.join(", ")
+        : r.contactNumbers || "",
+      date: r.date ? dayjs(r.date).format("YYYY-MM-DD") : "",
+    }));
+
+    exportRowsAsPdf({
+      columns,
+      rows,
+      fileName: "inventory.pdf",
+      title: "Inventory Export",
+      // watermark: {
+      //   src: "/watermark.svg",
+      //   opacity: 0.06,
+      //   scale: 0.5,
+      //   raw: true,
+      // },
+    });
+  };
 
   if (isLoading)
     return (
@@ -99,47 +404,46 @@ const InventoryPage = () => {
 
   return (
     <div className="p-1">
-      {/* Toggle Switch */}
+      {/* Header */}
       <div className="flex flex-row justify-between mb-4">
-        <h2 className="text-2xl font-medium"> Inventory</h2>
+        <h2 className="text-2xl font-medium">Inventory</h2>
         <div className="flex flex-row gap-4">
-          <button 
-            className="btn"
-            onClick={() => setIsBulkUploadOpen(true)}
-          >
+          <button className="btn" onClick={() => setIsBulkUploadOpen(true)}>
             Add Bulk Inventory
           </button>
-          <button className="btn" onClick={()=>{
-            navigate('/inventory/addInventory');
-          }}>Add Inventory</button>
+          <button
+            className="btn"
+            onClick={() => navigate("/inventory/addInventory")}
+          >
+            Add Inventory
+          </button>
         </div>
       </div>
-      {/* Toggle Switch with Search and Controls */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 ">
-        {/* Toggle Switch */}
+
+      {/* Toggle + Search + Export */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+        {/* Toggle */}
         <div className="relative flex w-full lg:w-[30%] bg-white rounded-full p-1 overflow-hidden border border-gray-200">
-          {/* Highlight */}
           <div
             className="absolute top-1 bottom-1 left-[2px] w-[calc(50%-6px)] bg-[#000D55] rounded-full transition-transform duration-300 ease-in-out"
             style={{
-              transform: viewType === "Sales" ? "translateX(2px)" : "translateX(calc(100% + 6px))",
+              transform:
+                viewType === "Sales"
+                  ? "translateX(2px)"
+                  : "translateX(calc(100% + 6px))",
             }}
           />
-
-          {/* Sales */}
           <button
             onClick={() => setViewType("Sales")}
-            className={`relative flex-1 px-3 py-2 text-base font-medium transition-colors z-10 whitespace-nowrap ${
+            className={`relative flex-1 px-3 py-2 text-base font-medium transition-colors z-10 ${
               viewType === "Sales" ? "text-white" : "text-gray-700"
             }`}
           >
             Sales
           </button>
-
-          {/* Rent */}
           <button
             onClick={() => setViewType("Rent")}
-            className={`relative flex-1 px-3 py-2 text-base font-medium transition-colors z-10 whitespace-nowrap ${
+            className={`relative flex-1 px-3 py-2 text-base font-medium transition-colors z-10 ${
               viewType === "Rent" ? "text-white" : "text-gray-700"
             }`}
           >
@@ -147,7 +451,7 @@ const InventoryPage = () => {
           </button>
         </div>
 
-        {/* Search and Controls */}
+        {/* Search + Export */}
         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
           <TokenSearch
             value={searchTerm}
@@ -155,52 +459,22 @@ const InventoryPage = () => {
             tokens={externalTokens}
             onTokensChange={setExternalTokens}
           />
+
           <button
             className="btn ml-2"
-            onClick={() => {
-              const columns = [
-                { key: 'sellerName', label: 'Seller' },
-                { key: 'Project', label: 'Project' },
-                { key: 'sector', label: 'Sector' },
-                { key: 'unitNo', label: 'Unit No' },
-                { key: 'towerNo', label: 'Tower No' },
-                { key: 'demand', label: 'Demand' },
-                { key: 'contactNumbers', label: 'Contact' },
-                { key: 'date', label: 'Date' }
-              ];
-              const sourceRows = (currentPageRows && currentPageRows.length) ? currentPageRows : (filteredData || []);
-              const rows = sourceRows.map(r => ({
-                sellerName: r.sellerName || '',
-                Project: r.Project || r.project || '',
-                sector: r.sector || r.sectorNo || '',
-                unitNo: r.unitNo || '',
-                towerNo: r.towerNo || '',
-                demand: r.demand || '',
-                contactNumbers: Array.isArray(r.contactNumbers) ? r.contactNumbers.join(', ') : r.contactNumbers || '',
-                date: r.date || ''
-              }));
-              exportRowsAsPdf({ 
-                columns, 
-                rows, 
-                fileName: 'inventory.pdf', 
-                title: 'Inventory Export',
-                watermark: { src: '/watermark.svg', opacity: 0.06, scale: 0.5, raw: true }
-              });
-            }}
+            onClick={() => setIsExportModalOpen(true)}
           >
-            Export all
+            Export
           </button>
-          {/* rows-per-page removed; InventoryTable renders inline entries select in its pagination */}
         </div>
       </div>
 
       {/* Inventory Table */}
       {filteredData.length > 0 ? (
-        <InventoryTable 
-          data={filteredData} 
+        <InventoryTable
+          data={filteredData}
           hideSearch={true}
           externalSearch={searchTerm}
-          onPageRowsChange={(rows) => setCurrentPageRows(rows)}
         />
       ) : (
         <p className="text-gray-500 text-center py-10">
@@ -208,14 +482,20 @@ const InventoryPage = () => {
         </p>
       )}
 
-      {/* Bulk Upload Popup */}
-      <AddBulkInventry 
-        isOpen={isBulkUploadOpen} 
-        onClose={() => setIsBulkUploadOpen(false)} 
+      {/* Bulk Upload Modal */}
+      <AddBulkInventry
+        isOpen={isBulkUploadOpen}
+        onClose={() => setIsBulkUploadOpen(false)}
+      />
+
+      {/* Export Modal */}
+      <ExportDateModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        onExport={handleExport}
       />
     </div>
   );
 };
 
 export default InventoryPage;
-
