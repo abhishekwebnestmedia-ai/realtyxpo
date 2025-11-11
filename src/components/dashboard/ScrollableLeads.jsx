@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/api";
 import ConfirmDeleteButton from "../ui/notifications/ConfirmDelete";
@@ -70,6 +70,9 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState(null);
   const [leadDetails, setLeadDetails] = useState(null);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [historyItems, setHistoryItems] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [localData, setLocalData] = useState(data);
@@ -111,6 +114,22 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
       fetchLeadDetails(leadId);
     } else {
       alert('Unable to fetch lead details: No valid ID found');
+    }
+  };
+
+  // Fetch history for a lead
+  const fetchHistory = async (leadId) => {
+    setLoadingHistory(true);
+    try {
+      const res = await api.get(`/realtleads/${leadId}/history`);
+      // support different shapes
+      const payload = res.data?.data || res.data || [];
+      setHistoryItems(Array.isArray(payload) ? payload : []);
+    } catch (err) {
+      console.error("Failed to fetch history:", err);
+      setHistoryItems([]);
+    } finally {
+      setLoadingHistory(false);
     }
   };
 
@@ -430,6 +449,21 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                         className="text-red-600 hover:text-red-800"
                       />
                     </div>
+                    {/* History button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const id = row?.id ?? row?._id ?? row?.leadId;
+                        if (!id) return alert('Unable to fetch history: missing id');
+                        setSelectedLead(row);
+                        setIsHistoryOpen(true);
+                        fetchHistory(id);
+                      }}
+                      title="View history"
+                      className="text-[#D4AF37] hover:opacity-80"
+                    >
+                      <Clock size={16} />
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -662,6 +696,80 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                   Edit Lead
                 </button>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* History Modal */}
+      {isHistoryOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b sticky top-0 bg-white z-10">
+              <h2 className="text-2xl font-bold text-gray-800">
+                Change History - {selectedLead?.customerName || selectedLead?.name || 'Lead'}
+              </h2>
+              <button
+                onClick={() => {
+                  setIsHistoryOpen(false);
+                  setHistoryItems([]);
+                  setSelectedLead(null);
+                }}
+                className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="p-6">
+              {loadingHistory ? (
+                <div className="flex items-center justify-center h-32">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D4AF37]"></div>
+                  <span className="ml-3 text-gray-600">Loading history...</span>
+                </div>
+              ) : historyItems && historyItems.length > 0 ? (
+                <div className="space-y-4">
+                  {historyItems.map((h) => (
+                    <div key={h._id} className="flex gap-4 items-start">
+                      <div className="flex-shrink-0 mt-1">
+                        <div className="h-10 w-10 rounded-full bg-[#D4AF37] flex items-center justify-center text-white">
+                          <Clock size={16} />
+                        </div>
+                      </div>
+                      <div className="flex-1 bg-gray-50 p-4 rounded-lg">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="text-sm text-gray-600">{h.field}</div>
+                            <div className="mt-1 text-gray-800 font-medium">
+                              {String(h.oldValue || '—')} → {String(h.newValue || '—')}
+                            </div>
+                          </div>
+                          <div className="text-right text-sm text-gray-500">
+                            <div>{h.changedBy ? h.changedBy.name : 'System'}</div>
+                            <div>{h.changedBy?.email || ''}</div>
+                            <div className="mt-1 text-xs">{new Date(h.changedAt).toLocaleString()}</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center text-gray-600">No history available for this lead.</div>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-3 p-6 border-t bg-gray-50">
+              <button
+                onClick={() => {
+                  setIsHistoryOpen(false);
+                  setHistoryItems([]);
+                  setSelectedLead(null);
+                }}
+                className="px-4 py-2 text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>

@@ -33,6 +33,8 @@ const Step1SellerDetails = ({ formData, handleChange, contactInput, setContactIn
             }}
             placeholder="Enter phone number"
             className="w-full border px-3 py-2 rounded-lg bg-[#FAFBFC]"
+            pattern="^[0-9]{10,13}$"
+            title="Enter 10-13 digit numeric phone number"
           />
           <button
             type="button"
@@ -63,6 +65,8 @@ const Step1SellerDetails = ({ formData, handleChange, contactInput, setContactIn
           onChange={handleChange}
           className="w-full border px-3 py-2 rounded-lg bg-[#FAFBFC]"
           required
+          pattern="^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
+          title="Enter a valid email address"
         />
       </div>
 
@@ -98,7 +102,7 @@ const Step1SellerDetails = ({ formData, handleChange, contactInput, setContactIn
         </datalist>
       </div>
 
-      {/* Transfer Status */}
+      {/* Transfer Status (no default selected) */}
       <div className="space-y-2">
         <label className="block font-medium mb-1">Select Status</label>
         <div className="flex justify-between space-x-4 bg-[#FAFBFC]">

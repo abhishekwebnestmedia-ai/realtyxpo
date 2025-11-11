@@ -12,7 +12,7 @@ const StepperForm = () => {
     email: "",
     budget: "",
     status: "",
-    transferStatus: "Transferred",
+    transferStatus: "",
     requirement: "",
     loanStatus: "",
     projectName: "",
@@ -54,7 +54,8 @@ const StepperForm = () => {
 
   const addContact = () => {
     const val = contactInput.trim();
-    if (!val) return;
+    // accept only digits, 10-13 length (supports country codes)
+    if (!/^[0-9]{10,13}$/.test(val)) return;
     setFormData((prev) => ({
       ...prev,
       contactNumbers: [...(prev.contactNumbers || []), val],

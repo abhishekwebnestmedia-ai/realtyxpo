@@ -180,6 +180,39 @@ const apiService = {
     }
   },
 
+  // Broker requirement creation (single) - wraps POST /broker
+  async createBrokerRequirement(data) {
+    try {
+      // Ensure required fields mapping
+      const payload = {
+        brokerName: data.brokerName || data.name || '',
+        contactNumber: data.contactNumber || data.phone || '',
+        followUpDate: data.followUpDate || data.followUp || '',
+        status: data.status || '',
+        source: data.source || '',
+        capturedBy: data.capturedBy || '',
+        requirement: data.requirement || '',
+        remark: data.remark || data.remarks || '',
+      };
+      const response = await api.post('/broker', payload);
+      logger.apiSuccess('POST /broker', response.data);
+      return response.data;
+    } catch (error) {
+      throw this.handleApiError(error, 'POST', '/broker');
+    }
+  },
+
+  // Bulk broker upload convenience (expects array of records)
+  async bulkUploadBrokers(records = []) {
+    try {
+      const response = await api.post('/broker/bulk-upload', { records });
+      logger.apiSuccess('POST /broker/bulk-upload', { count: records.length });
+      return response.data;
+    } catch (error) {
+      throw this.handleApiError(error, 'POST', '/broker/bulk-upload');
+    }
+  },
+
   async put(url, data, config = {}) {
     try {
       const response = await api.put(url, data, config);

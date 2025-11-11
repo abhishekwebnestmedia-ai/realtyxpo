@@ -11,7 +11,6 @@ const Step3EmployeeDetails = ({ formData, handleChange, users, filteredUsersForA
           value={formData.capturedBy}
           onChange={handleChange}
           className="w-full border px-3 py-2 rounded-lg bg-[#FAFBFC]"
-          required
         >
           <option value="">-- Select User --</option>
           {users.map((u) => (
@@ -28,7 +27,6 @@ const Step3EmployeeDetails = ({ formData, handleChange, users, filteredUsersForA
           value={formData.assignTo}
           onChange={handleChange}
           className="w-full border px-3 py-2 rounded-lg bg-[#FAFBFC]"
-          required
         >
           <option value="">-- Select User --</option>
           {filteredUsersForAssignTo.map((u) => (
@@ -47,7 +45,6 @@ const Step3EmployeeDetails = ({ formData, handleChange, users, filteredUsersForA
           onChange={handleChange}
           className="w-full border px-3 py-2 rounded-lg"
           placeholder="Select or type source"
-          required
         />
         <datalist id="sourceList">
           {sources.map((s, i) => (
@@ -65,7 +62,6 @@ const Step3EmployeeDetails = ({ formData, handleChange, users, filteredUsersForA
           value={formData.followUp}
           onChange={handleChange}
           className="w-full border px-3 py-2 rounded-lg"
-          required
         />
       </div>
 
@@ -77,7 +73,6 @@ const Step3EmployeeDetails = ({ formData, handleChange, users, filteredUsersForA
           value={formData.transferTo}
           onChange={handleChange}
           className="w-full border px-3 py-2 rounded-lg bg-[#FAFBFC]"
-          required
         >
           <option value="">-- Select User --</option>
           {users.map((u) => (
@@ -95,7 +90,7 @@ const Step3EmployeeDetails = ({ formData, handleChange, users, filteredUsersForA
           value={formData.remark}
           onChange={handleChange}
           className="w-full border px-3 py-2 rounded-lg"
-          required
+          placeholder="Optional remark"
         />
       </div>
     </div>

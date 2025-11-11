@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { AuthContext } from '../../context/AuthContext';
 import api from '../../api/api';
+import apiService from '../../api/apiService';
 import showToast from '../../components/ui/notifications/AddSuccess';
 
 const AddBrokerRequirement = () => {
@@ -37,9 +38,19 @@ const AddBrokerRequirement = () => {
     }
     setLoading(true);
     try {
-      const payload = { ...form };
-      // Primary assumed endpoint: POST /broker/create
-      await api.post('/broker/create', payload);
+      // Normalize status capitalization if backend expects specific casing
+      const normalizedStatus =
+        form.status?.toLowerCase() === 'not connected' ? 'Not Connected' : form.status;
+
+      const payload = { ...form, status: normalizedStatus };
+      // Try via centralized service first (POST /broker)
+      try {
+        await apiService.createBrokerRequirement(payload);
+      } catch (inner) {
+        // Fallback to legacy endpoints if needed
+        const endpoint = inner?.response?.status === 404 ? '/broker/create' : '/broker';
+        await api.post(endpoint, payload);
+      }
       queryClient.invalidateQueries({ queryKey: ['brokers'] });
       showToast({ message: 'Broker requirement added', type: 'success' });
       navigate('/brokers-requirements');
@@ -62,7 +73,14 @@ const AddBrokerRequirement = () => {
           </div>
           <div>
             <label className="block mb-1 font-medium">Contact No.</label>
-            <input name="contactNumber" value={form.contactNumber} onChange={handleChange} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" />
+            <input
+              name="contactNumber"
+              value={form.contactNumber}
+              onChange={handleChange}
+              pattern="^[0-9]{7,15}$"
+              title="Enter a valid phone number (digits only)"
+              className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2"
+            />
           </div>
           <div>
             <label className="block mb-1 font-medium">Status</label>

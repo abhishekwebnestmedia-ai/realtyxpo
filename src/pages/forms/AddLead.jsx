@@ -16,7 +16,9 @@ const AddLead = () => {
     email: "",
     status: "Hot",
     leadType: "",
-    followUp: "",
+    // separate date/time inputs for 12-hour picker
+    followUpDate: new Date().toISOString().split("T")[0],
+    followUpTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
     requirement: "",
     remark: "",
     date: new Date().toISOString().split("T")[0],
@@ -108,10 +110,42 @@ const AddLead = () => {
         return val;
       };
 
+      // Combine follow-up date and 12h time into ISO-ish string expected by backend
+      let followUpCombined = '';
+      if (form.followUpDate) {
+        const timeStr = form.followUpTime || '';
+        let hour24 = 0, minute = '00';
+        if (timeStr) {
+          const parts = timeStr.split(' ');
+          const hm = parts[0] || '';
+          const ampm = (parts[1] || '').toLowerCase();
+          const [hh, mm] = hm.split(':');
+          let h = parseInt(hh || '0', 10);
+          minute = (mm || '00').padStart(2, '0');
+          if (ampm === 'pm' && h !== 12) h += 12;
+          if (ampm === 'am' && h === 12) h = 0;
+          hour24 = String(h).padStart(2, '0');
+        }
+        followUpCombined = `${form.followUpDate}T${hour24}:${minute}:00.000Z`;
+      }
+
+      const normalizedStatus = (form.status || '').toLowerCase() === 'not connected' ? 'Not Connected' : form.status;
+
       const payload = {
-        ...form,
+        customerName: form.customerName,
+        contactNumber: form.contactNumber,
+        email: form.email,
+        status: normalizedStatus,
+        leadType: form.leadType,
+        followUp: followUpCombined,
+        requirement: form.requirement,
+        remark: form.remark,
+        date: form.date,
+        capturedBy: form.capturedBy,
         assignTo: resolveToName(form.assignTo),
         transferTo: resolveToName(form.transferTo),
+        source: form.source,
+        Budget: form.Budget,
       };
 
   // Debug log: show final payload that will be sent to the API
@@ -162,8 +196,10 @@ const AddLead = () => {
               name="contactNumber"
               value={form.contactNumber}
               onChange={handleChange}
-              type="text"
+              type="tel"
               id="contactNumber"
+              pattern="^[0-9]{10,13}$"
+              title="Enter 10-13 digit numeric phone number"
               className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2"
             />
           </div>
@@ -179,6 +215,9 @@ const AddLead = () => {
               onChange={handleChange}
               type="email"
               id="email"
+              required
+              pattern="^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
+              title="Enter a valid email address"
               className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2"
             />
           </div>
@@ -194,6 +233,7 @@ const AddLead = () => {
               value={form.status}
               onChange={handleChange}
               options={[
+                { value: '', label: '-- Select Status --' },
                 { value: 'Hot', label: 'Hot' },
                 { value: 'Not connected', label: 'Not connected' },
                 { value: 'Serious', label: 'Serious' },
@@ -204,17 +244,24 @@ const AddLead = () => {
             />
           </div>
 
-          {/* Follow-up Date */}
+          {/* Follow-up Date & Time (12-hour) */}
           <div>
-            <label htmlFor="followUp" className="block mb-1 font-medium">
-              Follow-up Date
-            </label>
+            <label className="block mb-1 font-medium">Follow-up</label>
             <input
-              name="followUp"
-              value={form.followUp}
+              name="followUpDate"
+              value={form.followUpDate}
               onChange={handleChange}
               type="date"
-              id="followUp"
+              className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2 mb-2"
+            />
+            <input
+              name="followUpTime"
+              value={form.followUpTime}
+              onChange={handleChange}
+              type="text"
+              placeholder="HH:MM AM/PM"
+              pattern="^(0?[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$"
+              title="Enter time in 12-hour format e.g. 02:30 PM"
               className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2"
             />
           </div>
