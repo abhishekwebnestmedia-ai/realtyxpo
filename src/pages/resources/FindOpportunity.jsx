@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { ToggleSwitch } from '../../components/ui';
-import { useLeads } from '../../hooks/useLeads';
+import { useUnassignedLeads } from '../../hooks/useUnassignedLeads';
 import { useInventory } from '../../hooks/useInventory';
 import { ScrollableLeads } from '../../components/dashboard';
 import { InventoryTable } from '../../components/tables';
@@ -11,15 +11,18 @@ const FindOpportunity = () => {
   const [secondaryFilter, setSecondaryFilter] = useState('AllBuyers');
 
   // API hooks
-  const { data: leadsData = [], isLoading: leadsLoading, error: leadsError } = useLeads();
+  // useUnassignedLeads returns the API that already filters unassigned leads
+  const { data: leadsDataRaw = [], isLoading: leadsLoading, error: leadsError } = useUnassignedLeads();
   const { data: inventoryData = [], isLoading: inventoryLoading, error: inventoryError } = useInventory();
 
-  // Normalize leads data
+  // Normalize leads data returned by /realtleads/unassigned
   const leads = useMemo(() => {
-    if (Array.isArray(leadsData)) return leadsData;
-    if (leadsData && Array.isArray(leadsData.data)) return leadsData.data;
+    if (Array.isArray(leadsDataRaw)) return leadsDataRaw;
+    if (leadsDataRaw && Array.isArray(leadsDataRaw.data)) return leadsDataRaw.data;
+    // some API responses wrap the list in .data or .docs
+    if (leadsDataRaw && Array.isArray(leadsDataRaw.docs)) return leadsDataRaw.docs;
     return [];
-  }, [leadsData]);
+  }, [leadsDataRaw]);
 
   // Normalize inventory data (defensive)
   const inventory = useMemo(() => {
@@ -63,14 +66,14 @@ const FindOpportunity = () => {
 
   // Filter data based on selections and only show unassigned items
   const filteredData = useMemo(() => {
-    // Helper function to check if a record is unassigned
+    // API already returns unassigned leads for leads side.
+    // For inventory filtering we still need an isUnassigned helper.
     const isUnassigned = (record) => {
+      if (!record) return true;
       if (!record.assignTo) return true;
-      // If assignTo is an object, check if it has a name property
       if (typeof record.assignTo === 'object') {
         return !record.assignTo.name || record.assignTo.name.trim() === '';
       }
-      // If assignTo is a string, check if it's empty
       if (typeof record.assignTo === 'string') {
         return record.assignTo.trim() === '';
       }
@@ -84,14 +87,12 @@ const FindOpportunity = () => {
       if (secondaryFilter === 'AllBuyers') {
         return leads.filter((lead) => 
           lead?.leadType === "Buyer" && 
-          !isDead(lead) && 
-          isUnassigned(lead)
+          !isDead(lead)
         );
       } else if (secondaryFilter === 'RentalBusiness') {
         return leads.filter((lead) => 
           lead?.leadType === "Rental" && 
-          !isDead(lead) && 
-          isUnassigned(lead)
+          !isDead(lead)
         );
       }
     } else if (primaryFilter === 'Inventory') {

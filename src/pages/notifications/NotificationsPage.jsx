@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { useNotifications } from '../../hooks/useNotifications';
+import { formatLocalTimestamp, parseLocalTimestamp } from '../../utils/datetime';
 
 const formatGroupTitle = (dateStr) => {
   if (!dateStr) return 'Unknown';
@@ -18,12 +19,13 @@ const formatGroupTitle = (dateStr) => {
 const groupNotificationsByDate = (list) => {
   const groups = {};
   (list || []).forEach((n) => {
-    const created = n.createdAt || n.createdAtISO || n.date || null;
+    // prefer client-side epoch if available (may be set as _groupTs by caller)
+    const created = (n._groupTs || n._clientTs) || n.createdAt || n.createdAtISO || n.date || null;
     let key = 'Unknown';
     try {
       if (created) {
-        const d = new Date(created);
-        // use local date (YYYY-MM-DD) to group according to user's timezone
+        const ts = typeof created === 'number' ? created : parseLocalTimestamp(created);
+        const d = new Date(ts || Date.now());
         const y = d.getFullYear();
         const m = String(d.getMonth() + 1).padStart(2, '0');
         const dd = String(d.getDate()).padStart(2, '0');
@@ -45,8 +47,8 @@ const groupNotificationsByDate = (list) => {
       key: k,
       title: formatGroupTitle(k),
       items: (groups[k] || []).sort((x, y) => {
-        const xa = new Date(x.createdAt || x.createdAtISO || x.date || 0).getTime();
-        const ya = new Date(y.createdAt || y.createdAtISO || y.date || 0).getTime();
+        const xa = x._clientTs ?? (x.createdAt ? new Date(x.createdAt).getTime() : 0);
+        const ya = y._clientTs ?? (y.createdAt ? new Date(y.createdAt).getTime() : 0);
         return ya - xa; // newest first
       })
     }));
@@ -56,7 +58,17 @@ const groupNotificationsByDate = (list) => {
 const NotificationsPage = () => {
   const { notifications, markAsRead } = useNotifications();
 
-  const grouped = useMemo(() => groupNotificationsByDate(notifications), [notifications]);
+  const formatTimestamp = (raw) => formatLocalTimestamp(raw);
+
+  // ensure grouping uses client-side timestamp when available
+  const grouped = useMemo(() => {
+    // annotate temporary created value for grouping
+    const withClient = (notifications || []).map(n => ({
+      ...n,
+      _groupTs: n._clientTs || parseLocalTimestamp(n.createdAt) || 0
+    }));
+    return groupNotificationsByDate(withClient);
+  }, [notifications]);
 
   return (
     <div className="">
@@ -72,7 +84,7 @@ const NotificationsPage = () => {
                 <div className="flex justify-between items-start">
                   <div>
                     <div className="text-sm text-gray-800">{n.message}</div>
-                    <div className="text-xs text-gray-500 mt-2">{new Date(n.createdAt).toLocaleString()}</div>
+                    <div className="text-xs text-gray-500 mt-2">{formatTimestamp(n._clientTs ?? n.createdAt)}</div>
                   </div>
                   <div className="ml-4">
                     {!n.isRead && <button onClick={() => markAsRead(n.notificationId || n._id)} className="text-blue-600 text-sm">Mark read</button>}

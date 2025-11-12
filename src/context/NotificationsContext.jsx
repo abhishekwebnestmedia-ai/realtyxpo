@@ -1,8 +1,14 @@
 import React, { createContext, useEffect, useRef, useState } from 'react';
 import io from 'socket.io-client';
 import api from '../api/api';
+import { parseLocalTimestamp } from '../utils/datetime';
 
 const NotificationsContext = createContext(null);
+
+const computeClientTimestamp = (raw) => {
+  const t = parseLocalTimestamp(raw);
+  return t == null ? Date.now() : t;
+};
 
 const resolveWsUrl = () => {
   if (import.meta.env.VITE_WS_URL) return import.meta.env.VITE_WS_URL;
@@ -24,15 +30,20 @@ export const NotificationsProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [followupReminder, setFollowupReminder] = useState(null); // { notification, nextShowAt: null }
+  const [isRinging, setIsRinging] = useState(false);
   const socketRef = useRef(null);
   const audioRef = useRef(null);
   const pollingRef = useRef(null);
+  const followupQueueRef = useRef([]);
+  const followupTimersRef = useRef({});
   const lastFetchedAtRef = useRef(null);
   const handlerRef = useRef(null);
 
   // load audio from public folder
   useEffect(() => {
-    audioRef.current = new Audio('/notification.mp3');
+    // use the project's followup sound (exists in public/)
+    audioRef.current = new Audio('/FollowupBell.mp3');
     audioRef.current.preload = 'auto';
   }, []);
 
@@ -49,8 +60,7 @@ export const NotificationsProvider = ({ children }) => {
       // reset currentTime so subsequent plays start from 0
       audio.currentTime = 0;
       return true;
-    } catch (err) {
-      console.debug('unlockAudio failed', err);
+    } catch {
       return false;
     }
   };
@@ -64,8 +74,7 @@ export const NotificationsProvider = ({ children }) => {
       }
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       return user?._id || user?.userId || user?.id || null;
-    } catch (err) {
-      console.debug('Failed to decode user id for notifications', err);
+    } catch {
       return null;
     }
   };
@@ -78,15 +87,21 @@ export const NotificationsProvider = ({ children }) => {
         const resp = await api.get('/notifications');
         const list = resp.data?.data || resp.data || [];
         if (!mounted) return;
-        // normalize createdAt and ids
-        const normalized = list.map((n) => ({
+        // normalize createdAt and ids; compute _clientTs for each item
+        const normalized = (list || []).map((n) => ({
           notificationId: n._id || n.notificationId,
+          _clientTs: computeClientTimestamp(n.createdAt || n.createdAtISO || n.date || n.followUp || n.followUpDate),
           ...n,
         }));
         normalized.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        // sort by client timestamp (newest first)
+        normalized.sort((a, b) => (b._clientTs || 0) - (a._clientTs || 0));
         setNotifications(normalized);
         setUnreadCount(normalized.filter(n => !n.isRead).length);
-        if (normalized.length) lastFetchedAtRef.current = normalized[0].createdAt;
+        if (normalized.length) {
+          const top = normalized[0];
+          lastFetchedAtRef.current = top.createdAt || new Date(top._clientTs).toISOString();
+        }
       } catch (err) {
         console.error('Failed to fetch notifications', err);
       }
@@ -109,7 +124,6 @@ export const NotificationsProvider = ({ children }) => {
       });
 
       const onConnect = () => {
-        console.debug('Notifications: socket connected', socketRef.current.id);
         // socket connected
         // stop polling when connected
         if (pollingRef.current) {
@@ -131,22 +145,20 @@ export const NotificationsProvider = ({ children }) => {
             if (Array.isArray(list) && list.length) {
               list.forEach(p => handlerRef.current?.(p));
             }
-          } catch { /* one-off sync failed, ignore */ }
+          } catch (err) { console.error('one-off sync failed', err); }
         })();
       };
 
       socketRef.current.on('connect', onConnect);
-      socketRef.current.on('registered_success', (payload) => {
-        console.debug('Notifications: registered_success', payload);
-      });
+      socketRef.current.on('registered_success', () => {});
 
       socketRef.current.on('notification', (payload) => {
-        console.debug('Notifications: received event "notification"', payload);
+        try { payload.__event = 'notification'; } catch { /* ignore */ }
         handlerRef.current?.(payload);
       });
 
       socketRef.current.on('notification_received', (payload) => {
-        console.debug('Notifications: received event "notification_received"', payload);
+        try { payload.__event = 'notification_received'; } catch { /* ignore */ }
         handlerRef.current?.(payload);
       });
 
@@ -154,7 +166,7 @@ export const NotificationsProvider = ({ children }) => {
       // emitted by older server code (followup_notification). Remove after server uses
       // the standardized 'notification' event name.
       socketRef.current.on('followup_notification', (payload) => {
-        console.debug('Notifications: received event "followup_notification"', payload);
+        try { payload.__event = 'followup_notification'; } catch { /* ignore */ }
         handlerRef.current?.(payload);
       });
 
@@ -200,16 +212,35 @@ export const NotificationsProvider = ({ children }) => {
     }, interval);
   };
 
+  const isLikelyFollowup = (payload) => {
+    try {
+      if (!payload || typeof payload !== 'object') return false;
+      if (payload.__event === 'followup_notification') return true;
+      const type = (payload.type || payload.category || payload.kind || '').toString().toLowerCase();
+      if (type.includes('follow')) return true;
+      const keys = Object.keys(payload).map(k => k.toLowerCase());
+      if (keys.some(k => k.includes('follow'))) {
+        // any field with 'follow' and a truthy value
+        if (keys.some(k => k.includes('follow') && payload[k] != null && payload[k] !== '')) return true;
+      }
+      const msg = (payload.message || '').toString().toLowerCase();
+      if (msg.includes('follow up') || msg.includes('follow-up') || msg.includes('followup')) return true;
+      return false;
+    } catch { return false; }
+  };
+
   const handleIncomingNotification = (payload) => {
+    // incoming payload received
     const n = {
       notificationId: payload._id || payload.notificationId || payload.id,
       createdAt: payload.createdAt || new Date().toISOString(),
+      _clientTs: computeClientTimestamp(payload.createdAt || payload.createdAtISO || payload.date || payload.followUp || payload.followUpDate),
       ...payload,
     };
 
     
 
-    setNotifications(prev => {
+  setNotifications(prev => {
       // dedupe by id
       const existing = n.notificationId && prev.some(p => (p.notificationId || p._id) === n.notificationId);
       if (existing) {
@@ -225,9 +256,20 @@ export const NotificationsProvider = ({ children }) => {
         return prev;
       }
 
-      const next = [n, ...prev];
+      const next = [n, ...prev]
+        .reduce((acc, item) => {
+          if (!item) return acc;
+          // avoid duplicates when both new item and existing share id but existing check missed (e.g. missing id)
+          const id = item.notificationId || item._id;
+          if (id && acc.some(x => (x.notificationId || x._id) === id)) return acc;
+          acc.push(item);
+          return acc;
+        }, []);
+      next.sort((a, b) => (b?._clientTs || 0) - (a?._clientTs || 0));
       // update last fetched
-      lastFetchedAtRef.current = next[0]?.createdAt || lastFetchedAtRef.current;
+      if (next[0]) {
+        lastFetchedAtRef.current = next[0].createdAt || new Date(next[0]._clientTs).toISOString();
+      }
       // recompute unread count from new state
       setUnreadCount(next.filter(x => !x.isRead).length);
       return next;
@@ -238,10 +280,20 @@ export const NotificationsProvider = ({ children }) => {
       const audio = audioRef.current;
       if (audio) {
         audio.currentTime = 0;
-        audio.play().catch((e) => console.debug('audio play blocked', e));
+        audio.play().catch(() => {});
       }
-    } catch (err) {
-      console.debug('audio error', err);
+    } catch {
+      /* audio play failed */
+    }
+
+    // If this payload looks like a follow-up reminder, enqueue/show it
+    try {
+      const follow = isLikelyFollowup(payload);
+      if (follow) {
+        enqueueFollowup(n);
+      }
+    } catch {
+      /* followup detection error */
     }
 
     // show desktop notification if permitted
@@ -254,18 +306,146 @@ export const NotificationsProvider = ({ children }) => {
           renotify: true
         });
         notif.onclick = () => {
-          try { window.focus(); } catch { console.debug('window focus blocked'); }
+          try { window.focus(); } catch { /* ignore */ }
           // open panel as user clicked the notification
           setIsPanelOpen(true);
         };
       }
-    } catch (err) {
-      console.debug('desktop notification failed', err);
+    } catch {
+      /* desktop notification failed */
     }
   };
 
   // ensure the ref always points to the latest handler (avoids stale closures)
   handlerRef.current = handleIncomingNotification;
+
+  // --- Followup reminder helpers ---
+  const clearFollowupTimer = (id) => {
+    try {
+      const t = followupTimersRef.current[id];
+      if (t) {
+        clearTimeout(t);
+        delete followupTimersRef.current[id];
+      }
+    } catch { /* ignore */ }
+  };
+
+  const stopAudio = () => {
+    try {
+      const audio = audioRef.current;
+      if (audio) {
+        audio.loop = false;
+        audio.pause();
+        try { audio.currentTime = 0; } catch { /* ignore */ }
+      }
+      setIsRinging(false);
+    } catch { /* ignore */ }
+  };
+
+  const showFollowupNow = (notification) => {
+    try {
+      setFollowupReminder({ notification, nextShowAt: null });
+      // set ringing state for UI bell animation
+      try {
+        setIsRinging(true);
+      } catch { /* ignore */ }
+      // play audio immediately (best-effort)
+      const audio = audioRef.current;
+      if (audio) {
+        // try to unlock just in case user hasn't interacted yet
+        unlockAudio().finally(() => {
+          try {
+            audio.loop = true; // keep ringing until user action
+            audio.currentTime = 0;
+            audio.play().catch(() => {});
+          } catch { /* ignore */ }
+        });
+      }
+    } catch { /* ignore */ }
+  };
+
+  const enqueueFollowup = (notification) => {
+    try {
+      // if nothing showing, show right away
+      if (!followupReminder) {
+        showFollowupNow(notification);
+        return;
+      }
+      // else push to queue
+      followupQueueRef.current.push(notification);
+    } catch (err) {
+        console.error('enqueueFollowup failed', err);
+      }
+  };
+
+  const _showNextQueuedFollowup = () => {
+    try {
+      const next = followupQueueRef.current.shift();
+      if (next) showFollowupNow(next);
+    } catch { /* ignore */ }
+  };
+
+  const snoozeFollowup = (id, minutes = 5) => {
+    try {
+      // find the notification either in current reminder or queue
+      let notif = null;
+      if (followupReminder?.notification && (followupReminder.notification.notificationId === id || followupReminder.notification._id === id)) {
+        notif = followupReminder.notification;
+        setFollowupReminder(null);
+        try { stopAudio(); } catch { /* ignore */ }
+      } else {
+        // remove from queue if present
+        const idx = followupQueueRef.current.findIndex(n => (n.notificationId || n._id) === id);
+        if (idx !== -1) {
+          notif = followupQueueRef.current.splice(idx, 1)[0];
+        }
+      }
+      if (!notif) return;
+      // schedule to show again
+      const ms = Math.max(1, Number(minutes)) * 60 * 1000;
+      const timer = setTimeout(() => {
+        try {
+          showFollowupNow(notif);
+          delete followupTimersRef.current[id];
+        } catch { /* ignore */ }
+      }, ms);
+      followupTimersRef.current[id] = timer;
+      // show queued next if any
+      _showNextQueuedFollowup();
+  } catch (err) { console.error('snoozeFollowup failed', err); }
+  };
+
+  const dismissFollowup = async (id) => {
+    try {
+      // clear any timers
+      clearFollowupTimer(id);
+      // remove current or queued
+      if (followupReminder?.notification && (followupReminder.notification.notificationId === id || followupReminder.notification._id === id)) {
+        setFollowupReminder(null);
+      } else {
+        const idx = followupQueueRef.current.findIndex(n => (n.notificationId || n._id) === id);
+        if (idx !== -1) followupQueueRef.current.splice(idx, 1);
+      }
+      // stop ringing if this was the current reminder
+      try { stopAudio(); } catch { /* ignore */ }
+      // mark read on server
+      try {
+        await api.post(`/notifications/${id}/read`);
+      } catch { /* don't block */ }
+      // show next queued followup
+      _showNextQueuedFollowup();
+  } catch (err) { console.error('dismissFollowup failed', err); }
+  };
+
+  // keep unread count consistent whenever notifications array changes
+  useEffect(() => {
+    try {
+      setUnreadCount((notifications || []).filter(n => !n.isRead).length);
+    } catch (err) {
+      // be defensive
+      console.debug('failed to recompute unreadCount', err);
+    }
+  }, [notifications]);
 
   // (dev helper removed)
 
@@ -286,6 +466,8 @@ export const NotificationsProvider = ({ children }) => {
     try {
       setNotifications(prev => {
         const next = prev.map(n => ({ ...n, isRead: true }));
+        // unreadCount will be recomputed by the notifications effect
+        // keep behavior immediate for UI but effect will ensure consistency
         setUnreadCount(0);
         return next;
       });
@@ -294,6 +476,15 @@ export const NotificationsProvider = ({ children }) => {
       console.error('markAllRead failed', err);
     }
   };
+
+  // expose followup controls via context so UI can call snooze/dismiss
+  const followupControls = {
+    reminder: followupReminder,
+    snooze: snoozeFollowup,
+    dismiss: dismissFollowup,
+  };
+
+  // dev helper removed
 
   const openPanel = () => {
     // a user gesture — unlock audio and request desktop permission if needed
@@ -316,7 +507,9 @@ export const NotificationsProvider = ({ children }) => {
       closePanel,
       markAsRead,
       markAllRead,
-      setNotifications
+      setNotifications,
+      followupControls,
+      isRinging
     }}>
       {children}
     </NotificationsContext.Provider>

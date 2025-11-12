@@ -3,6 +3,20 @@ import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "../../components/layout";
 import { TopBar } from "../../components/ui";
+import FollowupReminder from '../../components/ui/FollowupReminder';
+import { useNotifications } from '../../hooks/useNotifications';
+
+const FollowupReminderContainer = () => {
+  const ctx = useNotifications();
+  const reminder = ctx?.followupControls?.reminder || null;
+  const snooze = ctx?.followupControls?.snooze || (()=>{});
+  const dismiss = ctx?.followupControls?.dismiss || (()=>{});
+  return (
+    <FollowupReminder reminder={reminder} onSnooze={snooze} onDismiss={dismiss} />
+  );
+};
+
+// Dev followup emitter removed — no dev-only emit UI should remain in layout
 
 const DashboardLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -35,6 +49,7 @@ const DashboardLayout = () => {
 
         {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto px-5 pt-5 pb-5 bg-[#F4F6FF] scrollbar-hidden">
+          <FollowupReminderContainer />
           <Outlet /> {/* Page content */}
         </div>
       </main>

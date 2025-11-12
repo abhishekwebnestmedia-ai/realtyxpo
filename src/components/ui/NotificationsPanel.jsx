@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../../hooks/useNotifications';
+import { formatLocalTimestamp } from '../../utils/datetime';
 
 const NotificationsPanel = () => {
   const { notifications, isPanelOpen, closePanel, markAsRead, markAllRead } = useNotifications();
@@ -75,6 +76,8 @@ const NotificationsPanel = () => {
 
   if (!isPanelOpen) return null;
 
+  const formatTimestamp = (raw) => formatLocalTimestamp(raw);
+
   const goToNotification = (n) => {
     if (n.type === 'Lead') navigate(`/all-leads/${n.itemId}`, { state: { notification: n } });
     else if (n.type === 'Inventory') navigate(`/inventory/${n.itemId}`);
@@ -97,8 +100,8 @@ const NotificationsPanel = () => {
           {notifications.map(n => (
             <div key={n.notificationId || n._id} className={`p-3 border-b hover:bg-gray-50 ${n.isRead ? 'bg-white' : 'bg-blue-50'}`}>
               <div className="text-sm text-gray-800 cursor-pointer" onClick={() => goToNotification(n)} tabIndex={0}>{n.message}</div>
-              <div className="text-xs text-gray-500 flex justify-between items-center mt-2">
-                <span>{new Date(n.createdAt).toLocaleString()}</span>
+                <div className="text-xs text-gray-500 flex justify-between items-center mt-2">
+                <span>{formatTimestamp(n._clientTs ?? n.createdAt)}</span>
                 {!n.isRead && <button onClick={() => markAsRead(n.notificationId || n._id)} className="text-xs text-blue-600">Mark read</button>}
               </div>
             </div>

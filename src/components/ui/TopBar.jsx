@@ -10,7 +10,7 @@ const TopBar = ({ toggleSidebar }) => {
   const { logout, user } = useContext(AuthContext);
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
-  const { unreadCount, openPanel, closePanel, isPanelOpen } = useNotifications();
+  const { unreadCount, openPanel, closePanel, isPanelOpen, isRinging } = useNotifications();
 
   const handleLogout = () => {
     logout(); // Clears token and user
@@ -86,7 +86,7 @@ const TopBar = ({ toggleSidebar }) => {
             className="p-2 bg-white rounded-full border border-[#666E99] relative"
             aria-label="Open notifications"
           >
-            <Bell className="w-6 h-6 cursor-pointer text-gray-600" />
+            <Bell className={`w-6 h-6 cursor-pointer ${isRinging ? 'text-red-600 animate-bounce' : 'text-gray-600'}`} />
             {unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 text-[10px] bg-red-600 text-white rounded-full px-1.5">{unreadCount}</span>
             )}
