@@ -227,6 +227,7 @@ import { AuthContext } from "../../context/AuthContext";
 import { getViewerPerms, canViewLead } from "../../utils/permissions";
 import { exportRowsAsPdf } from "../../utils/exportPdf";
 import TokenSearch from "../../components/ui/TokenSearch";
+import { FilePlus2, Plus } from 'lucide-react';
 
 // ✅ Reusable Export Modal (select date range)
 const ExportDateModal = ({ isOpen, onClose, onExport }) => {
@@ -404,14 +405,16 @@ const AllLeads = () => {
       <div className="flex flex-row justify-between">
         <h2 className="pageheading">All Leads</h2>
         <div className="flex gap-4">
-          <button className="btn" onClick={() => setShowBulkUploadPopup(true)}>
-            Add Bulk Lead
+          <button className="btn flex items-center gap-2" onClick={() => setShowBulkUploadPopup(true)}>
+            <span>Add Bulk Lead</span>
+            <FilePlus2 size={14} />
           </button>
           <button
-            className="btn"
+            className="btn flex items-center gap-2"
             onClick={() => navigate("/all-leads/addLead")}
           >
-            Add Lead
+            <span>Add Lead</span>
+            <Plus size={16} />
           </button>
         </div>
       </div>

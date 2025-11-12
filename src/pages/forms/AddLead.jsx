@@ -131,6 +131,23 @@ const AddLead = () => {
         followUpCombined = `${form.followUpDate}T${hour24}:${minute}:00+05:30`;
       }
 
+      // Required-field validation (contact, email, follow-up)
+      if (!form.contactNumber) {
+        setError('Contact number is required');
+        setLoading(false);
+        return;
+      }
+      if (!form.email) {
+        setError('Email is required');
+        setLoading(false);
+        return;
+      }
+      if (!followUpCombined) {
+        setError('Follow-up date & time are required');
+        setLoading(false);
+        return;
+      }
+
       const normalizedStatus = (form.status || '').toLowerCase() === 'not connected' ? 'Not Connected' : form.status;
 
       const payload = {
@@ -157,9 +174,7 @@ const AddLead = () => {
 
       // Invalidate leads cache to show new lead immediately
       queryClient.invalidateQueries({ queryKey: ["leads"] });
-
-      // ✅ success toast
-      showToast({ message: "Lead created successfully!", type: "success" });
+  showToast({ message: "Lead created successfully!", type: "success" });
       navigate("/all-leads");
     } catch (err) {
       console.error(err);
@@ -202,6 +217,7 @@ const AddLead = () => {
               id="contactNumber"
               pattern="^[0-9]{10,13}$"
               title="Enter 10-13 digit numeric phone number"
+              required
               className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2"
             />
           </div>
@@ -219,7 +235,6 @@ const AddLead = () => {
               id="email"
               required
               pattern="^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
-              title="Enter a valid email address"
               className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2"
             />
           </div>
@@ -254,6 +269,7 @@ const AddLead = () => {
               value={form.followUpDate}
               onChange={handleChange}
               type="date"
+              required
               className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2 mb-2"
             />
             <TimePicker

@@ -32,8 +32,9 @@ const AddBrokerRequirement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    if (!form.brokerName || !form.contactNumber || !form.requirement) {
-      setError('Please fill broker name, contact and requirement');
+    // Client-side validation: required fields
+    if (!form.brokerName || !form.contactNumber || !form.requirement || !form.followUpDate) {
+      setError('Please fill Broker Name, Contact Number, Requirement and Follow-up Date');
       return;
     }
     setLoading(true);
@@ -79,6 +80,7 @@ const AddBrokerRequirement = () => {
               onChange={handleChange}
               pattern="^[0-9]{7,15}$"
               title="Enter a valid phone number (digits only)"
+              required
               className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2"
             />
           </div>
@@ -95,7 +97,7 @@ const AddBrokerRequirement = () => {
           </div>
           <div>
             <label className="block mb-1 font-medium">Follow-up Date</label>
-            <input name="followUpDate" value={form.followUpDate} onChange={handleChange} type="date" className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" />
+            <input name="followUpDate" value={form.followUpDate} onChange={handleChange} type="date" required className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" />
           </div>
           <div>
             <label className="block mb-1 font-medium">Remark</label>

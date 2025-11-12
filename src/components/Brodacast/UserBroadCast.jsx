@@ -34,7 +34,7 @@ const UserBroadCast = () => {
   }
 
   return (
-    <div className="flex gap-4 p-4 h-[85vh] overflow-hidden">
+    <div className="flex gap-4  h-[85vh] overflow-hidden">
       <ChatList
         teams={filteredTeams}
         onTeamSelect={handleTeamSelect}

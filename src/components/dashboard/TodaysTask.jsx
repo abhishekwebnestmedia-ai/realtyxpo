@@ -38,15 +38,25 @@ const TodaysTask = ({ isDashboard = false, userRole = 'user' }) => {
       return 'none'; // No task for today
     }
 
-    // Check if morning commitment has meaningful data
-    const hasMorning = todaysTask.morningCommitment && 
-      Object.keys(todaysTask.morningCommitment).length > 0 &&
-      // Check if at least one field has a meaningful value
-      (todaysTask.morningCommitment.onlinePortalChecked !== null ||
-       todaysTask.morningCommitment.whatsappStatus !== null ||
-       todaysTask.morningCommitment.emailWorking > 0 ||
-       todaysTask.morningCommitment.buyersWorking ||
-       todaysTask.morningCommitment.sellersWorking);
+    // Helper: consider a value 'meaningful' only when it's explicitly set to a non-default value
+    const isMeaningful = (val) => {
+      if (val === null || val === undefined) return false;
+      if (typeof val === 'boolean') return val === true; // only true counts
+      if (typeof val === 'number') return Number(val) > 0; // counts > 0
+      if (typeof val === 'string') return val.trim() !== '' && val.trim() !== '0';
+      return Boolean(val);
+    };
+
+    // Check if morning commitment has meaningful data (treat defaults as not filled)
+    const m = todaysTask.morningCommitment || {};
+    const hasMorning = Object.keys(m).length > 0 && (
+      isMeaningful(m.onlinePortalChecked) ||
+      isMeaningful(m.whatsappStatus) ||
+      isMeaningful(m.emailWorking) ||
+      isMeaningful(m.buyersWorking) ||
+      isMeaningful(m.sellersWorking) ||
+      isMeaningful(m.meetingVisits)
+    );
 
     // Check if evening achievements has meaningful data  
     const hasEvening = todaysTask.eveningAchievements && 

@@ -12,12 +12,15 @@ import MyTeam from "./pages/team/MyTeam";
 import UserDetails from "./pages/team/UserDetails";
 import FindOpportunity from "./pages/resources/FindOpportunity";
 import LearnGrow from "./pages/resources/LearnGrow";
+import Database from "./pages/resources/Database";
+import AddDatabaseEntry from "./pages/resources/AddDatabaseEntry";
+import EditDatabaseEntry from "./pages/resources/EditDatabaseEntry";
 import AddBrokerRequirement from "./pages/resources/AddBrokerRequirement";
 import EditBrokerRequirement from "./pages/resources/EditBrokerRequirement";
 import { Profile } from "./pages/profile";
 import EditProfile from "./pages/profile/EditProfile";
 import { Broadcast } from "./pages/broadcast";
-import NotificationsPage from './pages/notifications/NotificationsPage';
+import NotificationsPage from "./pages/notifications/NotificationsPage";
 import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/layout";
 import { EditLead, AddLead, AddInventry } from "./pages/forms";
@@ -28,6 +31,7 @@ import Step2ProjectDetails from "./pages/forms/components/Stepperformedit/Step2P
 import Step1SellerDetails from "./pages/forms/components/Stepperformedit/Step1SellerDetails";
 import "react-toastify/dist/ReactToastify.css";
 import { ScrollToTop } from "./components/ui";
+
 const App = () => {
   return (
     <AuthProvider>
@@ -52,48 +56,36 @@ const App = () => {
             <Route path="all-leads/addLead" element={<AddLead />} />
             <Route path="all-leads/:id" element={<EditLead />} />
             <Route path="inventory" element={<Inventory />} />
-            <Route
-              path="inventory/seller-details/:id"
-              element={<Step1SellerDetails />}
-            />
-            <Route
-              path="inventory/project-details/:id"
-              element={<Step2ProjectDetails />}
-            />
-            <Route
-              path="inventory/employee-details/:id"
-              element={<Step3EmployeeDetails />}
-            />
-            <Route
-              path="inventory/addInventory"
-              element={<AddInventry />}
-            ></Route>
+            <Route path="inventory/seller-details/:id" element={<Step1SellerDetails />} />
+            <Route path="inventory/project-details/:id" element={<Step2ProjectDetails />} />
+            <Route path="inventory/employee-details/:id" element={<Step3EmployeeDetails />} />
+            <Route path="inventory/addInventory" element={<AddInventry />} />
             <Route path="projects-working" element={<ProjectsWorking />} />
-            <Route
-              path="brokers-requirements"
-              element={<BrokersRequirements />}
-            />
+            <Route path="brokers-requirements" element={<BrokersRequirements />} />
+            <Route path="brokers-requirements/add" element={<AddBrokerRequirement />} />
+            <Route path="brokers-requirements/edit/:id" element={<EditBrokerRequirement />} />
             <Route path="my-team" element={<MyTeam />} />
             <Route path="team/member/:id" element={<UserDetails />} />
             <Route path="find-opportunity" element={<FindOpportunity />} />
             <Route path="learn-grow" element={<LearnGrow />} />
+            <Route path="database" element={<Database />} />
+            <Route path="database/add" element={<AddDatabaseEntry />} />
+            <Route path="database/edit/:id" element={<EditDatabaseEntry />} />
             <Route path="broadcast" element={<Broadcast />} />
             <Route path="profile" element={<Profile />} />
             <Route path="profile/edit" element={<EditProfile />} />
-            <Route path="brokers-requirements/add" element={<AddBrokerRequirement />} />
-            <Route path="brokers-requirements/edit/:id" element={<EditBrokerRequirement />} />
             <Route path="notifications" element={<NotificationsPage />} />
           </Route>
         </Routes>
       </Router>
       <ToastContainer />
-      <Toaster 
+      <Toaster
         position="top-right"
         toastOptions={{
           duration: 4000,
           style: {
-            background: '#363636',
-            color: '#fff',
+            background: "#363636",
+            color: "#fff",
           },
         }}
       />

@@ -30,8 +30,8 @@ const SidebarMenu = ({ isOpen }) => {
     },
     { icon: icon6, text: "My Team", path: "/my-team" },
     { icon: icon7, text: "Find Opportunity", path: "/find-opportunity" },
-    { icon: icon8, text: "Learn Grow", path: "/learn-grow" },
-    { icon: icon10, text: "Database", path: "/learn-grow" },
+  { icon: icon8, text: "Learn Grow", path: "/learn-grow" },
+  { icon: icon10, text: "Database", path: "/database" },
   ];
 
   // permission-aware filtering
