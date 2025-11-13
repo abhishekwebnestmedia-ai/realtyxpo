@@ -9,9 +9,13 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { initScrollbarAnimation, scrollbarCSS } from './utils/scrollbarUtils.js';
 
 import queryClient from './queryClient';
+import initFirstCharCapitalizer from './utils/firstCharCapitalizer';
 
 // Initialize scrollbar animations
 initScrollbarAnimation();
+
+// Initialize global first-char capitalizer so text inputs auto-capitalize their first character
+initFirstCharCapitalizer();
 
 // Inject scrollbar CSS
 const style = document.createElement('style');

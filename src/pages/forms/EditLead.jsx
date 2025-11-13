@@ -711,7 +711,7 @@ const EditLead = () => {
             </div>
           </div>
 
-          <div className="mt-6 flex gap-3">
+          <div className="mt-6 flex gap-3 justify-end">
             <button type="button" onClick={() => navigate(-1)} className="btn px-4 py-2">
               Cancel
             </button>

@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useRef } from "react";
 import { Pencil, Trash2, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/api";
+import { formatLocalTimestamp, parseLocalTimestamp } from '../../utils/datetime';
 import ConfirmDeleteButton from "../ui/notifications/ConfirmDelete";
 
 // Function to get status styling
@@ -118,6 +119,30 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
     const hour12 = ((hh + 11) % 12) + 1;
     const time = `${String(hour12).padStart(2, '0')}:${mm} ${ampm}`;
     return { date, time };
+  };
+
+  // Try to detect if a value is a timestamp and format it to local 12-hour string
+  const maybeFormatValue = (v) => {
+    try {
+      if (v === null || v === undefined || v === '') return '—';
+      // If it's already a Date
+      if (v instanceof Date) return formatLocalTimestamp(v);
+      // If it's an object, stringify a simple one
+      if (typeof v === 'object') {
+        try { return JSON.stringify(v); } catch { return String(v); }
+      }
+      // If it's numeric or string, check if it parses as a timestamp
+      let parsed = parseLocalTimestamp(v);
+      // handle ISO strings with single-digit hour like '2025-11-14T0:00:00+05:30' by padding hour
+      if (parsed == null && typeof v === 'string') {
+        const padHour = v.replace(/T(\d):/i, (m, h) => `T0${h}:`);
+        if (padHour !== v) parsed = parseLocalTimestamp(padHour);
+      }
+      if (parsed != null) return formatLocalTimestamp(parsed);
+      return String(v);
+    } catch {
+      return String(v);
+    }
   };
 
   // Function to handle row click
@@ -797,13 +822,13 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                           <div>
                             <div className="text-sm text-gray-600">{h.field}</div>
                             <div className="mt-1 text-gray-800 font-medium">
-                              {String(h.oldValue || '—')} → {String(h.newValue || '—')}
+                              {maybeFormatValue(h.oldValue)} → {maybeFormatValue(h.newValue)}
                             </div>
                           </div>
                           <div className="text-right text-sm text-gray-500">
                             <div>{h.changedBy ? h.changedBy.name : 'System'}</div>
                             <div>{h.changedBy?.email || ''}</div>
-                            <div className="mt-1 text-xs">{new Date(h.changedAt).toLocaleString()}</div>
+                            <div className="mt-1 text-xs">{formatLocalTimestamp(h.changedAt)}</div>
                           </div>
                         </div>
                       </div>
