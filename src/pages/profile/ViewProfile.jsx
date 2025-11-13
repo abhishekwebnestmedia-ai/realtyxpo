@@ -6,7 +6,7 @@ import Chart from 'react-apexcharts';
 import api from '../../api/api';
 // token is read from localStorage
 
-const ViewProfile = ({ profileUser = null, customHeading = null, showEditButton = true }) => {
+const ViewProfile = ({ profileUser = null, customHeading = null, showEditButton = true, showDeleteButton = false, onDelete = null, deleting = false }) => {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
   
@@ -470,15 +470,27 @@ const ViewProfile = ({ profileUser = null, customHeading = null, showEditButton 
           <h1 className="text-2xl font-medium text-gray-900">
             {customHeading || 'Profile'}
           </h1>
-          {showEditButton && (
-            <button 
-              onClick={() => navigate('/profile/edit')}
-              className="flex items-center space-x-2 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-            >
-              <Edit2 size={16} />
-              <span className="text-sm font-medium">Edit</span>
-            </button>
-          )}
+          <div className="flex items-center gap-3">
+            {showEditButton && (
+              <button 
+                onClick={() => navigate('/profile/edit')}
+                className="flex items-center space-x-2 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              >
+                <Edit2 size={16} />
+                <span className="text-sm font-medium">Edit</span>
+              </button>
+            )}
+            {showDeleteButton && (
+              <button
+                onClick={onDelete}
+                disabled={deleting}
+                className="flex items-center space-x-2 px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+                title="Delete user"
+              >
+                <span className="text-sm font-medium">{deleting ? 'Deleting...' : 'Delete'}</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Profile Card and Stats */}

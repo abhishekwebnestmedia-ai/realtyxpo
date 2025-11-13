@@ -696,7 +696,6 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
           </div>
         </div>
       )}
-
     </div>
   );
 };

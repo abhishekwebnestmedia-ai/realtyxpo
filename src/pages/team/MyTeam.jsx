@@ -44,6 +44,59 @@ const MyTeam = () => {
   const [permissionsOpen, setPermissionsOpen] = useState(false);
   const [savingPermissions, setSavingPermissions] = useState(false);
   const [permissionsLoading, setPermissionsLoading] = useState(false);
+  const [deletingUserId, setDeletingUserId] = useState(null);
+  // helper to resolve user id from various shapes
+  // Priority: _id (from /auth/teams API) > id > userId > uid > nested user._id > nested user.id
+  const resolveUserId = (u) =>
+    u?._id || u?.id || u?.userId || u?.uid || u?.user?._id || u?.user?.id || null;
+
+  // centralized delete handler for team members
+  const handleDeleteUser = async (member) => {
+    if (!member) return;
+    const userId = resolveUserId(member);
+    
+  // (no debug logging)
+    
+    if (!userId) {
+      toast.error('Cannot delete: user id missing.');
+      return;
+    }
+
+    const confirm = window.confirm(
+      `Are you sure you want to permanently delete ${member.name || member.username || 'this user'}? This action cannot be undone.`
+    );
+    if (!confirm) return;
+
+    setDeletingUserId(userId);
+    setDataLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+  // Backend delete endpoint — use auth namespace
+  const url = `/auth/delete/${encodeURIComponent(userId)}`;
+
+  const res = await api.delete(url, { headers });
+      toast.success(res.data?.message || 'User deleted successfully');
+      
+  // Remove user from list using the same ID resolver we used for deletion
+  setUsers((prev) => prev.filter((u) => resolveUserId(u) !== userId));
+      setSelectedUser(null);
+      setCurrentView('team');
+    } catch (err) {
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        toast.error('Permission denied. You must be an admin to delete users.');
+      } else if (err.response?.status === 404) {
+        toast.error(`User not found. The backend returned 404 for ID: ${userId}`);
+      } else {
+        const serverMsg = err.response?.data?.message || err.response?.data || err.message;
+        toast.error(String(serverMsg) || 'Failed to delete user');
+      }
+    } finally {
+      setDeletingUserId(null);
+      setDataLoading(false);
+      try { fetchAllUsers(); } catch { /* ignore */ }
+    }
+  };
   // Auth context (moved up so callbacks can use it)
   const { user: authUser, fetchUserProfile } = useContext(AuthContext) || {};
   // local permissions state for the modal
@@ -78,9 +131,11 @@ const MyTeam = () => {
       else if (Array.isArray(response.data)) usersData = response.data;
       else if (response.data?.data && Array.isArray(response.data.data))
         usersData = response.data.data;
+      
+      // (removed debug logs) first user can be inspected in network tab if needed
+      
       setUsers(usersData);
     } catch (err) {
-      console.error("Error fetching users:", err);
       if (err.response?.status === 401) {
         setError("Authentication failed. Please login again.");
         toast.error("Authentication failed. Please login again.");
@@ -109,11 +164,11 @@ const MyTeam = () => {
   const token = localStorage.getItem('token');
   const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
         response = await api.get('/realtleads/userbasedlead', { params: { name: userName }, headers });
-  try { console.log(`Raw leads response for ${userName}:`, response.data); } catch { /* ignore */ }
+  try { /* raw leads response logged removed for production */ } catch { /* ignore */ }
       } else if (primaryOption === "Inventory") {
         // Inventory endpoint expects lowercase transferTo and relies on cookies (withCredentials)
-        response = await api.get('/inventry/userbasedinventry', { params: { transferTo: userName } });
-  try { console.log(`Raw inventory response for ${userName}:`, response.data); } catch { /* ignore */ }
+    response = await api.get('/inventry/userbasedinventry', { params: { transferTo: userName } });
+  try { /* raw inventory response log removed */ } catch { /* ignore */ }
       }
       else {
         setUserData([]);
@@ -241,10 +296,9 @@ const MyTeam = () => {
       else if (primaryOption === "Inventory")
         filtered = filtered.filter(allowInventoryItem);
 
-  try { console.log(`Filtered ${primaryOption} data for ${userName}:`, filtered); } catch { /* ignore */ }
+  try { /* filtered data log removed */ } catch { /* ignore */ }
       setUserData(filtered);
     } catch (err) {
-      console.error("Error fetching user data:", err);
       if (err.response?.status === 401)
         toast.error("Authentication failed. Please login again.");
       else if (err.response?.status === 404)
@@ -269,12 +323,7 @@ const MyTeam = () => {
   // filtering moved inside fetchUserData to avoid stale/memoization issues
 
   const handleUserClick = (u) => {
-    // Log full selected user object for debugging/inspection
-    try {
-      console.log('Selected team member:', u);
-    } catch {
-      // ignore console errors in older browsers
-    }
+    // selected user set; avoid logging to keep console clean
     setSelectedUser(u);
     setCurrentView("details");
     setPrimaryOption("Leads");
@@ -332,12 +381,8 @@ const MyTeam = () => {
               !!p.completed_inventory ||
               !!p.completedInventory,
           });
-        } catch (err) {
+  } catch {
           // Fallback to whatever we have locally if server fetch fails
-          console.warn(
-            "Failed to fetch permissions from /auth/permissions, falling back to local selectedUser.permissions",
-            err
-          );
           const p = selectedUser.permissions || selectedUser || {};
           setPermissions({
             superAdmin: !!p.superAdmin,
@@ -470,16 +515,12 @@ const MyTeam = () => {
           ) {
             await fetchUserProfile();
           }
-        } catch (e) {
-          console.warn(
-            "Error refreshing auth profile after permission update",
-            e
-          );
+        } catch {
+          // suppressed console warning
         }
       }
       setPermissionsOpen(false);
     } catch (err) {
-      console.error("Permissions update failed", err);
       toast.error(
         err.response?.data?.message || "Failed to update permissions"
       );
@@ -707,10 +748,23 @@ const MyTeam = () => {
             <span>Loading {primaryOption.toLowerCase()}...</span>
           </div>
         ) : primaryOption === "Info" ? (
+          // Show profile with admin-only delete control when applicable
           <ViewProfile
             profileUser={selectedUser}
             customHeading={`${selectedUser?.name || "User"} Profile`}
             showEditButton={false}
+            // enable delete button only for super admins
+            showDeleteButton={(() => {
+              try {
+                const vp = getViewerPerms(authUser || {});
+                return !!vp?.superAdmin;
+              } catch {
+                return false;
+              }
+            })()}
+            onDelete={() => handleDeleteUser(selectedUser)}
+            // pass deleting flag (disabled state) based on deletingUserId
+            deleting={deletingUserId === resolveUserId(selectedUser)}
           />
         ) : primaryOption === "Leads" ? (
           <div className="max-h-96">

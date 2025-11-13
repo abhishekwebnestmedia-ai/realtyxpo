@@ -110,7 +110,8 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
   const splitIsoDateTime = (iso) => {
     if (!iso || typeof iso !== 'string') return { date: '', time: '' };
   // match YYYY-MM-DDTHH:MM  (accept 'T' or 't' or a space between date and time)
-  const m = iso.match(/^(\d{4}-\d{2}-\d{2})[Tt\s](\d{2}):(\d{2})/);
+  // Accept 1 or 2 digit hours (handles inputs like 'T0:00' or 'T9:05')
+  const m = iso.match(/^(\d{4}-\d{2}-\d{2})[Tt\s](\d{1,2}):(\d{2})/);
     if (!m) return { date: iso, time: '' };
     const date = m[1];
     const hh = parseInt(m[2], 10);

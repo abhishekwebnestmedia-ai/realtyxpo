@@ -218,73 +218,15 @@
 
 
 import React, { useState, useMemo, useContext } from "react";
-import dayjs from "dayjs";
 import { useLeads } from "../../hooks/useLeads";
 import { ScrollableLeads } from "../../components/dashboard";
 import { useNavigate } from "react-router-dom";
 import { AddBulkLead } from "../../components/modals";
 import { AuthContext } from "../../context/AuthContext";
 import { getViewerPerms, canViewLead } from "../../utils/permissions";
-import { exportRowsAsPdf } from "../../utils/exportPdf";
+import ExportModal from "../../components/ui/ExportModal";
 import TokenSearch from "../../components/ui/TokenSearch";
 import { FilePlus2, Plus } from 'lucide-react';
-
-// ✅ Reusable Export Modal (select date range)
-const ExportDateModal = ({ isOpen, onClose, onExport }) => {
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">
-          Export Leads by Date Range
-        </h2>
-
-        <div className="flex flex-col gap-4 mb-6">
-          <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-600">From:</label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="border rounded px-2 py-1 text-sm"
-            />
-          </div>
-          <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-600">To:</label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="border rounded px-2 py-1 text-sm"
-            />
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-3">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 rounded border text-gray-600 hover:bg-gray-100"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => {
-              onExport({ startDate, endDate });
-              onClose();
-            }}
-            className="px-4 py-2 rounded bg-[#000D55] text-white hover:bg-[#001066]"
-          >
-            Export PDF
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const AllLeads = () => {
   const navigate = useNavigate();
@@ -341,63 +283,6 @@ const AllLeads = () => {
 
   if (isLoading) return <p className="p-4">Loading leads...</p>;
   if (error) return <p className="p-4 text-red-500">Error loading leads</p>;
-
-  // ✅ Export logic (uses only 7 columns)
-  const handleExport = ({ startDate, endDate }) => {
-    let sourceRows = filteredLeads || [];
-
-    // Apply date range filtering
-    if (startDate || endDate) {
-      const start = startDate ? dayjs(startDate).startOf("day") : null;
-      const end = endDate ? dayjs(endDate).endOf("day") : null;
-
-      sourceRows = sourceRows.filter((row) => {
-        if (!row.date) return false;
-        const rowDate = dayjs(row.date);
-        if (!rowDate.isValid()) return false;
-        if (start && rowDate.isBefore(start)) return false;
-        if (end && rowDate.isAfter(end)) return false;
-        return true;
-      });
-    }
-
-    // ✅ Only these columns
-    const columns = [
-      { key: "customerName", label: "Customer" },
-      { key: "contactNumber", label: "Contact" },
-      { key: "email", label: "Email" },
-      { key: "status", label: "Status" },
-      { key: "followUp", label: "Follow Up" },
-      { key: "requirement", label: "Requirement" },
-      { key: "date", label: "Date" },
-    ];
-
-    // ✅ Format the rows to match these columns
-    const rows = sourceRows.map((r) => ({
-      customerName: r.customerName || "",
-      contactNumber: r.contactNumber || "",
-      email: r.email || "",
-      status: r.status || "",
-      followUp: r.followUp
-        ? dayjs(r.followUp).format("YYYY-MM-DD")
-        : "",
-      requirement: r.requirement || r.remark || "",
-      date: r.date ? dayjs(r.date).format("YYYY-MM-DD") : "",
-    }));
-
-    exportRowsAsPdf({
-      columns,
-      rows,
-      fileName: "leads.pdf",
-      title: "Leads Export",
-      // watermark: {
-      //   src: "/watermark.svg",
-      //   opacity: 0.06,
-      //   scale: 0.5,
-      //   raw: true,
-      // },
-    });
-  };
 
   return (
     <div className="p-1">
@@ -500,10 +385,14 @@ const AllLeads = () => {
         isOpen={showBulkUploadPopup}
         onClose={() => setShowBulkUploadPopup(false)}
       />
-      <ExportDateModal
+      <ExportModal
         isOpen={showExportModal}
         onClose={() => setShowExportModal(false)}
-        onExport={handleExport}
+        data={filteredLeads}
+        fileName="leads-export"
+        title="Export Leads"
+        showDateRange={true}
+        dateField="date"
       />
     </div>
   );

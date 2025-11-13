@@ -225,7 +225,6 @@
 
 
 import React, { useState, useMemo, useContext } from "react";
-import dayjs from "dayjs";
 import TokenSearch from "../../components/ui/TokenSearch";
 import { useInventory } from "../../hooks/useInventory";
 import { InventoryTable } from "../../components/tables";
@@ -233,64 +232,7 @@ import { useNavigate } from "react-router-dom";
 import { AddBulkInventry } from "../../components/modals";
 import { AuthContext } from "../../context/AuthContext";
 import { getViewerPerms, canViewInventory } from "../../utils/permissions";
-import { exportRowsAsPdf } from "../../utils/exportPdf";
-
-// ✅ Reusable Export Modal (select date range)
-const ExportDateModal = ({ isOpen, onClose, onExport }) => {
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">
-          Export Inventory by Date Range
-        </h2>
-
-        <div className="flex flex-col gap-4 mb-6">
-          <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-600">From:</label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="border rounded px-2 py-1 text-sm"
-            />
-          </div>
-          <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-600">To:</label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="border rounded px-2 py-1 text-sm"
-            />
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-3">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 rounded border text-gray-600 hover:bg-gray-100"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => {
-              onExport({ startDate, endDate });
-              onClose();
-            }}
-            className="px-4 py-2 rounded bg-[#000D55] text-white hover:bg-[#001066]"
-          >
-            Export PDF
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
+import ExportModal from "../../components/ui/ExportModal";
 
 const InventoryPage = () => {
   const navigate = useNavigate();
@@ -326,67 +268,6 @@ const InventoryPage = () => {
 
     return arr.filter((item) => canViewInventory(viewerPerms, item));
   }, [inventoryArray, viewType, authUser]);
-
-  // ✅ Export logic (only 8 columns)
-  const handleExport = ({ startDate, endDate }) => {
-    let sourceRows = filteredData || [];
-
-    // Apply date range filter
-    if (startDate || endDate) {
-      const start = startDate ? dayjs(startDate).startOf("day") : null;
-      const end = endDate ? dayjs(endDate).endOf("day") : null;
-
-      sourceRows = sourceRows.filter((row) => {
-        if (!row.date) return false;
-        const rowDate = dayjs(row.date);
-        if (!rowDate.isValid()) return false;
-        if (start && rowDate.isBefore(start)) return false;
-        if (end && rowDate.isAfter(end)) return false;
-        return true;
-      });
-    }
-
-    // ✅ Columns (as requested)
-    const columns = [
-      { key: "sellerName", label: "Seller" },
-      { key: "Project", label: "Project" },
-      { key: "sector", label: "Sector" },
-      { key: "unitNo", label: "Unit No" },
-      { key: "towerNo", label: "Tower No" },
-      { key: "demand", label: "Demand" },
-      { key: "contactNumbers", label: "Contact" },
-      { key: "date", label: "Date" },
-    ];
-
-    // ✅ Map data properly
-    const rows = sourceRows.map((r) => ({
-      sellerName: r.sellerName || "",
-      Project: Array.isArray(r.Project)
-        ? r.Project.join(", ")
-        : r.Project || "",
-      sector: r.sector || "",
-      unitNo: r.unitNo || "",
-      towerNo: r.towerNo || "",
-      demand: r.demand || "",
-      contactNumbers: Array.isArray(r.contactNumbers)
-        ? r.contactNumbers.join(", ")
-        : r.contactNumbers || "",
-      date: r.date ? dayjs(r.date).format("YYYY-MM-DD") : "",
-    }));
-
-    exportRowsAsPdf({
-      columns,
-      rows,
-      fileName: "inventory.pdf",
-      title: "Inventory Export",
-      // watermark: {
-      //   src: "/watermark.svg",
-      //   opacity: 0.06,
-      //   scale: 0.5,
-      //   raw: true,
-      // },
-    });
-  };
 
   if (isLoading)
     return (
@@ -489,10 +370,14 @@ const InventoryPage = () => {
       />
 
       {/* Export Modal */}
-      <ExportDateModal
+      <ExportModal
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
-        onExport={handleExport}
+        data={filteredData}
+        fileName="inventory-export"
+        title="Export Inventory"
+        showDateRange={true}
+        dateField="date"
       />
     </div>
   );
