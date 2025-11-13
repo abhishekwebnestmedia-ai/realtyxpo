@@ -234,8 +234,10 @@ const register = async (userData) => {
     }
   };
 
+  const isAuthenticated = Boolean(user);
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading, fetchUserProfile }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, login, register, logout, loading, fetchUserProfile }}>
       {children}
     </AuthContext.Provider>
   );

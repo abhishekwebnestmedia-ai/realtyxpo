@@ -1,7 +1,8 @@
-import React, { createContext, useEffect, useRef, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
 import io from 'socket.io-client';
 import api from '../api/api';
 import { parseLocalTimestamp } from '../utils/datetime';
+import { AuthContext } from './AuthContextCore';
 
 const NotificationsContext = createContext(null);
 
@@ -27,6 +28,11 @@ const resolveWsUrl = () => {
 };
 
 export const NotificationsProvider = ({ children }) => {
+  const { user, isAuthenticated } = useContext(AuthContext) || {};
+  // Prevent notifications from starting on auth routes (login/register)
+  const onAuthPage = typeof window !== 'undefined' ? /\/(login|auth|signin|signup)(?:$|\/)/i.test(window.location.pathname) : false;
+  // Rely on explicit isAuthenticated flag from AuthContext + user presence
+  const isAuthed = Boolean(isAuthenticated && user) && !onAuthPage;
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -39,6 +45,25 @@ export const NotificationsProvider = ({ children }) => {
   const followupTimersRef = useRef({});
   const lastFetchedAtRef = useRef(null);
   const handlerRef = useRef(null);
+
+  // Start polling helper (stable via useCallback) — only runs when authenticated
+  const startPolling = useCallback((interval = 20000) => {
+    if (pollingRef.current) return;
+    pollingRef.current = setInterval(async () => {
+      try {
+        if (!isAuthed) return; // don't poll when not authenticated
+        const since = lastFetchedAtRef.current; // ISO string
+        const url = since ? `/notifications?since=${encodeURIComponent(since)}` : '/notifications';
+        const resp = await api.get(url);
+        const list = resp.data?.data || resp.data || [];
+        if (Array.isArray(list) && list.length) {
+          list.forEach(p => handlerRef.current?.(p));
+        }
+      } catch (err) {
+        console.error('Polling notifications failed', err);
+      }
+    }, interval);
+  }, [isAuthed]);
 
   // load audio from public folder
   useEffect(() => {
@@ -65,36 +90,39 @@ export const NotificationsProvider = ({ children }) => {
     }
   };
 
-  const getCurrentUserId = () => {
+  const getCurrentUserId = useCallback(() => {
     try {
-      const token = localStorage.getItem('token');
-      if (token) {
-        const payload = JSON.parse(atob(token.split('.')[1] || ''));
-        return payload?.userId || payload?._id || payload?.id || null;
-      }
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      return user?._id || user?.userId || user?.id || null;
+      if (user) return user._id || user.userId || user.id || null;
+      return null;
     } catch {
       return null;
     }
-  };
+  }, [user]);
 
-  // fetch initial list
+  // fetch initial list (only when authenticated)
   useEffect(() => {
     let mounted = true;
+    if (!isAuthed) {
+      // cleanup state when unauthenticated (e.g., on login page or logout)
+      setNotifications([]);
+      setUnreadCount(0);
+      setFollowupReminder(null);
+      setIsRinging(false);
+      lastFetchedAtRef.current = null;
+      return () => { mounted = false; };
+    }
+
     (async () => {
       try {
         const resp = await api.get('/notifications');
         const list = resp.data?.data || resp.data || [];
         if (!mounted) return;
-        // normalize createdAt and ids; compute _clientTs for each item
         const normalized = (list || []).map((n) => ({
           notificationId: n._id || n.notificationId,
           _clientTs: computeClientTimestamp(n.createdAt || n.createdAtISO || n.date || n.followUp || n.followUpDate),
           ...n,
         }));
         normalized.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        // sort by client timestamp (newest first)
         normalized.sort((a, b) => (b._clientTs || 0) - (a._clientTs || 0));
         setNotifications(normalized);
         setUnreadCount(normalized.filter(n => !n.isRead).length);
@@ -107,21 +135,39 @@ export const NotificationsProvider = ({ children }) => {
       }
     })();
     return () => { mounted = false; };
-  }, []);
+  }, [isAuthed]);
 
   
 
-  // connect socket.io and fallback polling
+  // connect socket.io and fallback polling (only when authenticated)
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    if (!isAuthed) {
+      // ensure everything is stopped when unauthenticated
+      if (socketRef.current) {
+        try { socketRef.current.off(); socketRef.current.disconnect(); } catch { /* ignore */ }
+        socketRef.current = null;
+      }
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+      // stop any ringing audio
+      try { const a = audioRef.current; if (a) { a.pause(); a.currentTime = 0; a.loop = false; } } catch { /* ignore */ }
+      setIsRinging(false);
+      setFollowupReminder(null);
+      followupQueueRef.current = [];
+      Object.values(followupTimersRef.current || {}).forEach(t => clearTimeout(t));
+      followupTimersRef.current = {};
+      return;
+    }
+
+    const token = isAuthed && typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     // create socket
     try {
       const wsUrl = resolveWsUrl();
-      socketRef.current = io(wsUrl, {
-        auth: { token },
-        transports: ['websocket', 'polling'],
-        withCredentials: true
-      });
+      const opts = { transports: ['websocket', 'polling'], withCredentials: true };
+      if (token) opts.auth = { token };
+      socketRef.current = io(wsUrl, opts);
 
       const onConnect = () => {
         // socket connected
@@ -193,24 +239,9 @@ export const NotificationsProvider = ({ children }) => {
       }
       if (pollingRef.current) clearInterval(pollingRef.current);
     };
-  }, []);
+  }, [isAuthed, startPolling, getCurrentUserId]);
 
-  const startPolling = (interval = 20000) => {
-    if (pollingRef.current) return;
-    pollingRef.current = setInterval(async () => {
-      try {
-        const since = lastFetchedAtRef.current; // ISO string
-        const url = since ? `/notifications?since=${encodeURIComponent(since)}` : '/notifications';
-        const resp = await api.get(url);
-        const list = resp.data?.data || resp.data || [];
-        if (Array.isArray(list) && list.length) {
-          list.forEach(p => handlerRef.current?.(p));
-        }
-      } catch (err) {
-        console.error('Polling notifications failed', err);
-      }
-    }, interval);
-  };
+  // original startPolling moved above and memoized
 
   const isLikelyFollowup = (payload) => {
     try {
@@ -275,18 +306,7 @@ export const NotificationsProvider = ({ children }) => {
       return next;
     });
 
-    // try to play sound (may be blocked until user interaction)
-    try {
-      const audio = audioRef.current;
-      if (audio) {
-        audio.currentTime = 0;
-        audio.play().catch(() => {});
-      }
-    } catch {
-      /* audio play failed */
-    }
-
-    // If this payload looks like a follow-up reminder, enqueue/show it
+    // If this payload looks like a follow-up reminder, enqueue/show it (and handle audio there)
     try {
       const follow = isLikelyFollowup(payload);
       if (follow) {
@@ -495,6 +515,11 @@ export const NotificationsProvider = ({ children }) => {
     }
     setIsPanelOpen(true);
   };
+
+  // Keep bell animation state consistent with reminder visibility
+  useEffect(() => {
+    setIsRinging(Boolean(followupReminder));
+  }, [followupReminder]);
 
   const closePanel = () => setIsPanelOpen(false);
 

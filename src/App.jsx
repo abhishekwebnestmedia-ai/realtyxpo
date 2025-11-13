@@ -22,6 +22,7 @@ import EditProfile from "./pages/profile/EditProfile";
 import { Broadcast } from "./pages/broadcast";
 import NotificationsPage from "./pages/notifications/NotificationsPage";
 import { AuthProvider } from "./context/AuthContext";
+import { NotificationsProvider } from "./context/NotificationsContext";
 import { ProtectedRoute } from "./components/layout";
 import { EditLead, AddLead, AddInventry } from "./pages/forms";
 import { ToastContainer } from "react-toastify";
@@ -35,9 +36,10 @@ import { ScrollToTop } from "./components/ui";
 const App = () => {
   return (
     <AuthProvider>
-      <Router>
-        <ScrollToTop />
-        <Routes>
+      <NotificationsProvider>
+        <Router>
+          <ScrollToTop />
+          <Routes>
           {/* Login Route */}
           <Route path="/login" element={<Login />} />
 
@@ -77,18 +79,19 @@ const App = () => {
             <Route path="notifications" element={<NotificationsPage />} />
           </Route>
         </Routes>
-      </Router>
-      <ToastContainer />
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 4000,
-          style: {
-            background: "#363636",
-            color: "#fff",
-          },
-        }}
-      />
+        </Router>
+        <ToastContainer />
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: "#363636",
+              color: "#fff",
+            },
+          }}
+        />
+      </NotificationsProvider>
     </AuthProvider>
   );
 };

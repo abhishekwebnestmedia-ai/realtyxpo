@@ -7,7 +7,6 @@ import "simple-datatables/dist/style.css";
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { initScrollbarAnimation, scrollbarCSS } from './utils/scrollbarUtils.js';
-import { NotificationsProvider } from './context/NotificationsContext';
 
 import queryClient from './queryClient';
 
@@ -22,11 +21,9 @@ document.head.appendChild(style);
 ReactDOM.createRoot(document.getElementById('root')).render(
   
     <QueryClientProvider client={queryClient}>
-      <NotificationsProvider>
-        <App />
-        {/* Devtools are optional, but super helpful in dev */}
-        <ReactQueryDevtools initialIsOpen={false} />
-      </NotificationsProvider>
+      <App />
+      {/* Devtools are optional, but super helpful in dev */}
+      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
  
 );
