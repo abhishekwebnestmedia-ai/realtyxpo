@@ -119,7 +119,7 @@ const ViewProfile = ({ profileUser = null, customHeading = null, showEditButton 
   const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
   const response = await api.get('/realtleads/userbasedlead', { params: { name: userName }, headers });
       let data = [];
-      
+      console.log('response', response)
       if (response.data.leads && Array.isArray(response.data.leads)) {
         data = response.data.leads;
       } else if (Array.isArray(response.data)) {

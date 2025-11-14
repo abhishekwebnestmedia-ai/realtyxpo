@@ -226,6 +226,7 @@ import { AuthContext } from "../../context/AuthContext";
 import { getViewerPerms, canViewLead } from "../../utils/permissions";
 import ExportModal from "../../components/ui/ExportModal";
 import TokenSearch from "../../components/ui/TokenSearch";
+import { ToggleSwitch } from "../../components/ui";
 import { FilePlus2, Plus } from 'lucide-react';
 
 const AllLeads = () => {
@@ -247,33 +248,86 @@ const AllLeads = () => {
   const { user: authUser } = useContext(AuthContext) || {};
   const viewerPerms = getViewerPerms(authUser || {});
   const isAdmin = Boolean(viewerPerms?.superAdmin);
+  const userId = authUser?._id || authUser?.id || authUser?.userId || authUser?.uid || null;
+  const normalizedUserId = userId ? String(userId) : null;
+
+  const hasExplicitLeadPerms = useMemo(() => {
+    return Boolean(
+      viewerPerms?.allLeads ||
+        viewerPerms?.buyerLeads ||
+        viewerPerms?.rentalLeads ||
+        viewerPerms?.deadLeads ||
+        viewerPerms?.completedLeads ||
+        viewerPerms?.superAdmin
+    );
+  }, [viewerPerms]);
 
   const isDead = (lead) =>
     typeof lead?.status === "string" && /dead/i.test(lead.status);
 
-  // ✅ Filter logic
-  const filteredLeads = useMemo(() => {
+  // compute base visibility respecting permissions but falling back to assignments/defaults
+  const permissionAwareLeads = useMemo(() => {
     if (!Array.isArray(leads)) return [];
 
-    const permissionFiltered = leads.filter((item) =>
-      canViewLead(viewerPerms, item)
-    );
+    return leads.filter((item) => {
+      if (canViewLead(viewerPerms, item)) return true;
 
-    if (filter === "buyers")
-      return permissionFiltered.filter(
-        (l) =>
-          String(l?.leadType).toLowerCase().includes("buyer") && !isDead(l)
-      );
-    if (filter === "rental")
-      return permissionFiltered.filter(
-        (l) =>
-          String(l?.leadType).toLowerCase().includes("rental") ||
-          String(l?.leadType).toLowerCase().includes("rent")
-      );
-    if (filter === "dead") return permissionFiltered.filter((l) => isDead(l));
+      if (!hasExplicitLeadPerms) return true;
 
-    return permissionFiltered.filter((l) => !isDead(l));
-  }, [leads, filter, viewerPerms]);
+      if (normalizedUserId) {
+        const assigned = item?.assignTo;
+        const assignedId =
+          typeof assigned === "object"
+            ? assigned?._id || assigned?.id || assigned?.userId
+            : assigned;
+        if (assignedId && String(assignedId) === normalizedUserId) {
+          return true;
+        }
+      }
+
+      return false;
+    });
+  }, [leads, viewerPerms, hasExplicitLeadPerms, normalizedUserId]);
+
+  const classifyLead = (lead) => {
+    const rawType = String(lead?.leadType || lead?.type || "").toLowerCase();
+    const isRentalType = rawType.includes("rent");
+    const isBuyerType = rawType.includes("buy") || (!isRentalType && rawType.length === 0);
+    return { isRentalType, isBuyerType };
+  };
+
+  const toggleOptions = useMemo(() => {
+    const base = [
+      { value: "buyers", label: "All Buyers" },
+      { value: "rental", label: "Rental Business" },
+    ];
+    if (isAdmin) base.push({ value: "dead", label: "Dead Leads" });
+    return base;
+  }, [isAdmin]);
+
+  // ✅ Filter logic with graceful fallbacks
+  const filteredLeads = useMemo(() => {
+    if (!Array.isArray(permissionAwareLeads)) return [];
+
+    if (filter === "buyers") {
+      return permissionAwareLeads.filter((lead) => {
+        if (isDead(lead)) return false;
+        const { isRentalType, isBuyerType } = classifyLead(lead);
+        if (isBuyerType) return true;
+        return !isRentalType; // treat uncategorized leads as buyers by default
+      });
+    }
+
+    if (filter === "rental") {
+      return permissionAwareLeads.filter((lead) => classifyLead(lead).isRentalType);
+    }
+
+    if (filter === "dead") {
+      return permissionAwareLeads.filter((lead) => isDead(lead));
+    }
+
+    return permissionAwareLeads.filter((lead) => !isDead(lead));
+  }, [permissionAwareLeads, filter]);
 
   React.useEffect(() => {
     if (filter === "dead" && !isAdmin) {
@@ -308,48 +362,13 @@ const AllLeads = () => {
       <div className="flex flex-col lg:flex-row justify-between items-center gap-4 mt-4">
         {/* Toggle Switch */}
         <div className="w-full lg:w-1/2 flex items-center">
-          <div className="relative flex w-full items-center bg-white rounded-full p-1 overflow-hidden border border-gray-200 h-10">
-            <div
-              className="absolute left-[2px] w-[calc(33.333%-6px)] bg-[#000D55] rounded-full transition-transform duration-300 ease-in-out"
-              style={{
-                top: 2,
-                bottom: 2,
-                transform:
-                  filter === "buyers"
-                    ? "translateX(0px)"
-                    : filter === "rental"
-                    ? "translateX(calc(100% + 6px))"
-                    : "translateX(calc(200% + 12px))",
-              }}
-            />
-
-            <button
-              onClick={() => setFilter("buyers")}
-              className={`relative flex-1 h-full flex items-center justify-center px-3 text-sm font-medium transition-colors z-10 ${
-                filter === "buyers" ? "text-white" : "text-gray-700"
-              }`}
-            >
-              All Buyers
-            </button>
-            <button
-              onClick={() => setFilter("rental")}
-              className={`relative flex-1 h-full flex items-center justify-center px-3 text-sm font-medium transition-colors z-10 ${
-                filter === "rental" ? "text-white" : "text-gray-700"
-              }`}
-            >
-              Rental Business
-            </button>
-            {isAdmin && (
-              <button
-                onClick={() => setFilter("dead")}
-                className={`relative flex-1 h-full flex items-center justify-center px-3 text-sm font-medium transition-colors z-10 ${
-                  filter === "dead" ? "text-white" : "text-gray-700"
-                }`}
-              >
-                Dead Leads
-              </button>
-            )}
-          </div>
+          <ToggleSwitch
+            value={filter}
+            options={toggleOptions}
+            onChange={setFilter}
+            size="md"
+            className="max-w-[36rem] w-auto"
+          />
         </div>
 
         {/* Search & Export */}

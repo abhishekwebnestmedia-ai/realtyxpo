@@ -1,4 +1,5 @@
-import React, { useState, useMemo, useContext } from "react";
+import React, { useState, useMemo, useContext, useEffect } from "react";
+import { toast } from 'react-hot-toast';
 import { CheckSquare, Filter, Download, ExternalLink, PlusCircle, Search, NotebookPen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
@@ -130,6 +131,32 @@ const TodaysTask = ({ isDashboard = false, userRole = 'user' }) => {
     }
   });
 
+  // Prefill formData when today's task is loaded so submitted morning values are visible
+  useEffect(() => {
+    if (!todaysTask) return;
+
+    setFormData(prev => ({
+      morning: {
+        onlinePortal: todaysTask?.morningCommitment?.onlinePortalChecked === true ? true : (todaysTask?.morningCommitment?.onlinePortalChecked === false ? false : prev.morning.onlinePortal),
+        whatsappStatus: todaysTask?.morningCommitment?.whatsappStatus === true ? true : (todaysTask?.morningCommitment?.whatsappStatus === false ? false : prev.morning.whatsappStatus),
+        emailWorking: todaysTask?.morningCommitment?.emailWorking != null ? String(todaysTask.morningCommitment.emailWorking) : prev.morning.emailWorking,
+        buyersWorking: todaysTask?.morningCommitment?.buyersWorking != null ? String(todaysTask.morningCommitment.buyersWorking) : prev.morning.buyersWorking,
+        sellersWorking: todaysTask?.morningCommitment?.sellersWorking != null ? String(todaysTask.morningCommitment.sellersWorking) : prev.morning.sellersWorking,
+        meetingVisits: todaysTask?.meetingVisits != null ? String(todaysTask.meetingVisits) : prev.morning.meetingVisits,
+        addNote: todaysTask?.addNotes || prev.morning.addNote
+      },
+      evening: {
+        onlinePortal: todaysTask?.eveningAchievements?.onlinePortalChecked === true ? true : (todaysTask?.eveningAchievements?.onlinePortalChecked === false ? false : prev.evening.onlinePortal),
+        whatsappStatus: todaysTask?.eveningAchievements?.whatsappStatus === true ? true : (todaysTask?.eveningAchievements?.whatsappStatus === false ? false : prev.evening.whatsappStatus),
+        emailWorking: todaysTask?.eveningAchievements?.emailWorking != null ? String(todaysTask.eveningAchievements.emailWorking) : prev.evening.emailWorking,
+        buyersWorking: todaysTask?.eveningAchievements?.buyersWorking != null ? String(todaysTask.eveningAchievements.buyersWorking) : prev.evening.buyersWorking,
+        sellersWorking: todaysTask?.eveningAchievements?.sellersWorking != null ? String(todaysTask.eveningAchievements.sellersWorking) : prev.evening.sellersWorking,
+        meetingVisits: todaysTask?.meetingVisits != null ? String(todaysTask.meetingVisits) : prev.evening.meetingVisits,
+        addNote: todaysTask?.addNotes || prev.evening.addNote
+      }
+    }));
+  }, [todaysTask]);
+
   // Removed daily reset logic since API data automatically reflects new day state
 
   // Validation helper
@@ -191,7 +218,7 @@ const TodaysTask = ({ isDashboard = false, userRole = 'user' }) => {
   const handleMorningSubmit = async () => {
     const errors = validateMorningForm();
     if (errors.length > 0) {
-      alert('Please fill in all required fields:\n' + errors.join('\n'));
+      toast.error('Please fill in all required fields:\n' + errors.join('\n'));
       return;
     }
 
@@ -224,11 +251,11 @@ const TodaysTask = ({ isDashboard = false, userRole = 'user' }) => {
       queryClient.invalidateQueries({ queryKey: ["dailyTasks"] });
       queryClient.invalidateQueries({ queryKey: ["todaysDailyTask"] });
       
-      alert('Morning commitments submitted successfully!');
+      toast.success('Morning commitments submitted successfully!');
       
     } catch (error) {
       console.error('Error submitting morning commitments:', error.response?.data?.message || error.message);
-      alert(`Failed to submit morning commitments: ${error.response?.data?.message || error.message}`);
+      toast.error(`Failed to submit morning commitments: ${error.response?.data?.message || error.message}`);
     }
   };
 
@@ -236,20 +263,28 @@ const TodaysTask = ({ isDashboard = false, userRole = 'user' }) => {
   const handleEveningSubmit = async () => {
     const errors = validateEveningForm();
     if (errors.length > 0) {
-      alert('Please fill in all required fields:\n' + errors.join('\n'));
+      toast.error('Please fill in all required fields:\n' + errors.join('\n'));
       return;
     }
 
     try {
-      // Find today's existing task
+      // Debug: show today's task and admin list to help diagnose lookup issues
+      console.debug('handleEveningSubmit - todaysTask:', todaysTask);
+      console.debug('handleEveningSubmit - dailyTasksData sample length:', dailyTasksData?.length);
+
+      // Prefer the user-specific `todaysTask` (from useTodaysDailyTask) when available.
+      // Fallback to searching the admin list `dailyTasksData` to keep existing behavior.
       const today = new Date().toISOString().split('T')[0];
-      const existingTask = dailyTasksData?.find(task => {
-        const taskDate = task.date || (task.createdAt ? task.createdAt.split('T')[0] : null);
-        return taskDate === today;
-      });
+      let existingTask = todaysTask && (todaysTask._id || todaysTask.id) ? todaysTask : null;
+      if (!existingTask) {
+        existingTask = dailyTasksData?.find(task => {
+          const taskDate = task.date || (task.createdAt ? (task.createdAt.split ? task.createdAt.split('T')[0] : task.createdAt) : null);
+          return taskDate === today && (task.name === (user?.name || user?.firstName || user?.username || 'User'));
+        });
+      }
 
       if (!existingTask || !existingTask._id) {
-        alert('Error: No morning commitment found. Please submit morning commitments first.');
+        toast.error('Error: No morning commitment found. Please submit morning commitments first.');
         return;
       }
 
@@ -273,10 +308,10 @@ const TodaysTask = ({ isDashboard = false, userRole = 'user' }) => {
       queryClient.invalidateQueries({ queryKey: ["dailyTasks"] });
       queryClient.invalidateQueries({ queryKey: ["todaysDailyTask"] });
       
-      alert('Evening achievements submitted successfully!');
+      toast.success('Evening achievements submitted successfully!');
     } catch (error) {
       console.error('Error submitting evening achievements:', error.response?.data?.message || error.message);
-      alert(`Failed to submit evening achievements: ${error.response?.data?.message || error.message}`);
+      toast.error(`Failed to submit evening achievements: ${error.response?.data?.message || error.message}`);
     }
   };
 
@@ -952,11 +987,11 @@ const TodaysTask = ({ isDashboard = false, userRole = 'user' }) => {
         
             <thead className="sticky top-0 z-20 bg-[#FAFBFC]">
               <tr className="bg-[#FAFBFC] text-gray-700">
-                <th className="px-6 py-6 text-sm text-center whitespace-nowrap bg-[#FAFBFC] font-medium sticky left-0 z-10 w-16 theading">
+                <th className="px-6 py-6 text-sm text-center whitespace-nowrap bg-[#FAFBFC] font-medium w-16 theading">
                   S.No
                 </th>
-                <th 
-                  className="min-w-32 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium sticky left-16 z-10"
+                <th
+                  className="min-w-32 text-sm text-left cursor-pointer select-none hover:bg-gray-200 transition-colors whitespace-nowrap bg-[#FAFBFC] font-medium"
                   style={{ minWidth: 180 }}
                   onClick={() => handleSort('name')}
                 >
@@ -1023,10 +1058,10 @@ const TodaysTask = ({ isDashboard = false, userRole = 'user' }) => {
                 <React.Fragment key={idx}>
                   <tr className="bg-[#FFF4BD]">
                     {/* Serial number replacing checkbox */}
-                    <td className="border-t-4 border-b-4 border-white px-6 py-4 text-center sticky left-0 bg-[#FFF4BD] z-10" rowSpan={2}>
+                    <td className="border-t-4 border-b-4 border-white px-6 py-4 text-center bg-[#FFF4BD]" rowSpan={2}>
                       {isDashboard ? idx + 1 : (currentPage - 1) * rowsPerPage + idx + 1}
                     </td>
-                    <td className="border-t-4 border-b-4 border-white font-medium text-gray-800 whitespace-nowrap sticky left-16 bg-[#FFF4BD] z-10" rowSpan={2}>
+                    <td className="border-t-4 border-b-4 border-white font-medium text-gray-800 whitespace-nowrap bg-[#FFF4BD]" rowSpan={2}>
                       {person.name}
                     </td>
                     <td className="border-t-4 border-b-4 border-white py-4 px-4 font-medium whitespace-nowrap">{person.morning.commitment}</td>
@@ -1044,7 +1079,7 @@ const TodaysTask = ({ isDashboard = false, userRole = 'user' }) => {
                           onClick={() => handleNotesClick(person.notes)}
                         />
                         {/* Hover tooltip */}
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none max-w-48">
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none max-w-48">
                           <div className="truncate">
                             {person.notes || "No notes available"}
                           </div>
@@ -1069,7 +1104,7 @@ const TodaysTask = ({ isDashboard = false, userRole = 'user' }) => {
                           onClick={() => handleNotesClick(person.notes)}
                         />
                         {/* Hover tooltip */}
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none max-w-48">
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none max-w-48">
                           <div className="truncate">
                             {person.notes || "No notes available"}
                           </div>

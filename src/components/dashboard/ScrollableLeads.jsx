@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useRef } from "react";
 import { Pencil, Trash2, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/api";
+import { toast } from 'react-hot-toast';
 import { formatLocalTimestamp, parseLocalTimestamp } from '../../utils/datetime';
 import ConfirmDeleteButton from "../ui/notifications/ConfirmDelete";
 
@@ -77,6 +78,38 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [localData, setLocalData] = useState(data);
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  // Bulk delete flow: show modal then confirm
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+
+  const bulkDeleteSelected = () => {
+    const ids = Array.from(selectedIds).filter(Boolean);
+    if (!ids.length) return;
+    setShowBulkDeleteModal(true);
+  };
+
+  const confirmBulkDelete = async () => {
+    const ids = Array.from(selectedIds).filter(Boolean);
+    if (!ids.length) {
+      setShowBulkDeleteModal(false);
+      return;
+    }
+    setBulkDeleting(true);
+    try {
+      const resp = await api.post('/realtleads/bulk-delete', { ids });
+      setLocalData((prev) => prev.filter((r) => !ids.includes(r._id ?? r.id ?? r.leadId)));
+      setSelectedIds(new Set());
+      toast.success(resp?.data?.message || `Deleted ${ids.length} lead(s)`);
+      ids.forEach(id => onDelete?.({ _id: id }));
+    } catch (err) {
+      console.error('Bulk delete failed', err);
+      toast.error(err?.response?.data?.message || 'Bulk delete failed');
+    } finally {
+      setBulkDeleting(false);
+      setShowBulkDeleteModal(false);
+    }
+  };
   const navigate = useNavigate();
 
   // Use external search and rows-per-page when provided. Use local state so we can render an inline select.
@@ -321,12 +354,71 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
         )}
       </div>
 
+      {/* Bulk Delete Confirmation Modal */}
+      {showBulkDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black opacity-40" onClick={() => { if (!bulkDeleting) setShowBulkDeleteModal(false); }} />
+          <div className="relative bg-white rounded-lg shadow-xl w-full max-w-lg p-6 z-10">
+            <h3 className="text-lg font-semibold mb-2">Delete {selectedIds.size} lead(s)?</h3>
+            <p className="text-sm text-gray-600 mb-4">This action will permanently delete the selected leads. This cannot be undone.</p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowBulkDeleteModal(false)}
+                disabled={bulkDeleting}
+                className="px-4 py-2 rounded border border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmBulkDelete}
+                disabled={bulkDeleting}
+                className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
+              >
+                {bulkDeleting ? 'Deleting...' : `Delete ${selectedIds.size}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk actions toolbar */}
+      {selectedIds.size > 0 && (
+        <div className="mb-3 flex items-center justify-between bg-white p-2 rounded">
+          <div className="text-sm text-gray-700">{selectedIds.size} selected</div>
+          <div>
+            <button
+              onClick={bulkDeleteSelected}
+              className="px-3 py-2 bg-red-600 text-white rounded-md text-sm"
+            >
+              Delete Selected
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 📊 Table */}
       <div className="overflow-x-auto scrollbar-hidden bg-white rounded-tr-3xl rounded-tl-3xl ">
         <table className="w-full border-collapse">
           <thead className="bg-gray-100 text-gray-600 uppercase text-xs sticky top-0 z-10">
             <tr>
-              <th className="px-4 py-2 font-medium text-center theading">S.No</th>
+              <th className="px-4 py-2 font-medium text-center theading">
+                <input
+                  type="checkbox"
+                  aria-label="Select all"
+                  className="w-4 h-4"
+                  checked={paginatedData.length > 0 && selectedIds.size === paginatedData.length}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    const next = new Set(selectedIds);
+                    if (e.target.checked) {
+                      paginatedData.forEach((r) => next.add(r._id ?? r.id ?? r.leadId));
+                    } else {
+                      paginatedData.forEach((r) => next.delete(r._id ?? r.id ?? r.leadId));
+                    }
+                    setSelectedIds(next);
+                  }}
+                />
+              </th>
               <th
                 className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading "
                 onClick={() => handleSort("customerName")}
@@ -433,13 +525,27 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                 className="border-b hover:bg-gray-50 transition cursor-pointer"
                 onClick={() => handleRowClick(row)}
               >
-                <td className="px-4 py-2 text-center font-medium">{startIndex + idx + 1}</td>
+                <td className="px-4 py-2 text-center font-medium">
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4"
+                    checked={selectedIds.has(row._id ?? row.id ?? row.leadId)}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      const id = row._id ?? row.id ?? row.leadId;
+                      const next = new Set(selectedIds);
+                      if (e.target.checked) next.add(id); else next.delete(id);
+                      setSelectedIds(next);
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </td>
                 <td className="px-4 py-4  whitespace-nowrap ">{row.customerName}</td>
                 <td className="px-4 py-4 whitespace-nowrap ">{row.contactNumber || row.contactNo || 'N/A'}</td>
                 <td className="px-4 py-4 whitespace-nowrap ">{row.email}</td>
                 <td className="px-4 py-4 whitespace-nowrap">
                   <span 
-                    className="px-10 py-1 rounded-3xl text-sm font-medium border flex items-center justify-center text-center"
+                    className="px-6 py-1 rounded-3xl text-sm font-medium border flex items-center justify-center text-center "
                     style={{
                       backgroundColor: getStatusStyles(row.status).backgroundColor,
                       color: getStatusStyles(row.status).color,

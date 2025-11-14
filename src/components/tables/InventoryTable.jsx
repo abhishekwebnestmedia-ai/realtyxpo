@@ -11,6 +11,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
   const [currentPage, setCurrentPage] = useState(1);
   const [deletingId, setDeletingId] = useState(null);
   const [localData, setLocalData] = useState(data); // ✅ maintain local copy
+  const [selectedIds, setSelectedIds] = useState(new Set());
   const [editingRowId, setEditingRowId] = useState(null); // ✅ Track specific row being edited
   // local rows per page (sync with external prop)
   const [rowsPerPage, setRowsPerPage] = useState(externalRowsPerPage);
@@ -156,7 +157,24 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
         <table className="w-full border-collapse text-sm">
           <thead className="bg-gray-100 text-gray-600 uppercase text-xs sticky top-0 z-10 font-bold">
             <tr>
-              <th className="px-4 py-2 font-semibold text-center theading">S.No</th>
+              <th className="px-4 py-2 font-semibold text-center theading">
+                <input
+                  type="checkbox"
+                  aria-label="Select all inventory"
+                  className="w-4 h-4"
+                  checked={paginatedData.length > 0 && selectedIds.size === paginatedData.length}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    const next = new Set(selectedIds);
+                    if (e.target.checked) {
+                      paginatedData.forEach((r) => next.add(r._id));
+                    } else {
+                      paginatedData.forEach((r) => next.delete(r._id));
+                    }
+                    setSelectedIds(next);
+                  }}
+                />
+              </th>
               <th
                 className="px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
                 onClick={() => handleSort("sellerName")}
@@ -401,7 +419,20 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                   className="border-b hover:bg-gray-50 transition-colors cursor-pointer"
                   onClick={() => handleRowClick(row)}
                 >
-                  <td className="px-4 py-4 text-center">{startIndex + idx + 1}</td>
+                  <td className="px-4 py-4 text-center">
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4"
+                      checked={selectedIds.has(row._id)}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        const next = new Set(selectedIds);
+                        if (e.target.checked) next.add(row._id); else next.delete(row._id);
+                        setSelectedIds(next);
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     {row.sellerName}
                   </td>

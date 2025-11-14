@@ -233,6 +233,7 @@ import { AddBulkInventry } from "../../components/modals";
 import { AuthContext } from "../../context/AuthContext";
 import { getViewerPerms, canViewInventory } from "../../utils/permissions";
 import ExportModal from "../../components/ui/ExportModal";
+import { ToggleSwitch } from "../../components/ui";
 
 const InventoryPage = () => {
   const navigate = useNavigate();
@@ -304,32 +305,13 @@ const InventoryPage = () => {
       {/* Toggle + Search + Export */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         {/* Toggle */}
-        <div className="relative flex w-full lg:w-[30%] bg-white rounded-full p-1 overflow-hidden border border-gray-200">
-          <div
-            className="absolute top-1 bottom-1 left-[2px] w-[calc(50%-6px)] bg-[#000D55] rounded-full transition-transform duration-300 ease-in-out"
-            style={{
-              transform:
-                viewType === "Sales"
-                  ? "translateX(2px)"
-                  : "translateX(calc(100% + 6px))",
-            }}
+        <div className="w-full lg:w-[30%]">
+          <ToggleSwitch
+            value={viewType}
+            options={[{ value: 'Sales', label: 'Sales' }, { value: 'Rent', label: 'Rent' }]}
+            onChange={setViewType}
+            size="md"
           />
-          <button
-            onClick={() => setViewType("Sales")}
-            className={`relative flex-1 px-3 py-2 text-base font-medium transition-colors z-10 ${
-              viewType === "Sales" ? "text-white" : "text-gray-700"
-            }`}
-          >
-            Sales
-          </button>
-          <button
-            onClick={() => setViewType("Rent")}
-            className={`relative flex-1 px-3 py-2 text-base font-medium transition-colors z-10 ${
-              viewType === "Rent" ? "text-white" : "text-gray-700"
-            }`}
-          >
-            Rent
-          </button>
         </div>
 
         {/* Search + Export */}

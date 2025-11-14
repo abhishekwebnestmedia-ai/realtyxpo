@@ -17,9 +17,9 @@ const AddLead = () => {
     email: "",
     status: "Hot",
     leadType: "",
-    // separate date/time inputs for 12-hour picker
-    followUpDate: new Date().toISOString().split("T")[0],
-    followUpTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
+    // separate date/time inputs for 12-hour picker (default empty)
+    followUpDate: "",
+    followUpTime: "",
     requirement: "",
     remark: "",
     date: new Date().toISOString().split("T")[0],
@@ -411,12 +411,16 @@ const AddLead = () => {
           </div>
         </div>
 
-        {/* Submit */}
-        <div className="mt-6">
-          {error && <p className="text-red-500 mb-2">{error}</p>}
-          <button type="submit" disabled={loading} className="btn px-4 py-2">
-            {loading ? "Saving..." : "Save Lead"}
-          </button>
+        {/* Submit: error on left, button aligned right */}
+        <div className="mt-6 flex items-center justify-between">
+          <div className="flex-1">
+            {error && <p className="text-red-500">{error}</p>}
+          </div>
+          <div>
+            <button type="submit" disabled={loading} className="btn px-4 py-2">
+              {loading ? "Saving..." : "Save Lead"}
+            </button>
+          </div>
         </div>
       </form>
     </div>

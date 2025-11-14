@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
+import { toast } from 'react-hot-toast';
 import io from 'socket.io-client';
 import api from '../api/api';
 import { parseLocalTimestamp } from '../utils/datetime';
@@ -120,7 +121,9 @@ export const NotificationsProvider = ({ children }) => {
         const normalized = (list || []).map((n) => ({
           notificationId: n._id || n.notificationId,
           _clientTs: computeClientTimestamp(n.createdAt || n.createdAtISO || n.date || n.followUp || n.followUpDate),
+          // normalize server 'read' field into client 'isRead'
           ...n,
+          isRead: n.isRead ?? n.read ?? false,
         }));
         normalized.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         normalized.sort((a, b) => (b._clientTs || 0) - (a._clientTs || 0));
@@ -269,6 +272,8 @@ export const NotificationsProvider = ({ children }) => {
       createdAt: payload.createdAt || new Date().toISOString(),
       _clientTs: computeClientTimestamp(payload.createdAt || payload.createdAtISO || payload.date || payload.followUp || payload.followUpDate),
       ...payload,
+      // ensure consistent boolean flag on client
+      isRead: payload.isRead ?? payload.read ?? false,
     };
 
     
@@ -452,7 +457,7 @@ export const NotificationsProvider = ({ children }) => {
       try { stopAudio(); } catch { /* ignore */ }
       // mark read on server
       try {
-        await api.post(`/notifications/${id}/read`);
+        await api.put(`/notifications/${id}/read`, { read: true });
       } catch { /* don't block */ }
       // show next queued followup
       _showNextQueuedFollowup();
@@ -473,14 +478,18 @@ export const NotificationsProvider = ({ children }) => {
 
   const markAsRead = async (id) => {
     try {
+      // Call server first; on success update local state to avoid optimistic mismatch
+      await api.put(`/notifications/${id}/read`, { read: true });
       setNotifications(prev => {
         const next = prev.map(n => (n.notificationId === id || n._id === id) ? { ...n, isRead: true } : n);
         setUnreadCount(next.filter(x => !x.isRead).length);
         return next;
       });
-      await api.post(`/notifications/${id}/read`);
     } catch (err) {
       console.error('markAsRead failed', err);
+      try {
+        toast.error(err?.response?.data?.message || err?.response?.data?.error || 'Failed to mark notification read');
+      } catch { /* ignore toast errors */ }
     }
   };
 
@@ -493,7 +502,7 @@ export const NotificationsProvider = ({ children }) => {
         setUnreadCount(0);
         return next;
       });
-      await api.post('/notifications/read-all');
+      await api.put('/notifications/read-all');
     } catch (err) {
       console.error('markAllRead failed', err);
     }

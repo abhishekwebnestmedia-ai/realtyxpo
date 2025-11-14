@@ -1,13 +1,20 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../../hooks/useNotifications';
 import { formatLocalTimestamp } from '../../utils/datetime';
+import UnitInfoModal from '../../components/modals/UnitInfomodal';
+import { AuthContext } from '../../context/AuthContextCore';
+import api from '../../api/api';
+import { toast } from 'react-hot-toast';
 
 const NotificationsPanel = () => {
   const { notifications, isPanelOpen, closePanel, markAsRead, markAllRead } = useNotifications();
   const navigate = useNavigate();
   const panelRef = useRef(null);
   const previouslyFocused = useRef(null);
+  const [modalNotif, setModalNotif] = useState(null);
+  const { user } = useContext(AuthContext) || {};
+  const isAdmin = Boolean(user && user.role === 'admin');
 
   useEffect(() => {
     if (!isPanelOpen) return;
@@ -29,6 +36,14 @@ const NotificationsPanel = () => {
         const path = event.composedPath ? event.composedPath() : (event.path || []);
         // if click inside panel, ignore
         if (path.includes(panel) || panel.contains(event.target)) return;
+
+        // if click is inside the notification modal, ignore (modal is shown while panel is open)
+        try {
+          const modal = document.querySelector('[data-notif-modal]');
+          if (modal && (path.includes(modal) || modal.contains(event.target))) return;
+        } catch {
+          // ignore
+        }
 
         // if click is on the bell button or inside it, ignore
         const bell = document.querySelector('[aria-label="Open notifications"]');
@@ -79,13 +94,57 @@ const NotificationsPanel = () => {
   const formatTimestamp = (raw) => formatLocalTimestamp(raw);
 
   const goToNotification = (n) => {
+    // If inventory notification contains project unit meta, open approval modal
+    try {
+      if (n.type === 'Inventory' && n.meta && (n.meta.unitId || n.meta.unitNumber)) {
+        setModalNotif(n);
+        return;
+      }
+    } catch { /* ignore */ }
+
     if (n.type === 'Lead') navigate(`/all-leads/${n.itemId}`, { state: { notification: n } });
     else if (n.type === 'Inventory') navigate(`/inventory/${n.itemId}`);
     markAsRead(n.notificationId || n._id);
     closePanel();
   };
 
+
+  // eslint-disable-next-line no-unused-vars
+  const handleApproveConfirm = async () => {
+    if (!modalNotif) return;
+    const n = modalNotif;
+    const m = n.meta || {};
+    // required path params
+    const { category, projectcategory, cityId, divisionId, sectorId, projectId, towerId, unitId } = m;
+    if (!category || !projectcategory || !cityId || !divisionId || !sectorId || !projectId || !towerId || !unitId) {
+      toast.error('Incomplete unit metadata; cannot approve');
+      return;
+    }
+
+    // setConfirmLoading(true);
+    try {
+      const path = `/projects/approve-unit/${category}/${projectcategory}/${cityId}/${divisionId}/${sectorId}/${projectId}/${towerId}/${unitId}`;
+      const resp = await api.post(path, { confirm: 'yes' });
+      // mark read and close
+      markAsRead(n.notificationId || n._id);
+      setModalNotif(null);
+      closePanel();
+      toast.success(resp.data?.message || 'Unit approved and copied to inventory');
+      // navigate to new inventory if returned
+      const newInvId = resp.data?.inventory?._id || resp.data?.inventory?.id;
+      if (newInvId) {
+        navigate(`/inventory/${newInvId}`);
+      }
+    } catch (err) {
+      console.error('Approve unit failed', err);
+      toast.error(err?.response?.data?.error || 'Approval failed');
+    } finally {
+      // setConfirmLoading(false);
+    }
+  };
+
   return (
+    <>
       <div ref={panelRef} className="fixed right-6 top-[5rem] z-50 w-[23rem] bg-white rounded-lg shadow-md max-h-[65vh] border flex flex-col " role="dialog" aria-modal="true">
         <div className="px-3 py-2 border-b flex justify-between items-center flex-none">
           <h4 className="font-semibold text-base">Notifications</h4>
@@ -108,6 +167,19 @@ const NotificationsPanel = () => {
           ))}
         </div>
       </div>
+
+      <UnitInfoModal
+        isOpen={Boolean(modalNotif)}
+        onClose={() => setModalNotif(null)}
+        unit={modalNotif?.meta}
+        isAdmin={isAdmin}
+        // NOTE: Per UX requirement, the modal's "Approve & Copy" button must not perform API calls.
+        // The onConfirm here only closes the modal and does not trigger network requests.
+        onConfirm={() => setModalNotif(null)}
+        confirmLoading={false}
+        confirmText="Approve & Copy"
+      />
+    </>
   );
 };
 

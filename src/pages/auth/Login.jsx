@@ -230,7 +230,7 @@
 
 
 
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useRef } from "react";
 import logo from "/logo.svg";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
@@ -254,7 +254,14 @@ const Login = () => {
 
   const { login, register } = useContext(AuthContext);
 
-  const handleLogin = async () => {
+  // prevent double-submit: simple time-based guard (800ms)
+  const loginLastRef = useRef(0);
+  const registerLastRef = useRef(0);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
+
+  // core login action
+  const doLogin = async () => {
     const success = await login(loginEmail, loginPassword);
     if (success) {
       navigate("/");
@@ -263,21 +270,45 @@ const Login = () => {
     }
   };
 
-  const handleRegister = async () => {
+  // debounced/throttled wrapper to prevent double clicks
+  const handleLogin = async () => {
+    const now = Date.now();
+    if (now - loginLastRef.current < 800) return; // ignore rapid clicks
+    loginLastRef.current = now;
+    setIsLoggingIn(true);
     try {
-      await register({
-        name: signupName,
-        email: signupEmail,
-        password: signupPassword,
-        phoneNumber,
-        designation,
-        address,
-        empid,
-      });
-      alert("Registration successful! Please login.");
-      setIsFlipped(false);
+      await doLogin();
+    } finally {
+      // allow next click after small delay
+      setTimeout(() => setIsLoggingIn(false), 300);
+    }
+  };
+
+  const doRegister = async () => {
+    await register({
+      name: signupName,
+      email: signupEmail,
+      password: signupPassword,
+      phoneNumber,
+      designation,
+      address,
+      empid,
+    });
+    alert("Registration successful! Please login.");
+    setIsFlipped(false);
+  };
+
+  const handleRegister = async () => {
+    const now = Date.now();
+    if (now - registerLastRef.current < 800) return;
+    registerLastRef.current = now;
+    setIsRegistering(true);
+    try {
+      await doRegister();
     } catch (error) {
       alert("Registration failed: " + (error.response?.data?.message || error.message));
+    } finally {
+      setTimeout(() => setIsRegistering(false), 300);
     }
   };
 
@@ -318,6 +349,7 @@ const Login = () => {
                   placeholder="Email"
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleLogin(); }}
                   className="w-full px-2 py-1 text-base border rounded-md mt-11"
                 />
                 <div className="relative mt-3">
@@ -326,6 +358,7 @@ const Login = () => {
                     placeholder="Password"
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleLogin(); }}
                     className="w-full px-2 py-1 text-base border rounded-md"
                   />
                   <button
@@ -360,10 +393,11 @@ const Login = () => {
 
                 <button
                   type="button"
-                  className="w-full bg-[#334DE5] text-white rounded-md py-[6px] mt-10"
+                  className={`w-full ${isLoggingIn ? 'opacity-60 cursor-not-allowed' : ''} bg-[#334DE5] text-white rounded-md py-[6px] mt-10`}
                   onClick={handleLogin}
+                  disabled={isLoggingIn}
                 >
-                  Login
+                  {isLoggingIn ? 'Logging in...' : 'Login'}
                 </button>
               </div>
 
@@ -446,10 +480,11 @@ const Login = () => {
 
                 <button
                   type="button"
-                  className="w-full bg-[#334DE5] text-white rounded-md py-[6px] mt-4"
+                  className={`w-full ${isRegistering ? 'opacity-60 cursor-not-allowed' : ''} bg-[#334DE5] text-white rounded-md py-[6px] mt-4`}
                   onClick={handleRegister}
+                  disabled={isRegistering}
                 >
-                  Sign Up
+                  {isRegistering ? 'Signing up...' : 'Sign Up'}
                 </button>
               </div>
 

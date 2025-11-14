@@ -7,14 +7,27 @@ import NotificationsPanel from './NotificationsPanel';
 
 const TopBar = ({ toggleSidebar }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const { logout, user } = useContext(AuthContext);
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
   const { unreadCount, openPanel, closePanel, isPanelOpen, isRinging } = useNotifications();
 
   const handleLogout = () => {
-    logout(); // Clears token and user
-    navigate("/login"); // Redirect to login page
+    // Open confirmation modal instead of immediate logout
+    setShowLogoutModal(true);
+    setIsOpen(false);
+  };
+
+  const confirmLogout = async () => {
+    try {
+      await logout(); // Clears token and user
+    } catch (err) {
+      // ignore - logout should clear client state anyway
+    } finally {
+      setShowLogoutModal(false);
+      navigate("/login"); // Redirect to login page
+    }
   };
 
   const handleViewProfile = () => {
@@ -66,6 +79,7 @@ const TopBar = ({ toggleSidebar }) => {
   const profileSrc = getImageUrl(user?.profileImage || user?.profilePicture || user?.avatar || user?.profilePhoto);
 
   return (
+    <>
     <header className="flex justify-between items-center px-5 py-[6px] bg-white sticky top-0 z-50 transition-all duration-300 border-b border-gray-200">
       {/* Left side */}
       <div className="flex items-center space-x-4">
@@ -161,6 +175,42 @@ const TopBar = ({ toggleSidebar }) => {
         </div>
       </div>
     </header>
+    {showLogoutModal && (
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+        <div
+          className="absolute inset-0 bg-black/40"
+          onClick={() => setShowLogoutModal(false)}
+        />
+
+        <div className="relative w-full max-w-md mx-4">
+          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div className="px-6 py-4 bg-gradient-to-r from-red-500 to-pink-500">
+              <h3 className="text-white text-lg font-semibold">Confirm Logout</h3>
+            </div>
+            <div className="p-6">
+              <p className="text-sm text-gray-700 mb-4">
+                Are you sure you want to logout? You will be returned to the login screen.
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowLogoutModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmLogout}
+                  className="px-4 py-2 bg-red-600 text-white rounded shadow hover:bg-red-700"
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
 

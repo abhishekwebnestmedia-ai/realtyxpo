@@ -9,7 +9,25 @@ const api = axios.create({
     "Content-Type": "application/json",
   },
   // Allow browser to include cookies on requests to the API origin
+  withCredentials: true,
 
 });
+
+// Attach Authorization header automatically when token is available
+api.interceptors.request.use((config) => {
+  try {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (token) {
+        config.headers = config.headers || {};
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+  } catch (err) {
+    // ignore
+    console.log(err);
+  }
+  return config;
+}, (error) => Promise.reject(error));
 
 export default api;

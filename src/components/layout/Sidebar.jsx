@@ -135,7 +135,7 @@ const SidebarMenu = ({ isOpen }) => {
               className={`relative flex items-center py-2 transition-colors duration-300  group hover:bg-slate-700${
                 isActive ? " bg-slate-700" : ""
               }`}
-              style={{ overflow: "hidden" }}
+              style={{ overflow: "visible" }}
             >
               <span
                 className="flex items-center justify-center flex-shrink-0 w-12"
@@ -143,6 +143,12 @@ const SidebarMenu = ({ isOpen }) => {
               >
                 <img src={item.icon} alt={item.text} className="w-6 h-6" />
               </span>
+              {/* Tooltip when sidebar is closed: shows on hover */}
+              {!isOpen && (
+                <span className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap pointer-events-none">
+                  {item.text}
+                </span>
+              )}
               <span
                 className="overflow-hidden text-xl transition-all duration-300 whitespace-nowrap"
                 style={{
