@@ -21,6 +21,18 @@ export function initFirstCharCapitalizer() {
   const transformValue = (el) => {
     try {
       if (!isTargetEditable(el)) return false;
+      // Respect explicit per-element opt-out: data-firstcap="false"
+      try {
+        const ds = el.dataset && el.dataset.firstcap;
+        if (String(ds).toLowerCase() === 'false' || String(ds) === '0') return false;
+      } catch { /* ignore */ }
+      // Disable global behaviour on authentication routes (login / signup / auth pages)
+      try {
+        if (typeof window !== 'undefined') {
+          const path = window.location.pathname || '';
+          if (/\/(login|auth|signin|signup)(?:$|\/)/i.test(path)) return false;
+        }
+      } catch { /* ignore */ }
       const value = el instanceof HTMLElement && el.isContentEditable ? el.innerText : el.value;
       if (!value || value.length === 0) return false;
       const first = value.charAt(0);

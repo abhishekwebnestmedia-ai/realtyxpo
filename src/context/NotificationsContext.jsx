@@ -177,9 +177,11 @@ export const NotificationsProvider = ({ children }) => {
           pollingRef.current = null;
         }
         const userId = getCurrentUserId();
+        const userRole = user?.role || null;
         if (userId) {
-          socketRef.current.emit('register_user', userId);
-          socketRef.current.emit('subscribe_notifications', userId);
+          // Send both userId and role so backend can join admin room
+          socketRef.current.emit('register_user', { userId, role: userRole });
+          socketRef.current.emit('subscribe_notifications', { userId, role: userRole });
         }
         // one-time sync after connect to avoid missing notifications during the transition
         (async () => {
@@ -239,7 +241,7 @@ export const NotificationsProvider = ({ children }) => {
       }
       if (pollingRef.current) clearInterval(pollingRef.current);
     };
-  }, [isAuthed, startPolling, getCurrentUserId]);
+  }, [isAuthed, startPolling, getCurrentUserId, user]);
 
   // original startPolling moved above and memoized
 

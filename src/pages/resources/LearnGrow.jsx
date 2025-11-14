@@ -539,7 +539,7 @@ const LearnGrow = () => {
       {showRenameForm && activeFolder ? (
         <form
           onSubmit={handleRenameFolder}
-          className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center"
+          className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:flex-row sm:items-end"
         >
           {/* Heading in its own div */}
           <div className="sm:flex-1">

@@ -116,6 +116,7 @@ const MyTeam = () => {
     inv_rental: false,
     inv_sale: false,
     inv_completed: false,
+    projectsWorking: false,
   });
 
   // NOTE: effects that call functions declared below are added after those functions
@@ -364,6 +365,7 @@ const MyTeam = () => {
             dailyPlans: !!p.dailyPlans,
             findOpportunity: !!p.findOpportunity,
             dataBase: !!p.dataBase,
+            projectsWorking: !!p.projectsWorking || !!p.projects_working,
             leads_rental:
               !!p.rentalLeads || !!p.rental_leads || !!p.rentalLeads,
             leads_buyers: !!p.buyerLeads || !!p.buyer_leads || !!p.buyerLeads,
@@ -393,6 +395,7 @@ const MyTeam = () => {
             dailyPlans: !!p.dailyPlans,
             findOpportunity: !!p.findOpportunity,
             dataBase: !!p.dataBase,
+            projectsWorking: !!p.projectsWorking || !!p.projects_working,
             leads_rental: !!p.rentalLeads,
             leads_buyers: !!p.buyerLeads,
             leads_dead: !!p.deadLeads,
@@ -417,6 +420,7 @@ const MyTeam = () => {
         dailyPlans: !!p.dailyPlans,
         findOpportunity: !!p.findOpportunity,
         dataBase: !!p.dataBase,
+        projectsWorking: !!p.projectsWorking || !!p.projects_working,
         leads_rental: !!p.rentalLeads,
         leads_buyers: !!p.buyerLeads,
         leads_dead: !!p.deadLeads,
@@ -487,6 +491,7 @@ const MyTeam = () => {
           dailyPlans: !!returned.dailyPlans,
           findOpportunity: !!returned.findOpportunity,
           dataBase: !!returned.dataBase,
+          projectsWorking: !!returned.projectsWorking || !!returned.projects_working,
           leads_rental: !!returned.rentalLeads,
           leads_buyers: !!returned.buyerLeads,
           leads_dead: !!returned.deadLeads,
@@ -998,6 +1003,15 @@ const MyTeam = () => {
                     checked={permissions.brokers}
                     onChange={(v) =>
                       setPermissions((p) => ({ ...p, brokers: v }))
+                    }
+                  />
+                </div>
+                <div className="flex flex-col items-start gap-2">
+                  <div className="text-base font-medium">Projects Working</div>
+                  <SmallSwitch
+                    checked={permissions.projectsWorking}
+                    onChange={(v) =>
+                      setPermissions((p) => ({ ...p, projectsWorking: v }))
                     }
                   />
                 </div>

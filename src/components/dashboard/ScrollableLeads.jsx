@@ -98,7 +98,6 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
       }
       setLeadDetails(leadData);
     } catch (error) {
-      console.error('Error fetching lead details:', error);
       alert(`Failed to fetch lead details: ${error.response?.data?.message || error.message}`);
       setLeadDetails(null);
     } finally {
@@ -166,8 +165,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
       // support different shapes
       const payload = res.data?.data || res.data || [];
       setHistoryItems(Array.isArray(payload) ? payload : []);
-    } catch (err) {
-      console.error("Failed to fetch history:", err);
+    } catch {
       setHistoryItems([]);
     } finally {
       setLoadingHistory(false);
@@ -247,9 +245,9 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
       // success: notify parent
       onDelete?.(row);
       alert("Lead deleted successfully ✅");
-    } catch (error) {
+    } catch {
+      // keep variable for message but avoid console noise
       // revert on failure
-      console.error("Delete error:", error);
       setLocalData(prev);
       alert("Failed to delete lead ❌");
     }

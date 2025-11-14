@@ -9,7 +9,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Helper: parse JWT payload safely (used only for fallback when token is
+  //shashank  Helper: parse JWT payload safely (used only for fallback when token is
   // available client-side). When using HttpOnly cookies this is not possible
   // and the server should provide profile via /auth/profile.
   const parseJwt = (token) => {
