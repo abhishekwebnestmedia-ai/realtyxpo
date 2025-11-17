@@ -3,8 +3,18 @@ import axios from "axios";
 // Enable sending cookies (for HttpOnly cookie support). The server should
 // set an HttpOnly cookie on login and clear it on logout. We keep the
 // client-side cookie helpers as a fallback, but prefer server-managed cookies.
+
+// Use localhost for development, production URL for production
+// const baseURL = import.meta.env.DEV 
+//   ? "http://localhost:5000/api" 
+//   : "https://backend.realtyxpo.in/api";
+const baseURL = "https://backend.realtyxpo.in/api";
+
+
+console.log('API BASE URL:', baseURL);
+
 const api = axios.create({
-  baseURL: "https://backend.realtyxpo.in/api",
+  baseURL: baseURL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -31,3 +41,5 @@ api.interceptors.request.use((config) => {
 }, (error) => Promise.reject(error));
 
 export default api;
+
+

@@ -60,6 +60,7 @@ export const toLocalDate = (value) => {
 export const formatLocalTimestamp = (value, opts = {}) => {
   const d = toLocalDate(value);
   if (!d) return '';
+  // Always format in IST (Indian Standard Time = UTC+5:30)
   const defaultOpts = {
     day: '2-digit',
     month: 'short',
@@ -67,6 +68,35 @@ export const formatLocalTimestamp = (value, opts = {}) => {
     hour: '2-digit',
     minute: '2-digit',
     hour12: true,
+    timeZone: 'Asia/Kolkata', // IST timezone
   };
   return d.toLocaleString('en-IN', { ...defaultOpts, ...opts });
+};
+
+// Helper: Convert any timestamp to IST and return as "YYYY-MM-DD HH:mm:ss" format
+export const toISTString = (value) => {
+  const d = toLocalDate(value);
+  if (!d) return '';
+  
+  // Use Intl API to get IST time components
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Kolkata'
+  });
+
+  const parts = formatter.formatToParts(d);
+  const map = {};
+  for (const part of parts) {
+    if (part.type !== 'literal') {
+      map[part.type] = part.value;
+    }
+  }
+
+  return `${map.year}-${map.month}-${map.day} ${map.hour}:${map.minute}:${map.second}`;
 };
