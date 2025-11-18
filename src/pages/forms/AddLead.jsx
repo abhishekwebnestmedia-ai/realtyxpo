@@ -201,6 +201,7 @@ const AddLead = () => {
               type="text"
               id="customerName"
               className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2"
+              placeholder="Enter customerName"
             />
           </div>
 
@@ -219,6 +220,7 @@ const AddLead = () => {
               title="Enter 10-13 digit numeric phone number"
               required
               className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2"
+              placeholder="Enter contactNumber"
             />
           </div>
 
@@ -236,6 +238,7 @@ const AddLead = () => {
               required
               pattern="^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
               className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2"
+              placeholder="Enter email"
             />
           </div>
 
@@ -271,6 +274,7 @@ const AddLead = () => {
               type="date"
               required
               className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2 mb-2"
+              placeholder="Enter followUpDate"
             />
             <TimePicker
               name="followUpTime"
@@ -375,6 +379,7 @@ const AddLead = () => {
               onChange={handleChange}
               id="requirement"
               className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2"
+              placeholder="Enter requirement"
               rows={4}
             />
           </div>
@@ -417,7 +422,7 @@ const AddLead = () => {
             {error && <p className="text-red-500">{error}</p>}
           </div>
           <div className="flex gap-3">
-            <button type="button" onClick={() => navigate(-1)} className="btn px-4 py-2">
+            <button type="button" onClick={() => navigate(-1)} className="rounded border border-red-500 px-4 py-2 text-red-600 hover:bg-red-50">
               Cancel
             </button>
             <button type="submit" disabled={loading} className="btn px-4 py-2">

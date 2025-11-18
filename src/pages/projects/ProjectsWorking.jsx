@@ -447,6 +447,8 @@ import { ProjectModal } from '../../components/modals';
 import { toast } from 'react-hot-toast';
 import useProjects from '../../hooks/useProjects';
 import UnitInfoModal from '../../components/modals/UnitInfomodal';
+import projectService from '../../services/projectService';
+import { Trash2 } from 'lucide-react';
 
 const ProjectsWorking = () => {
   // ✅ State Management
@@ -754,7 +756,7 @@ const ProjectsWorking = () => {
                 setSelectedUnit(unit);
                 setIsUnitModalOpen(true);
               }}
-              className="flex flex-col items-center cursor-pointer hover:scale-105 transition-transform"
+              className="relative flex flex-col items-center cursor-pointer hover:scale-105 transition-transform group"
             >
               {/* Colored Box */}
               <div
@@ -767,6 +769,30 @@ const ProjectsWorking = () => {
               <div className="w-24 h-7 flex items-center justify-center bg-gray-200 border border-t-0 border-gray-400 rounded-b-md text-[13px] font-medium text-gray-900">
                 {unit.cleanedUnitNumber}
               </div>
+
+              {/* Delete Unit Button */}
+              <button
+                type="button"
+                className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 bg-white/90 border border-gray-200 rounded-full p-1 hover:bg-red-50"
+                title="Delete Unit"
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  const confirmed = window.confirm('Delete this unit?');
+                  if (!confirmed) return;
+                  try {
+                    const id = unit._id;
+                    if (!id) throw new Error('Missing unit id');
+                    await projectService.deleteUnit(id);
+                    toast.success('Unit deleted');
+                    refresh();
+                  } catch (err) {
+                    console.error('Delete unit failed:', err);
+                    toast.error(err?.response?.data?.message || err.message || 'Delete failed');
+                  }
+                }}
+              >
+                <Trash2 size={14} className="text-red-600" />
+              </button>
             </div>
           ))}
       </div>
@@ -798,7 +824,7 @@ const ProjectsWorking = () => {
           <div
             key={item._id}
             onDoubleClick={() => handleNavigateToItem(item)}
-            className="w-32 h-40 rounded-lg cursor-pointer flex flex-col items-center justify-center hover:bg-gray-50 transition-colors"
+            className="relative w-32 h-40 rounded-lg cursor-pointer flex flex-col items-center justify-center hover:bg-gray-50 transition-colors group"
           >
             {currentLevel === 'cities' ? (
               <div className="w-24 h-20 flex items-center justify-center mb-2">
@@ -816,6 +842,48 @@ const ProjectsWorking = () => {
             <h3 className="font-medium text-center text-gray-900 text-xl leading-tight min-h-12">
               {levelConfig.getItemName(item)}
             </h3>
+
+            {/* Delete button */}
+            <button
+              type="button"
+              className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 bg-white/90 border border-gray-200 rounded-full p-1 hover:bg-red-50"
+              title="Delete"
+              onClick={async (e) => {
+                e.stopPropagation();
+                const confirmed = window.confirm('Are you sure you want to delete this item?');
+                if (!confirmed) return;
+                try {
+                  const id = item._id;
+                  if (!id) throw new Error('Missing id');
+                  switch (currentLevel) {
+                    case 'cities':
+                      await projectService.deleteCity(id);
+                      break;
+                    case 'divisions':
+                      await projectService.deleteDivision(id);
+                      break;
+                    case 'sectors':
+                      await projectService.deleteSector(id);
+                      break;
+                    case 'projects':
+                      await projectService.deleteProjectById(id);
+                      break;
+                    case 'towers':
+                      await projectService.deleteTower(id);
+                      break;
+                    default:
+                      throw new Error('Delete not supported at this level');
+                  }
+                  toast.success('Deleted successfully');
+                  refresh();
+                } catch (err) {
+                  console.error('Delete failed:', err);
+                  toast.error(err?.response?.data?.message || err.message || 'Delete failed');
+                }
+              }}
+            >
+              <Trash2 size={16} className="text-red-600" />
+            </button>
           </div>
         ))}
       </div>

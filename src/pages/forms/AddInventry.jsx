@@ -27,7 +27,8 @@ const StepperForm = () => {
     assignTo: "",
     source: "",
     transferTo: "",
-    followUp: "",
+    followUpDate: "",
+    followUpTime: "",
     remark: "",
     contactNumbers: [],
   });
@@ -51,7 +52,16 @@ const StepperForm = () => {
   };
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === 'assignTo') {
+      setFormData((prev) => ({ ...prev, assignTo: value, transferTo: value }));
+      return;
+    }
+    if (name === 'transferTo') {
+      setFormData((prev) => ({ ...prev, transferTo: value, assignTo: value }));
+      return;
+    }
+    setFormData({ ...formData, [name]: value });
   };
 
   const addContact = () => {
@@ -129,6 +139,26 @@ const StepperForm = () => {
   e.preventDefault();
 
   // Map formData → API body
+  // Combine follow-up date and 12h time into IST string like leads
+  let followUpCombined = '';
+  if (formData.followUpDate) {
+    const timeStr = formData.followUpTime || '';
+    let hour24 = '00';
+    let minute = '00';
+    if (timeStr) {
+      const parts = String(timeStr).trim().split(' ');
+      const hm = parts[0] || '';
+      const ampm = (parts[1] || '').toLowerCase();
+      const [hh, mm] = hm.split(':');
+      let h = parseInt(hh || '0', 10);
+      minute = (mm || '00').padStart(2, '0');
+      if (ampm === 'pm' && h !== 12) h += 12;
+      if (ampm === 'am' && h === 12) h = 0;
+      hour24 = String(h).padStart(2, '0');
+    }
+    followUpCombined = `${formData.followUpDate}T${hour24}:${minute}:00+05:30`;
+  }
+
   const payload = {
     sellerName: formData.name,
     inventoryType: "Sales", // static? or add field if dynamic
@@ -148,7 +178,7 @@ const StepperForm = () => {
     capturedBy: formData.capturedBy,
     assignTo: formData.assignTo,
     transferTo: formData.transferTo,
-    followUpDate: formData.followUp,
+    followUpDate: followUpCombined,
     source: formData.source ? [formData.source] : [],
     loanStatus: formData.loanStatus,
     remarks: formData.remark,
@@ -238,7 +268,7 @@ const StepperForm = () => {
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            className="px-6 py-2 rounded border border-red-500 text-red-600 hover:bg-red-50"
           >
             Cancel
           </button>

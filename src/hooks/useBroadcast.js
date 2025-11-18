@@ -47,21 +47,8 @@ export const useTeams = () => {
         })
       );
       
-      // Add "All" team at the beginning
-      const allTeam = {
-        id: 'all',
-        name: 'All',
-        lastMessage: 'All team communications',
-        time: new Date().toLocaleTimeString('en-US', { 
-          hour: '2-digit', 
-          minute: '2-digit', 
-          hour12: true 
-        }),
-        members: [],
-        createdBy: null
-      };
-      
-      setTeams([allTeam, ...teamsData]);
+      // Use backend-provided groups as-is (no client-side All injection)
+      setTeams(teamsData);
       setError(null);
     } catch (err) {
       setError('Failed to fetch teams');
@@ -212,7 +199,7 @@ export const useBroadcasts = (groupId) => {
 
   // Fetch messages for a specific group
   const fetchMessages = async (targetGroupId) => {
-    if (!targetGroupId || targetGroupId === 'all') return;
+    if (!targetGroupId) return;
     
     try {
       setLoading(true);
@@ -242,8 +229,8 @@ export const useBroadcasts = (groupId) => {
   };
 
   const sendBroadcast = async (messageData, attachment = null) => {
-    if (!groupId || groupId === 'all') {
-      setError('Cannot send messages to "All" team');
+    if (!groupId) {
+      setError('No group selected');
       return;
     }
 

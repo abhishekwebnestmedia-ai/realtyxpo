@@ -4,6 +4,7 @@ import { Edit3, Loader2, Notebook, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../api/api';
 import TokenSearch from '../../components/ui/TokenSearch';
+import { exportToExcel, exportToPdf } from '../../utils/exporter';
 
 const useAuthHeaders = () => {
   const [token] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('token') : null));
@@ -20,6 +21,10 @@ const Database = () => {
   const [searchTokens, setSearchTokens] = useState([]);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+  // kept for potential future use (was used for PDF downloads)
+  // eslint-disable-next-line no-unused-vars
+  const [downloading, setDownloading] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
 
   const fetchRecords = useCallback(async () => {
     if (!authHeaders) {
@@ -98,9 +103,56 @@ const Database = () => {
     <div className="rounded-lg">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="pageheading mb-0">Database</h1>
-        <Link to="/database/add" className="btn inline-flex items-center gap-2">
-          Add Entry
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link to="/database/add" className="btn inline-flex items-center gap-2">
+            Add Entry
+          </Link>
+          <div className="relative inline-block">
+            <button
+              type="button"
+              onClick={() => setShowExportMenu((s) => !s)}
+              className="inline-flex items-center gap-2 px-3 py-2 border rounded bg-white hover:bg-gray-50"
+            >
+              Export
+            </button>
+            {showExportMenu && (
+              <div className="absolute right-0 mt-2 w-44 bg-white border rounded shadow-lg z-40">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      await exportToExcel(filteredRecords, null, `database-export`);
+                    } catch (err) {
+                      console.error('Export XLSX failed', err);
+                      toast.error('Export failed');
+                    } finally {
+                      setShowExportMenu(false);
+                    }
+                  }}
+                  className="w-full text-left px-4 py-2 hover:bg-gray-50"
+                >
+                  Export as XLSX
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      await exportToPdf(filteredRecords, null, `Database Export`, '/watermark.svg');
+                    } catch (err) {
+                      console.error('Export PDF failed', err);
+                      toast.error('Export failed');
+                    } finally {
+                      setShowExportMenu(false);
+                    }
+                  }}
+                  className="w-full text-left px-4 py-2 hover:bg-gray-50"
+                >
+                  Export as PDF
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -245,6 +297,8 @@ const Database = () => {
           </button>
         </div>
       </div>
+
+      {/* Simple export menu: XLSX and ODS only (no date range) */}
     </div>
   );
 };

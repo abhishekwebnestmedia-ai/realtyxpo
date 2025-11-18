@@ -47,7 +47,7 @@ const getStatusStyles = (status) => {
       };
   }
 };
-const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalSearch = "", externalRowsPerPage = 10, onPageRowsChange = null, externalTokens = [], onExternalTokensChange = undefined }) => {
+const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalSearch = "", externalRowsPerPage = 10, onPageRowsChange = null, externalTokens = [], onExternalTokensChange = undefined, statusFilter = '', onStatusFilterChange = () => {}, statusOptions = [] }) => {
   const [search, setSearch] = useState("");
   // tokenized search keys (entered words/tokens)
   const [searchTokens, setSearchTokens] = useState([]);
@@ -115,6 +115,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
   // Use external search and rows-per-page when provided. Use local state so we can render an inline select.
   const activeSearch = hideSearch ? externalSearch : search;
   const [rowsPerPage, setRowsPerPage] = useState(externalRowsPerPage);
+  const [showStatusMenu, setShowStatusMenu] = useState(false);
   useEffect(() => setRowsPerPage(externalRowsPerPage), [externalRowsPerPage]);
 
   // Function to fetch lead details
@@ -359,6 +360,15 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black opacity-40" onClick={() => { if (!bulkDeleting) setShowBulkDeleteModal(false); }} />
           <div className="relative bg-white rounded-lg shadow-xl w-full max-w-lg p-6 z-10">
+            {/* Close (X) button */}
+            <button
+              type="button"
+              onClick={() => { if (!bulkDeleting) setShowBulkDeleteModal(false); }}
+              aria-label="Close"
+              className="absolute top-3 right-3 text-gray-600 hover:text-gray-800 text-2xl leading-none"
+            >
+              ×
+            </button>
             <h3 className="text-lg font-semibold mb-2">Delete {selectedIds.size} lead(s)?</h3>
             <p className="text-sm text-gray-600 mb-4">This action will permanently delete the selected leads. This cannot be undone.</p>
             <div className="flex justify-end gap-3">
@@ -384,7 +394,17 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
       {/* Bulk actions toolbar */}
       {selectedIds.size > 0 && (
         <div className="mb-3 flex items-center justify-between bg-white p-2 rounded">
-          <div className="text-sm text-gray-700">{selectedIds.size} selected</div>
+          <div className="flex items-center gap-3">
+            <div className="text-sm text-gray-700">{selectedIds.size} selected</div>
+            <button
+              type="button"
+              onClick={() => setSelectedIds(new Set())}
+              aria-label="Clear selection"
+              className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200"
+            >
+              ×
+            </button>
+          </div>
           <div>
             <button
               onClick={bulkDeleteSelected}
@@ -444,12 +464,24 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                   (sortConfig.direction === "asc" ? "▲" : "▼")}
               </th>
               <th
-                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-center font-medium"
-                onClick={() => handleSort("status")}
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-center font-medium relative"
+                onClick={(e) => { e.stopPropagation(); setShowStatusMenu((s) => !s); setCurrentPage(1); }}
               >
-                Status{" "}
-                {sortConfig.key === "status" &&
-                  (sortConfig.direction === "asc" ? "▲" : "▼")}
+                Status{statusFilter ? `: ${statusFilter}` : ''}
+                {showStatusMenu && (
+                  <div className="absolute left-0 top-full mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow z-50 p-2" onClick={(ev) => ev.stopPropagation()}>
+                    <select
+                      className="w-full border rounded px-2 py-1 bg-[#FAFBFC]"
+                      value={statusFilter}
+                      onChange={(e) => { onStatusFilterChange(e.target.value); setShowStatusMenu(false); setCurrentPage(1); }}
+                    >
+                      <option value="">All</option>
+                      {statusOptions.map((s) => (
+                        <option key={String(s)} value={String(s)}>{String(s)}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </th>
               <th
                 className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading font-medium"

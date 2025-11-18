@@ -244,6 +244,7 @@ const AllLeads = () => {
   const [showExportModal, setShowExportModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [externalTokens, setExternalTokens] = useState([]);
+  const [statusFilter, setStatusFilter] = useState('');
 
   const { user: authUser } = useContext(AuthContext) || {};
   const viewerPerms = getViewerPerms(authUser || {});
@@ -310,24 +311,44 @@ const AllLeads = () => {
     if (!Array.isArray(permissionAwareLeads)) return [];
 
     if (filter === "buyers") {
-      return permissionAwareLeads.filter((lead) => {
+      let arr = permissionAwareLeads.filter((lead) => {
         if (isDead(lead)) return false;
         const { isRentalType, isBuyerType } = classifyLead(lead);
         if (isBuyerType) return true;
         return !isRentalType; // treat uncategorized leads as buyers by default
       });
+      if (statusFilter) {
+        const s = String(statusFilter).toLowerCase();
+        arr = arr.filter((l) => String(l?.status || '').toLowerCase() === s);
+      }
+      return arr;
     }
 
     if (filter === "rental") {
-      return permissionAwareLeads.filter((lead) => classifyLead(lead).isRentalType);
+      let arr = permissionAwareLeads.filter((lead) => classifyLead(lead).isRentalType);
+      if (statusFilter) {
+        const s = String(statusFilter).toLowerCase();
+        arr = arr.filter((l) => String(l?.status || '').toLowerCase() === s);
+      }
+      return arr;
     }
 
     if (filter === "dead") {
-      return permissionAwareLeads.filter((lead) => isDead(lead));
+      let arr = permissionAwareLeads.filter((lead) => isDead(lead));
+      if (statusFilter) {
+        const s = String(statusFilter).toLowerCase();
+        arr = arr.filter((l) => String(l?.status || '').toLowerCase() === s);
+      }
+      return arr;
     }
 
-    return permissionAwareLeads.filter((lead) => !isDead(lead));
-  }, [permissionAwareLeads, filter]);
+    let arr = permissionAwareLeads.filter((lead) => !isDead(lead));
+    if (statusFilter) {
+      const s = String(statusFilter).toLowerCase();
+      arr = arr.filter((l) => String(l?.status || '').toLowerCase() === s);
+    }
+    return arr;
+  }, [permissionAwareLeads, filter, statusFilter]);
 
   React.useEffect(() => {
     if (filter === "dead" && !isAdmin) {
@@ -386,6 +407,7 @@ const AllLeads = () => {
             >
               Export
             </button>
+            {/* Status filter is now opened by clicking the Status table header. Options passed into table. */}
           </div>
         </div>
       </div>
@@ -397,6 +419,9 @@ const AllLeads = () => {
         externalSearch={searchTerm}
         externalTokens={externalTokens}
         onExternalTokensChange={setExternalTokens}
+        statusFilter={statusFilter}
+        onStatusFilterChange={(v) => setStatusFilter(v)}
+        statusOptions={Array.from(new Set((permissionAwareLeads || []).map(l => l?.status).filter(Boolean)))}
       />
 
       {/* Popups */}

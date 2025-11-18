@@ -24,12 +24,14 @@ const ProjectModal = ({
     mobileNumbers: [''],
     email: '',
     status: 'Vacant',
-    remarks: ''
+    remarks: '',
+    assignTo: ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [formErrors, setFormErrors] = useState({});
+  const [users, setUsers] = useState([]);
 
   // Update form data when currentPath changes (when modal opens at different levels)
   useEffect(() => {
@@ -47,6 +49,17 @@ const ProjectModal = ({
       // Reset to step 1 when modal opens
       setCurrentStep(1);
       setFormErrors({});
+      // Fetch users for Assign To when modal opens
+      (async () => {
+        try {
+          const res = await api.get('/auth/alluser');
+          const list = res?.data?.users || [];
+          setUsers(Array.isArray(list) ? list : []);
+        } catch (err) {
+          console.error('Failed to fetch users for assignTo', err);
+          setUsers([]);
+        }
+      })();
     }
   }, [isOpen, currentPath]);
 
@@ -382,6 +395,25 @@ const ProjectModal = ({
           />
           {formErrors.email && <p className="text-red-500 text-xs mt-1">{formErrors.email}</p>}
         </div>
+
+        {/* Assign To */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Assign To
+          </label>
+          <select
+            value={formData.assignTo}
+            onChange={(e) => handleInputChange('assignTo', e.target.value)}
+            className="w-full border rounded-md px-3 py-2 bg-[#FAFBFC] focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">-- Select User --</option>
+            {users.map((u) => (
+              <option key={u._id} value={u.name || u.email}>
+                {u.name || u.email}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Mobile Numbers - Full Width */}
@@ -545,7 +577,8 @@ const ProjectModal = ({
                   mobileNumbers: formData.mobileNumbers.filter(num => num.trim()),
                   email: formData.email,
                   status: formData.status,
-                  remarks: formData.remarks
+                  remarks: formData.remarks,
+                  assignTo: formData.assignTo || undefined
                 }];
               }
             }

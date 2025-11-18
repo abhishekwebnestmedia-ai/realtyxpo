@@ -223,6 +223,43 @@ class ProjectService {
 
     return hierarchy;
   }
+
+  // Deletion endpoints
+  async deleteCity(id) {
+    if (!id) throw new Error('City id is required');
+    const res = await api.delete(`/projects/city/${id}`);
+    return res.data;
+  }
+
+  async deleteDivision(id) {
+    if (!id) throw new Error('Division id is required');
+    const res = await api.delete(`/projects/division/${id}`);
+    return res.data;
+  }
+
+  async deleteSector(id) {
+    if (!id) throw new Error('Sector id is required');
+    const res = await api.delete(`/projects/sector/${id}`);
+    return res.data;
+  }
+
+  async deleteProjectById(id) {
+    if (!id) throw new Error('Project id is required');
+    const res = await api.delete(`/projects/project/${id}`);
+    return res.data;
+  }
+
+  async deleteTower(id) {
+    if (!id) throw new Error('Tower id is required');
+    const res = await api.delete(`/projects/tower/${id}`);
+    return res.data;
+  }
+
+  async deleteUnit(id) {
+    if (!id) throw new Error('Unit id is required');
+    const res = await api.delete(`/projects/unit/${id}`);
+    return res.data;
+  }
 }
 
 export default new ProjectService();

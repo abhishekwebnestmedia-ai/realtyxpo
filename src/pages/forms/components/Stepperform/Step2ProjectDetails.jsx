@@ -10,7 +10,8 @@ const Step2ProjectDetails = ({ formData, handleChange, typologies }) => {
           name="projectName"
           value={formData.projectName}
           onChange={handleChange}
-          className="w-full border px-3 py-2 rounded-lg"
+           className="w-full border px-3 py-2 rounded-lg"
+           placeholder="Enter projectName"
           required
         />
       </div>
@@ -22,7 +23,8 @@ const Step2ProjectDetails = ({ formData, handleChange, typologies }) => {
           name="sector"
           value={formData.sector}
           onChange={handleChange}
-          className="w-full border px-3 py-2 rounded-lg"
+           className="w-full border px-3 py-2 rounded-lg"
+           placeholder="Enter sector"
           required
         />
       </div>
@@ -34,7 +36,8 @@ const Step2ProjectDetails = ({ formData, handleChange, typologies }) => {
           name="unitNo"
           value={formData.unitNo}
           onChange={handleChange}
-          className="w-full border px-3 py-2 rounded-lg"
+           className="w-full border px-3 py-2 rounded-lg"
+           placeholder="Enter unitNo"
           required
         />
       </div>
@@ -46,7 +49,8 @@ const Step2ProjectDetails = ({ formData, handleChange, typologies }) => {
           name="tower"
           value={formData.tower}
           onChange={handleChange}
-          className="w-full border px-3 py-2 rounded-lg"
+           className="w-full border px-3 py-2 rounded-lg"
+           placeholder="Enter tower"
           required
         />
       </div>
@@ -57,7 +61,8 @@ const Step2ProjectDetails = ({ formData, handleChange, typologies }) => {
           list="typologyList"
           name="typology"
           value={formData.typology}
-          onChange={handleChange}
+           className="w-full border px-3 py-2 rounded-lg"
+           placeholder="Select or type typology"
           className="w-full border px-3 py-2 rounded-lg"
           placeholder="Select or type typology"
           required
@@ -76,7 +81,8 @@ const Step2ProjectDetails = ({ formData, handleChange, typologies }) => {
           name="size"
           value={formData.size}
           onChange={handleChange}
-          className="w-full border px-3 py-2 rounded-lg"
+           className="w-full border px-3 py-2 rounded-lg"
+           placeholder="Enter size"
           required
         />
       </div>

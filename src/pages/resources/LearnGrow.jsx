@@ -554,6 +554,7 @@ const LearnGrow = () => {
               value={renameName}
               onChange={(event) => setRenameName(event.target.value)}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              placeholder="Enter rename-folder-name"
               disabled={renameLoading}
             />
             <div className="flex items-center gap-2">

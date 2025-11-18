@@ -13,6 +13,7 @@ const Step1SellerDetails = ({ formData, handleChange, contactInput, setContactIn
           onChange={handleChange}
           className="w-full border px-3 py-2 rounded-lg bg-[#FAFBFC] focus:border-blue-600"
           required
+          placeholder="Enter name"
         />
       </div>
 
@@ -67,17 +68,19 @@ const Step1SellerDetails = ({ formData, handleChange, contactInput, setContactIn
           required
           pattern="^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
           title="Enter a valid email address"
+          placeholder="Enter email"
         />
       </div>
 
-      {/* Budget */}
+      {/* Demand (previously labeled Budget) */}
       <div>
-        <label className="block mb-2 font-medium">Enter Budget</label>
+        <label className="block mb-2 font-medium">Demand</label>
         <input
           type="text"
           name="budget"
           value={formData.budget}
           onChange={handleChange}
+          placeholder="Enter demand"
           className="w-full border px-3 py-2 rounded-lg bg-[#FAFBFC]"
           required
         />
@@ -106,7 +109,7 @@ const Step1SellerDetails = ({ formData, handleChange, contactInput, setContactIn
       <div className="space-y-2">
         <label className="block font-medium mb-1">Select Status</label>
         <div className="flex justify-between space-x-4 bg-[#FAFBFC]">
-          {["Transferred", "Pending"].map((status) => (
+          {["Registry Case", "Transfer Case"].map((status) => (
             <div key={status} className="border w-full p-1 px-4 rounded-lg">
               <label className="flex justify-between space-x-2">
                 <span>{status}</span>
@@ -145,6 +148,7 @@ const Step1SellerDetails = ({ formData, handleChange, contactInput, setContactIn
           value={formData.loanStatus}
           onChange={handleChange}
           className="w-full border px-3 py-2 rounded-lg bg-[#FAFBFC] focus:border-blue-600"
+          placeholder="Enter loanStatus"
         />
       </div>
     </div>

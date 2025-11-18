@@ -243,6 +243,7 @@ const InventoryPage = () => {
   const [externalTokens, setExternalTokens] = useState([]);
   const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [typologyFilter, setTypologyFilter] = useState('');
 
   const { user: authUser } = useContext(AuthContext) || {};
 
@@ -260,15 +261,24 @@ const InventoryPage = () => {
     const viewerPerms = getViewerPerms(authUser || {});
     const viewLower = String(viewType || "").toLowerCase();
 
-    const arr = inventoryArray.filter((item) => {
+    let arr = inventoryArray.filter((item) => {
       const type = String(item.inventoryType || item.type || item.category || "").toLowerCase();
       if (viewLower.includes("sale")) return type.includes("sale") || type.includes("sell");
       if (viewLower.includes("rent")) return type.includes("rent") || type.includes("rental");
       return true;
     });
 
+    // Optional typology filter (hidden dropdown)
+    if (typologyFilter) {
+      const needle = String(typologyFilter).toLowerCase();
+      arr = arr.filter((item) => {
+        const vals = Array.isArray(item.typology) ? item.typology : (item.typology ? [item.typology] : []);
+        return vals.some((v) => String(v).toLowerCase() === needle);
+      });
+    }
+
     return arr.filter((item) => canViewInventory(viewerPerms, item));
-  }, [inventoryArray, viewType, authUser]);
+  }, [inventoryArray, viewType, authUser, typologyFilter]);
 
   if (isLoading)
     return (
@@ -314,7 +324,7 @@ const InventoryPage = () => {
           />
         </div>
 
-        {/* Search + Export */}
+        {/* Search + Export + Hidden Typology Filter */}
         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
           <TokenSearch
             value={searchTerm}
@@ -329,6 +339,8 @@ const InventoryPage = () => {
           >
             Export
           </button>
+
+          {/* Typology filter is now triggered from the table header. Options passed to table below. */}
         </div>
       </div>
 
@@ -340,6 +352,11 @@ const InventoryPage = () => {
           externalSearch={searchTerm}
           externalTokens={externalTokens}
           onExternalTokensChange={setExternalTokens}
+          typologyFilter={typologyFilter}
+          onTypologyFilterChange={(val) => { setTypologyFilter(val); }}
+          typologyOptions={Array.from(new Set(
+            inventoryArray.flatMap((it) => Array.isArray(it.typology) ? it.typology : (it.typology ? [it.typology] : []))
+          ))}
         />
       ) : (
         <p className="text-gray-500 text-center py-10">

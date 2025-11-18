@@ -70,7 +70,7 @@ const AddBrokerRequirement = () => {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block mb-1 font-medium">Broker Name</label>
-            <input name="brokerName" value={form.brokerName} onChange={handleChange} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" />
+            <input name="brokerName" value={form.brokerName} onChange={handleChange} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" placeholder="Enter brokerName" />
           </div>
           <div>
             <label className="block mb-1 font-medium">Contact No.</label>
@@ -82,6 +82,7 @@ const AddBrokerRequirement = () => {
               title="Enter a valid phone number (digits only)"
               required
               className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2"
+              placeholder="Enter contactNumber"
             />
           </div>
           <div>
@@ -101,24 +102,24 @@ const AddBrokerRequirement = () => {
           </div>
           <div>
             <label className="block mb-1 font-medium">Remark</label>
-            <textarea name="remark" value={form.remark} onChange={handleChange} rows={6} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" />
+            <textarea name="remark" value={form.remark} onChange={handleChange} rows={6} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" placeholder="Enter remark" />
           </div>
 
           <div>
             <label className="block mb-1 font-medium">Requirement</label>
-            <textarea name="requirement" value={form.requirement} onChange={handleChange} rows={6} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" />
+            <textarea name="requirement" value={form.requirement} onChange={handleChange} rows={6} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" placeholder="Enter requirement" />
           </div>
 
           <div className="">
             <label className="block mb-1 font-medium">Source</label>
-            <input name="source" value={form.source} onChange={handleChange} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" />
+            <input name="source" value={form.source} onChange={handleChange} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" placeholder="Enter source" />
           </div>
         </div>
 
         {error && <p className="text-red-500 mt-3">{error}</p>}
 
         <div className="mt-6 flex gap-3 justify-end">
-          <button type="button" onClick={() => navigate(-1)} className="btn px-4 py-2">Cancel</button>
+          <button type="button" onClick={() => navigate(-1)} className="rounded border border-red-500 px-4 py-2 text-red-600 hover:bg-red-50">Cancel</button>
           <button type="submit" disabled={loading} className="btn px-4 py-2">{loading ? 'Saving...' : 'Save'}</button>
         </div>
       </form>

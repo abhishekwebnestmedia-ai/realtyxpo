@@ -4,7 +4,7 @@ import api from "../../api/api"; // ✅ axios instance
 import ConfirmDeleteButton from "../ui/notifications/ConfirmDelete"; // adjust path
 import EditOptionsPopup from "../modals/EditInventry"; // adjust path
 import TokenSearch from '../ui/TokenSearch';
-const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, externalSearch = "", externalRowsPerPage = 10, onPageRowsChange = null, externalTokens = [], onExternalTokensChange = undefined }) => {
+const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, externalSearch = "", externalRowsPerPage = 10, onPageRowsChange = null, externalTokens = [], onExternalTokensChange = undefined, typologyFilter = '', onTypologyFilterChange = () => {}, typologyOptions = [] }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchTokens, setSearchTokens] = useState([]);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
@@ -15,6 +15,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
   const [editingRowId, setEditingRowId] = useState(null); // ✅ Track specific row being edited
   // local rows per page (sync with external prop)
   const [rowsPerPage, setRowsPerPage] = useState(externalRowsPerPage);
+  const [showTypologyMenu, setShowTypologyMenu] = useState(false);
   
   // Use external search when provided
   const activeSearch = hideSearch ? externalSearch : searchTerm;
@@ -250,15 +251,29 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                   : ""}
               </th>
               <th
-                className="px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
-                onClick={() => handleSort("typology")}
+                className="px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold relative"
+                onClick={(e) => { e.stopPropagation(); setShowTypologyMenu((s) => !s); setCurrentPage(1); }}
               >
-                Typology{" "}
-                {sortConfig.key === "typology"
-                  ? sortConfig.direction === "asc"
-                    ? " ▲"
-                    : " ▼"
-                  : ""}
+                Typology
+                {typologyFilter ? `: ${typologyFilter}` : ''}
+                {showTypologyMenu && (
+                  <div className="absolute left-0 top-full mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow z-50 p-2" onClick={(ev) => ev.stopPropagation()}>
+                    <select
+                      className="w-full border rounded px-2 py-1 bg-[#FAFBFC]"
+                      value={typologyFilter}
+                      onChange={(e) => {
+                        onTypologyFilterChange(e.target.value);
+                        setShowTypologyMenu(false);
+                        setCurrentPage(1);
+                      }}
+                    >
+                      <option value="">All</option>
+                      {typologyOptions.map((t) => (
+                        <option key={String(t)} value={String(t)}>{String(t)}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </th>
               <th
                 className="px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"

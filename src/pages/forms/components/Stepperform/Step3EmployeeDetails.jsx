@@ -1,4 +1,5 @@
 import React from "react";
+import TimePicker from "../../../../components/ui/TimePicker";
 
 const Step3EmployeeDetails = ({ formData, handleChange, users, filteredUsersForAssignTo, sources }) => {
   return (
@@ -53,15 +54,21 @@ const Step3EmployeeDetails = ({ formData, handleChange, users, filteredUsersForA
         </datalist>
       </div>
 
-      {/* Follow Up */}
+      {/* Follow Up Date & Time */}
       <div>
-        <label className="block mb-2 font-medium">Follow up Date</label>
+        <label className="block mb-2 font-medium">Follow-up</label>
         <input
           type="date"
-          name="followUp"
-          value={formData.followUp}
+          name="followUpDate"
+          value={formData.followUpDate || ""}
           onChange={handleChange}
-          className="w-full border px-3 py-2 rounded-lg"
+          className="w-full border px-3 py-2 rounded-lg mb-2"
+        />
+        <TimePicker
+          name="followUpTime"
+          value={formData.followUpTime || ""}
+          onChange={handleChange}
+          className="w-full"
         />
       </div>
 

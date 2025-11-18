@@ -133,6 +133,7 @@ const EditDatabaseEntry = () => {
             onChange={handleChange}
             required
             className="rounded border border-gray-300 bg-[#FAFBFC] px-3 py-2 text-sm"
+            placeholder="Enter projectName"
           />
         </div>
 
@@ -145,6 +146,7 @@ const EditDatabaseEntry = () => {
             onChange={handleChange}
             required
             className="rounded border border-gray-300 bg-[#FAFBFC] px-3 py-2 text-sm"
+            placeholder="Enter divisionName"
           />
         </div>
 
@@ -156,6 +158,7 @@ const EditDatabaseEntry = () => {
             value={form.typology}
             onChange={handleChange}
             className="rounded border border-gray-300 bg-[#FAFBFC] px-3 py-2 text-sm"
+            placeholder="Enter typology"
           />
         </div>
 
@@ -167,6 +170,7 @@ const EditDatabaseEntry = () => {
             value={form.sector}
             onChange={handleChange}
             className="rounded border border-gray-300 bg-[#FAFBFC] px-3 py-2 text-sm"
+            placeholder="Enter sector"
           />
         </div>
 
@@ -178,6 +182,7 @@ const EditDatabaseEntry = () => {
             value={form.price}
             onChange={handleChange}
             className="rounded border border-gray-300 bg-[#FAFBFC] px-3 py-2 text-sm"
+            placeholder="Enter price"
           />
         </div>
 
@@ -189,6 +194,7 @@ const EditDatabaseEntry = () => {
             value={form.size}
             onChange={handleChange}
             className="rounded border border-gray-300 bg-[#FAFBFC] px-3 py-2 text-sm"
+            placeholder="Enter size"
           />
         </div>
 
@@ -201,6 +207,7 @@ const EditDatabaseEntry = () => {
             onChange={handleChange}
             type="url"
             className="rounded border border-gray-300 bg-[#FAFBFC] px-3 py-2 text-sm"
+            placeholder="Enter pdfLink"
           />
         </div>
 

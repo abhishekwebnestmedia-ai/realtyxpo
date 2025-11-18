@@ -105,13 +105,55 @@ export async function exportToExcel(rows = [], columns = null, fileName = 'expor
 }
 
 /**
+ * Export array of objects to ODS (OpenDocument Spreadsheet) using SheetJS if available.
+ * Falls back to Excel/.xls if ODS not supported.
+ */
+export async function exportToOds(rows = [], columns = null, fileName = 'export') {
+  if (!Array.isArray(rows) || rows.length === 0) {
+    alert('No data to export');
+    return;
+  }
+
+  const cols = columns || Object.keys(rows[0]);
+  const prepared = rows.map((r) => {
+    const obj = {};
+    cols.forEach((c) => {
+      obj[c] = r[c] == null ? '' : r[c];
+    });
+    return obj;
+  });
+
+  try {
+    const XLSX = await import('xlsx');
+    const ws = XLSX.utils.json_to_sheet(prepared, { header: cols });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+    // Attempt to write ODS
+    const wbout = XLSX.write(wb, { bookType: 'ods', type: 'array' });
+    const blob = new Blob([wbout], { type: 'application/vnd.oasis.opendocument.spreadsheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${safeFilename(fileName)}.ods`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    console.warn('ODS export failed or not supported, falling back to Excel export', err);
+    // Fallback to Excel export
+    return exportToExcel(rows, columns, fileName);
+  }
+}
+
+/**
  * Export array of objects to PDF
  * Uses browser print with custom styles
  * @param {Array} rows - Array of row objects
  * @param {Array} columns - Optional array of column keys
  * @param {String} title - Document title
  */
-export function exportToPdf(rows = [], columns = null, title = 'Export') {
+export async function exportToPdf(rows = [], columns = null, title = 'Export', watermark = '') {
   if (!Array.isArray(rows) || rows.length === 0) {
     alert('No data to export');
     return;
@@ -124,6 +166,29 @@ export function exportToPdf(rows = [], columns = null, title = 'Export') {
     return String(v).replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/&/g, '&amp;');
   };
   
+  // If watermark is an SVG file path (endsWith '.svg'), fetch and embed as data URL image
+  let watermarkHtml = '';
+  try {
+    if (watermark && typeof watermark === 'string' && watermark.toLowerCase().endsWith('.svg')) {
+      // fetch the SVG from public path and inline it as data URL
+      const resp = await fetch(watermark);
+      if (resp.ok) {
+        const svgText = await resp.text();
+        const dataUrl = 'data:image/svg+xml;utf8,' + encodeURIComponent(svgText);
+        watermarkHtml = `<img src="${dataUrl}" class="watermark-img" alt="watermark" />`;
+      } else {
+        // fallback to text watermark if fetch failed
+        watermarkHtml = `<div class="watermark">${String(watermark).replace(/</g, '&lt;')}</div>`;
+      }
+    } else if (watermark) {
+      // text watermark
+      watermarkHtml = `<div class="watermark">${String(watermark).replace(/</g, '&lt;')}</div>`;
+    }
+  } catch (e) {
+    console.warn('Failed to load watermark image, falling back to text if provided', e);
+    if (watermark) watermarkHtml = `<div class="watermark">${String(watermark).replace(/</g, '&lt;')}</div>`;
+  }
+
   let html = `
 <!DOCTYPE html>
 <html>
@@ -141,9 +206,15 @@ export function exportToPdf(rows = [], columns = null, title = 'Export') {
     th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
     th { background-color: #f2f2f2; font-weight: bold; }
     tr:nth-child(even) { background-color: #f9f9f9; }
+    /* Watermark styles */
+    .watermark { pointer-events: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg); color: rgba(0,0,0,0.06); font-size: 72px; font-weight: 700; z-index: 0; white-space: nowrap; }
+    .watermark-img { pointer-events: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9); opacity: 0.08; z-index: 0; max-width: 80%; height: auto; }
+    .export-content { position: relative; z-index: 1; }
   </style>
 </head>
 <body>
+  ${watermarkHtml}
+  <div class="export-content">
   <h1>${title}</h1>
   <table>
     <thead>
@@ -153,6 +224,7 @@ export function exportToPdf(rows = [], columns = null, title = 'Export') {
       ${rows.map(r => '<tr>' + cols.map(c => `<td>${buildCell(r[c])}</td>`).join('') + '</tr>').join('')}
     </tbody>
   </table>
+  </div>
 </body>
 </html>
   `;

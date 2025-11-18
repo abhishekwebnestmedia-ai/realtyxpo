@@ -84,11 +84,11 @@ const EditBrokerRequirement = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block mb-1 font-medium">Broker Name</label>
-              <input name="brokerName" value={form.brokerName} onChange={handleChange} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" />
+              <input name="brokerName" value={form.brokerName} onChange={handleChange} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" placeholder="Enter brokerName" />
             </div>
             <div>
               <label className="block mb-1 font-medium">Contact No.</label>
-              <input name="contactNumber" value={form.contactNumber} onChange={handleChange} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" />
+              <input name="contactNumber" value={form.contactNumber} onChange={handleChange} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" placeholder="Enter contactNumber" />
             </div>
             <div>
               <label className="block mb-1 font-medium">Status</label>
@@ -103,7 +103,7 @@ const EditBrokerRequirement = () => {
             </div>
             <div>
               <label className="block mb-1 font-medium">Follow-up Date</label>
-              <input name="followUpDate" value={form.followUpDate} onChange={handleChange} type="date" className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" />
+              <input name="followUpDate" value={form.followUpDate} onChange={handleChange} type="date" className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" placeholder="Enter followUpDate" />
             </div>
             <div>
               <label className="block mb-1 font-medium">Remark</label>
@@ -122,7 +122,7 @@ const EditBrokerRequirement = () => {
 
               <div className="">
                 <label className="block mb-1 font-medium">Source</label>
-                <input name="source" value={form.source} onChange={handleChange} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" />
+                <input name="source" value={form.source} onChange={handleChange} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" placeholder="Enter source" />
               </div>
           </div>
 
