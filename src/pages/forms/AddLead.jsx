@@ -15,7 +15,7 @@ const AddLead = () => {
     customerName: "",
     contactNumber: "",
     email: "",
-    status: "Hot",
+    status: "Not connected",
     leadType: "",
     // separate date/time inputs for 12-hour picker (default empty)
     followUpDate: "",
@@ -411,12 +411,15 @@ const AddLead = () => {
           </div>
         </div>
 
-        {/* Submit: error on left, button aligned right */}
+        {/* Submit: error on left, Cancel + Save on right */}
         <div className="mt-6 flex items-center justify-between">
           <div className="flex-1">
             {error && <p className="text-red-500">{error}</p>}
           </div>
-          <div>
+          <div className="flex gap-3">
+            <button type="button" onClick={() => navigate(-1)} className="btn px-4 py-2">
+              Cancel
+            </button>
             <button type="submit" disabled={loading} className="btn px-4 py-2">
               {loading ? "Saving..." : "Save Lead"}
             </button>

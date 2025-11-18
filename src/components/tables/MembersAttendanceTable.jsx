@@ -261,7 +261,7 @@ const MembersAttendanceTable = ({ isDashboard = true, onClose = null }) => {
 
         {/* Table */}
         <div className="bg-white mx-[6px] rounded-2xl mb-1">
-          <div className={`overflow-x-auto scrollbar-hidden ${isDashboard ? 'h-64 overflow-y-auto' : ''}`}>
+          <div className={`overflow-x-auto ${isDashboard ? 'h-64 overflow-y-auto' : ''}`}>
             <table className="w-full text-sm text-left text-gray-700">
               <thead className={`text-gray-600 bg-[#FAFBFC] uppercase text-xs ${isDashboard ? 'sticky top-0 z-20' : ''}`}>
                 <tr className="first:rounded-t-2xl">

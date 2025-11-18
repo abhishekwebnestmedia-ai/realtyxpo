@@ -6,3 +6,5 @@ export { default as EditInventry } from './EditInventry';
 export { default as ProjectModal } from './ProjectModal';
 export { default as AssignLeadModal } from './AssignLeadModal';
 export { default as EditMemberModal } from './EditMemberModal';
+export { default as ForgotPasswordModal } from './ForgotPasswordModal';
+export { default as ResetPasswordModal } from './ResetPasswordModal';

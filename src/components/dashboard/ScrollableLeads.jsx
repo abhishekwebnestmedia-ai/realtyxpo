@@ -397,11 +397,11 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
       )}
 
       {/* 📊 Table */}
-      <div className="overflow-x-auto scrollbar-hidden bg-white rounded-tr-3xl rounded-tl-3xl ">
+      <div className="overflow-x-auto bg-white rounded-tr-3xl rounded-tl-3xl ">
         <table className="w-full border-collapse">
-          <thead className="bg-gray-100 text-gray-600 uppercase text-xs sticky top-0 z-10">
+          <thead className="bg-gray-100 text-gray-600 uppercase text-xs sticky top-0 z-10 border-b">
             <tr>
-              <th className="px-4 py-2 font-medium text-center theading">
+              <th className="px-4 py-2 font-medium text-center theading sticky left-0 bg-white z-30">
                 <input
                   type="checkbox"
                   aria-label="Select all"
@@ -420,7 +420,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                 />
               </th>
               <th
-                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading "
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading sticky left-12 bg-white z-20"
                 onClick={() => handleSort("customerName")}
               >
                 Customer Name{" "}
@@ -523,9 +523,9 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
               <tr
                 key={row._id ?? row.id ?? idx}
                 className="border-b hover:bg-gray-50 transition cursor-pointer"
-                onClick={() => handleRowClick(row)}
+                onDoubleClick={() => handleRowClick(row)}
               >
-                <td className="px-4 py-2 text-center font-medium">
+                <td className="px-4 py-2 text-center font-medium sticky left-0 bg-white z-20">
                   <input
                     type="checkbox"
                     className="w-4 h-4"
@@ -540,7 +540,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                     onClick={(e) => e.stopPropagation()}
                   />
                 </td>
-                <td className="px-4 py-4  whitespace-nowrap ">{row.customerName}</td>
+                <td className="px-4 py-4  whitespace-nowrap sticky left-12 bg-white z-10">{row.customerName}</td>
                 <td className="px-4 py-4 whitespace-nowrap ">{row.contactNumber || row.contactNo || 'N/A'}</td>
                 <td className="px-4 py-4 whitespace-nowrap ">{row.email}</td>
                 <td className="px-4 py-4 whitespace-nowrap">

@@ -338,6 +338,8 @@ const InventoryPage = () => {
           data={filteredData}
           hideSearch={true}
           externalSearch={searchTerm}
+          externalTokens={externalTokens}
+          onExternalTokensChange={setExternalTokens}
         />
       ) : (
         <p className="text-gray-500 text-center py-10">

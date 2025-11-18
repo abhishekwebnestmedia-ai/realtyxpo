@@ -6,6 +6,8 @@ import api from "../../api/api";
 
 const AddBulkBrokerRequirements = ({ isOpen, onClose }) => {
   const [selectedFile, setSelectedFile] = useState(null);
+  const [fileHeaders, setFileHeaders] = useState([]);
+  const [showHeaderPreview, setShowHeaderPreview] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
@@ -45,11 +47,46 @@ const AddBulkBrokerRequirements = ({ isOpen, onClose }) => {
     return true;
   };
 
+  // Extract headers for preview (CSV or Excel)
+  const extractHeaders = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          if (file.type === 'text/csv') {
+            const firstLine = e.target.result.split('\n')[0];
+            const headers = firstLine.split(',').map(h => h.replace(/"/g, '').trim());
+            resolve(headers);
+          } else {
+            const workbook = XLSX.read(e.target.result, { type: 'binary' });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const range = XLSX.utils.decode_range(sheet['!ref']);
+            const headers = [];
+            for (let C = range.s.c; C <= range.e.c; ++C) {
+              const cell = sheet[XLSX.utils.encode_cell({ r: 0, c: C })];
+              if (cell && cell.v) headers.push(cell.v);
+            }
+            resolve(headers);
+          }
+        } catch (err) {
+          reject(err);
+        }
+      };
+      reader.onerror = () => reject('Failed to read file');
+      if (file.type === 'text/csv') reader.readAsText(file);
+      else reader.readAsBinaryString(file);
+    });
+  };
+
   const handleFileSelection = (file) => {
     if (validateFile(file)) {
       setSelectedFile(file);
       setUploadStatus(null);
       setErrorMessage("");
+      // try extract headers for preview
+      extractHeaders(file)
+        .then((h) => setFileHeaders(h))
+        .catch(() => setFileHeaders([]));
     }
   };
 
@@ -174,6 +211,26 @@ const AddBulkBrokerRequirements = ({ isOpen, onClose }) => {
                 <p className="text-gray-600 mb-4">Select your Excel or CSV file with broker requirement data</p>
                 <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" onChange={handleFileSelect} className="hidden" />
                 <button onClick={() => fileInputRef.current?.click()} className=" text-[#334DE5] border border-[#334DE5] px-4 py-2 rounded-md transition-colors inline-flex items-center gap-2" disabled={isUploading}><Upload size={16} /> Browse File</button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!fileHeaders || fileHeaders.length === 0) {
+                      // show a suggested template for broker requirements
+                      setFileHeaders([
+                        'brokerName',
+                        'contactNumber',
+                        'email',
+                        'requirement',
+                        'date',
+                        'remarks'
+                      ]);
+                    }
+                    setShowHeaderPreview(true);
+                  }}
+                  className="ml-2 px-3 py-2 border rounded-md text-sm"
+                >
+                  Preview Headers
+                </button>
               </>
             ) : (
               <div className="space-y-3">
@@ -189,6 +246,22 @@ const AddBulkBrokerRequirements = ({ isOpen, onClose }) => {
             <div className="space-y-2">
               <div className="flex justify-between text-sm"><span>Uploading...</span><span>{uploadProgress}%</span></div>
               <div className="w-full bg-gray-200 rounded-full h-2"><div className="bg-blue-600 h-2 rounded-full" style={{ width: `${uploadProgress}%` }} /></div>
+            </div>
+          )}
+
+          {/* Header preview */}
+          {showHeaderPreview && fileHeaders.length > 0 && (
+            <div className="mb-4 bg-gray-50 border border-gray-200 rounded-lg p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Eye size={16} className="text-blue-600" />
+                <span className="text-sm font-semibold text-gray-800">Header Preview ({fileHeaders.length} columns)</span>
+                <button type="button" onClick={() => setShowHeaderPreview(false)} className="ml-auto text-sm text-gray-500 hover:text-gray-700">Close</button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {fileHeaders.map((h, i) => (
+                  <span key={i} className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-md border border-blue-200">{h}</span>
+                ))}
+              </div>
             </div>
           )}
 

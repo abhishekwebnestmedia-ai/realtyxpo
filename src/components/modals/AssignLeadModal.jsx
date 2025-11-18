@@ -102,7 +102,7 @@ const AssignLeadModal = ({ isOpen, onClose }) => {
     // ...existing code...
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-  <div className="bg-white rounded-xl p-4 w-full max-w-2xl h-[600px] border border-blue-100 shadow-xl scrollbar-hide flex flex-col">
+  <div className="bg-white rounded-xl p-4 w-full max-w-2xl h-[600px] border border-blue-100 shadow-xl flex flex-col">
           <div className="flex justify-between items-center pb-2 border-b border-gray-200">
             <div className="flex items-center gap-2">
               <button onClick={() => setShowPreview(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors" title="Back">
@@ -118,7 +118,7 @@ const AssignLeadModal = ({ isOpen, onClose }) => {
             <div className="font-semibold text-gray-700 mb-2 flex items-center gap-2 p-4">
               <span className="inline-block"><User size={18} className="text-blue-500" /></span> Lead Preview
             </div>
-            <div className="overflow-x-auto rounded-2xl scrollbar-hidden" style={{ maxHeight: '370px' }}>
+            <div className="overflow-x-auto rounded-2xl" style={{ maxHeight: '370px' }}>
               <table className="min-w-full text-xs md:text-sm">
                 <thead className="sticky top-0 z-20 bg-gray-100">
                   <tr className="bg-gray-100 text-gray-700 border-b border-gray-300">
@@ -203,7 +203,7 @@ const AssignLeadModal = ({ isOpen, onClose }) => {
   // Main modal (first step)
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-4 w-full max-w-2xl max-h-[95vh] overflow-y-auto border border-blue-100 shadow-xl scrollbar-hide">
+      <div className="bg-white rounded-xl p-4 w-full max-w-2xl max-h-[95vh] overflow-y-auto border border-blue-100 shadow-xl">
         {/* Modal Header */}
         <div className="flex justify-between items-center pb-2 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">Lead assign</h2>
@@ -261,7 +261,7 @@ const AssignLeadModal = ({ isOpen, onClose }) => {
             <span className="inline-block"><User size={18} className="text-blue-500" /></span> Lead Preview
           </div>
           <div className="overflow-x-auto max-h-64 scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-blue-50 mx-2">
-            <div className="overflow-x-auto max-h-64 scrollbar-hidden rounded-2xl">
+            <div className="overflow-x-auto max-h-64 rounded-2xl">
               <table className="min-w-full text-xs md:text-sm">
               <thead className="sticky top-0 z-10 bg-gray-100">
                 <tr className="bg-gray-100 text-gray-700 border-b border-gray-300">

@@ -403,6 +403,7 @@ import api from "../../api/api";
 const AddBulkInventry = ({ isOpen, onClose }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileHeaders, setFileHeaders] = useState([]); // 🆕 Header preview
+  const [showHeaderPreview, setShowHeaderPreview] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
@@ -634,13 +635,20 @@ const AddBulkInventry = ({ isOpen, onClose }) => {
         </div>
 
         {/* 🆕 Header Preview */}
-        {fileHeaders.length > 0 && (
+        {showHeaderPreview && fileHeaders.length > 0 && (
           <div className="mb-4 bg-gray-50 border border-gray-200 rounded-lg p-3">
             <div className="flex items-center gap-2 mb-2">
               <Eye size={16} className="text-blue-600" />
               <span className="text-sm font-semibold text-gray-800">
                 Header Preview ({fileHeaders.length} columns)
               </span>
+              <button
+                type="button"
+                onClick={() => setShowHeaderPreview(false)}
+                className="ml-auto text-sm text-gray-500 hover:text-gray-700"
+              >
+                Close
+              </button>
             </div>
             <div className="flex flex-wrap gap-2">
               {fileHeaders.map((header, i) => (
@@ -666,7 +674,7 @@ const AddBulkInventry = ({ isOpen, onClose }) => {
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
-          {!selectedFile ? (
+              {!selectedFile ? (
             <>
               <FileSpreadsheet
                 size={48}
@@ -701,6 +709,43 @@ const AddBulkInventry = ({ isOpen, onClose }) => {
                 <Upload size={16} />
                 Browse File
               </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    // show template headers if no file selected
+                    setShowHeaderPreview(true);
+                    if (!fileHeaders || fileHeaders.length === 0) {
+                      // optional: show a suggested template for inventory
+                      setFileHeaders([
+                        'sellerName',
+                        'inventoryType',
+                        'sector',
+                        'unitNo',
+                        'towerNo',
+                        'typology',
+                        'size',
+                        'demand',
+                        'Project',
+                        'contactNumbers',
+                        'email',
+                        'paymentStatus',
+                        'registryType',
+                        'requirement',
+                        'date',
+                        'capturedBy',
+                        'assignTo',
+                        'transferTo',
+                        'followUpDate',
+                        'source',
+                        'loanStatus',
+                        'remarks',
+                      ]);
+                    }
+                  }}
+                  className="ml-2 px-3 py-2 border rounded-md text-sm"
+                >
+                  Preview Headers
+                </button>
             </>
           ) : (
             <div className="space-y-3">
@@ -719,6 +764,27 @@ const AddBulkInventry = ({ isOpen, onClose }) => {
                   className="text-sm text-red-600 hover:text-red-700"
                 >
                   Remove file
+                </button>
+              )}
+              {/* Preview for selected file */}
+              {selectedFile && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!fileHeaders || fileHeaders.length === 0) {
+                      try {
+                        const headers = await extractHeaders(selectedFile);
+                        setFileHeaders(headers);
+                      } catch {
+                        setErrorMessage('Unable to read file headers.');
+                        return;
+                      }
+                    }
+                    setShowHeaderPreview(true);
+                  }}
+                  className="text-sm ml-2 px-3 py-2 border rounded-md"
+                >
+                  Preview Headers
                 </button>
               )}
             </div>

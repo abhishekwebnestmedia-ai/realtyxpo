@@ -4,7 +4,7 @@ import api from "../../api/api"; // ✅ axios instance
 import ConfirmDeleteButton from "../ui/notifications/ConfirmDelete"; // adjust path
 import EditOptionsPopup from "../modals/EditInventry"; // adjust path
 import TokenSearch from '../ui/TokenSearch';
-const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, externalSearch = "", externalRowsPerPage = 10, onPageRowsChange = null }) => {
+const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, externalSearch = "", externalRowsPerPage = 10, onPageRowsChange = null, externalTokens = [], onExternalTokensChange = undefined }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchTokens, setSearchTokens] = useState([]);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
@@ -40,13 +40,32 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
 
   // ✅ Search filter supporting tokenized AND search
   const filteredData = useMemo(() => {
-    const tokens = (searchTokens && searchTokens.length) ? searchTokens.map(t => String(t).toLowerCase()) : (activeSearch ? [String(activeSearch).toLowerCase()] : []);
+    // priority: internal tokens > externalTokens (from parent) > activeSearch
+    const tokens = (searchTokens && searchTokens.length)
+      ? searchTokens.map(t => String(t).toLowerCase())
+      : ((externalTokens && externalTokens.length)
+        ? externalTokens.map(t => String(t).toLowerCase())
+        : (activeSearch ? [String(activeSearch).toLowerCase()] : []));
+
     if (!tokens || tokens.length === 0) return localData;
+
+    const rowToSearchString = (row) => {
+      const parts = [];
+      const walk = (val) => {
+        if (val === null || val === undefined) return;
+        if (Array.isArray(val)) { val.forEach(walk); return; }
+        if (typeof val === 'object') { try { Object.values(val).forEach(walk); } catch (e) {} return; }
+        parts.push(String(val));
+      };
+      walk(row);
+      return parts.join(' ').toLowerCase();
+    };
+
     return localData.filter((row) => {
-      const hay = Object.values(row).join(' ').toLowerCase();
+      const hay = rowToSearchString(row);
       return tokens.every(tok => hay.includes(tok));
     });
-  }, [localData, activeSearch, searchTokens]);
+  }, [localData, activeSearch, searchTokens, externalTokens]);
 
   // ✅ Sorting
   const sortedData = useMemo(() => {
@@ -155,9 +174,9 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
       {/* ✅ Table */}
       <div className="overflow-x-auto bg-white rounded-tr-3xl rounded-tl-3xl ">
         <table className="w-full border-collapse text-sm">
-          <thead className="bg-gray-100 text-gray-600 uppercase text-xs sticky top-0 z-10 font-bold">
+          <thead className="bg-gray-100 text-gray-600 uppercase text-xs sticky top-0 z-10 font-bold border-b">
             <tr>
-              <th className="px-4 py-2 font-semibold text-center theading">
+              <th className="px-4 py-2 font-semibold text-center theading sticky left-0 bg-white z-30">
                 <input
                   type="checkbox"
                   aria-label="Select all inventory"
@@ -176,7 +195,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                 />
               </th>
               <th
-                className="px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold"
+                className="px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold sticky left-12 bg-white z-20"
                 onClick={() => handleSort("sellerName")}
               >
                 Seller Name{" "}
@@ -417,9 +436,9 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                 <tr
                   key={row._id}
                   className="border-b hover:bg-gray-50 transition-colors cursor-pointer"
-                  onClick={() => handleRowClick(row)}
+                  onDoubleClick={() => handleRowClick(row)}
                 >
-                  <td className="px-4 py-4 text-center">
+                  <td className="px-4 py-4 text-center sticky left-0 bg-white z-20">
                     <input
                       type="checkbox"
                       className="w-4 h-4"
@@ -433,7 +452,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                       onClick={(e) => e.stopPropagation()}
                     />
                   </td>
-                  <td className="px-4 py-4 whitespace-nowrap">
+                  <td className="px-4 py-4 whitespace-nowrap sticky left-12 bg-white z-10">
                     {row.sellerName}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">{row.Project}</td>

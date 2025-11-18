@@ -333,6 +333,7 @@ import api from "../../api/api";
 const AddBulkLead = ({ isOpen, onClose }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileHeaders, setFileHeaders] = useState([]); // 🆕 store header preview
+  const [showHeaderPreview, setShowHeaderPreview] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState(null); // 'success' | 'error' | null
   const [errorMessage, setErrorMessage] = useState("");
@@ -541,13 +542,20 @@ const AddBulkLead = ({ isOpen, onClose }) => {
         </div>
 
         {/* 🆕 Header Preview */}
-        {fileHeaders.length > 0 && (
+        {showHeaderPreview && fileHeaders.length > 0 && (
           <div className="mb-4 bg-gray-50 border border-gray-200 rounded-lg p-3">
             <div className="flex items-center gap-2 mb-2">
               <Eye size={16} className="text-blue-600" />
               <span className="text-sm font-semibold text-gray-800">
                 Header Preview ({fileHeaders.length} columns)
               </span>
+              <button
+                type="button"
+                onClick={() => setShowHeaderPreview(false)}
+                className="ml-auto text-sm text-gray-500 hover:text-gray-700"
+              >
+                Close
+              </button>
             </div>
             <div className="flex flex-wrap gap-2">
               {fileHeaders.map((header, i) => (
@@ -590,6 +598,32 @@ const AddBulkLead = ({ isOpen, onClose }) => {
               >
                 <Upload size={16} />
                 Browse File
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  // if there are no extracted headers, show template
+                  if (!fileHeaders || fileHeaders.length === 0) {
+                    setFileHeaders([
+                      'customerName',
+                      'contactNumber',
+                      'email',
+                      'status',
+                      'followUpDate',
+                      'requirement',
+                      'remark',
+                      'date',
+                      'capturedBy',
+                      'assignTo',
+                      'transferTo',
+                      'source'
+                    ]);
+                  }
+                  setShowHeaderPreview(true);
+                }}
+                className="ml-2 px-3 py-2 border rounded-md text-sm"
+              >
+                Preview Headers
               </button>
             </>
           ) : (

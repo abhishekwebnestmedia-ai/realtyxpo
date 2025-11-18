@@ -188,14 +188,14 @@ const ProjectModal = ({
         {/* Division Name */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Division Name
+            Location
           </label>
           <input
             type="text"
             value={formData.divisionName}
             onChange={(e) => handleInputChange('divisionName', e.target.value)}
             disabled={getFieldReadonly('divisionName')}
-            placeholder="Enter division name"
+            placeholder="example: Golf Course Road"
             className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 ${
               formErrors.divisionName ? 'border-red-500' : 'border-gray-300'
             }`}
@@ -339,7 +339,7 @@ const ProjectModal = ({
                        formData.mobileNumbers.some(num => num.trim());
     
     return (
-    <div className="space-y-4 scrollbar-hidden">
+    <div className="space-y-4">
       <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
         <p className="text-sm text-blue-700">
           <strong>Optional:</strong> Fill unit details only if you want to create specific units. 
@@ -428,7 +428,7 @@ const ProjectModal = ({
           Status
         </label>
         <div className="grid grid-cols-2 gap-4">
-          {['Vacant', 'Rental', 'Self Occupied', 'Interested in calling'].map((status) => (
+          {['Vacant', 'Rental', 'Self Occupied', 'For Sale'].map((status) => (
             <label key={status} className="flex items-center space-x-2 cursor-pointer">
               <input
                 type="radio"
@@ -652,7 +652,7 @@ const ProjectModal = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto scrollbar-hidden">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center p-6 border-b">
           <div>
             <h2 className="text-xl font-semibold">

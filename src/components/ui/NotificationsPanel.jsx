@@ -154,7 +154,7 @@ const NotificationsPanel = () => {
           </div>
         </div>
 
-        <div className="flex-1 overflow-auto scrollbar-hidden">
+        <div className="flex-1 overflow-auto hide-scrollbar">
           {notifications.length === 0 && <div className="p-4 text-sm text-gray-500">No notifications</div>}
           {notifications.map(n => (
             <div key={n.notificationId || n._id} className={`p-3 border-b hover:bg-gray-50 ${n.isRead ? 'bg-white' : 'bg-blue-50'}`}>

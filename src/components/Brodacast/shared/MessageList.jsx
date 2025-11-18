@@ -87,8 +87,8 @@ const MessageList = ({ messages }) => {
   const { map: grouped, keys: sortedDates } = groupMessagesByDate(messages || []);
 
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto scrollbar-hidden flex flex-col">
-      <div className={`flex-1 px-6 py-4 flex flex-col ${((messages || []).length <= 3) ? 'justify-end' : ''}`}>
+    <div className="flex flex-col">
+      <div className={`px-6 py-4 flex flex-col ${((messages || []).length <= 3) ? 'justify-end' : ''}`}>
         <div className="flex flex-col gap-3">
           {sortedDates.map((dateKey) => (
             <React.Fragment key={dateKey}>

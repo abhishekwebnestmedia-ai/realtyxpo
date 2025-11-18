@@ -40,7 +40,7 @@ const TeamLeadsAssigned = () => {
       </div>
 
       {/* Table */}
-      <div className="max-h-80 overflow-y-auto overflow-hidden rounded-3xl bg-white shadow-sm min-h-[40vh] scrollbar-hidden">
+      <div className="max-h-80 overflow-y-auto overflow-hidden rounded-3xl bg-white shadow-sm min-h-[40vh]">
         {loading ? (
           <div className="flex items-center justify-center h-40">
             <Loader2 className="h-8 w-8 text-blue-600 animate-spin mr-2" />

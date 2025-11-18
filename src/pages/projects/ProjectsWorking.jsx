@@ -517,7 +517,7 @@ const ProjectsWorking = () => {
       return { tipColor: '#ffffff', coverColor: '#ffffff' }; // gray
     case 'rental':
       return { tipColor: '#22c55e', coverColor: '#22c55e' }; // green
-    case 'interested in calling':
+    case 'for sale':
       return { tipColor: '#FF3131', coverColor: '#FF3131' }; // red
     case 'self occupied':
       return { tipColor: '#eab308', coverColor: '#eab308' }; // yellow

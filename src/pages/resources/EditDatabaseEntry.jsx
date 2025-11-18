@@ -137,7 +137,7 @@ const EditDatabaseEntry = () => {
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="font-medium text-sm text-gray-700" htmlFor="divisionName">Division Name</label>
+          <label className="font-medium text-sm text-gray-700" htmlFor="divisionName">Location</label>
           <input
             id="divisionName"
             name="divisionName"

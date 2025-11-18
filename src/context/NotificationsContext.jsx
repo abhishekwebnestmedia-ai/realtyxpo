@@ -316,7 +316,8 @@ export const NotificationsProvider = ({ children }) => {
     // If this payload looks like a follow-up reminder, enqueue/show it (and handle audio there)
     try {
       const follow = isLikelyFollowup(payload);
-      if (follow) {
+      // Only enqueue followup reminders if the notification is not already read
+      if (follow && !n.isRead) {
         enqueueFollowup(n);
       }
     } catch {
@@ -471,6 +472,34 @@ export const NotificationsProvider = ({ children }) => {
     } catch (err) {
       // be defensive
       console.debug('failed to recompute unreadCount', err);
+    }
+  }, [notifications]);
+
+  // If a notification was marked read elsewhere, ensure followup reminders do not ring/show.
+  useEffect(() => {
+    try {
+      // If the currently showing followup has been marked read, dismiss it and stop audio
+      if (followupReminder?.notification) {
+        const curId = followupReminder.notification.notificationId || followupReminder.notification._id;
+        const found = (notifications || []).find(n => (n.notificationId || n._id) === curId);
+        if (found && found.isRead) {
+          // dismiss without calling server (already marked)
+          setFollowupReminder(null);
+          try { stopAudio(); } catch { /* ignore */ }
+        }
+      }
+
+      // Remove any queued followups that are now marked read
+      try {
+        followupQueueRef.current = (followupQueueRef.current || []).filter(q => {
+          const id = q.notificationId || q._id;
+          const stored = (notifications || []).find(n => (n.notificationId || n._id) === id);
+          // keep if not found in notifications (conservative) or not read
+          return !stored || !stored.isRead;
+        });
+      } catch (e) { /* ignore */ }
+    } catch (err) {
+      /* ignore */
     }
   }, [notifications]);
 

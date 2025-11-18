@@ -230,15 +230,17 @@
 
 
 
-import React, { useState, useContext, useRef } from "react";
+import React, { useState, useContext, useRef, useEffect } from "react";
 import logo from "/logo.svg";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { Eye, EyeOff } from "lucide-react";
+import { ForgotPasswordModal, ResetPasswordModal } from '../../components/modals';
 
 const Login = () => {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
+  const location = useLocation();
   const [signupName, setSignupName] = useState("");
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
@@ -250,6 +252,9 @@ const Login = () => {
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [isFlipped, setIsFlipped] = useState(false);
+  const [isForgotOpen, setIsForgotOpen] = useState(false);
+  const [isResetOpen, setIsResetOpen] = useState(false);
+  const [resetToken, setResetToken] = useState(null);
   const navigate = useNavigate();
 
   const { login, register } = useContext(AuthContext);
@@ -312,6 +317,20 @@ const Login = () => {
     }
   };
 
+  // Open reset modal automatically when URL contains ?token=...
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(location.search);
+      const token = params.get('token');
+      if (token) {
+        setResetToken(token);
+        setIsResetOpen(true);
+      }
+    } catch (err) {
+      // ignore
+    }
+  }, [location.search]);
+
 
 
 
@@ -341,7 +360,7 @@ const Login = () => {
               <div className="absolute flex flex-col w-full h-full backface-hidden">
                 <div className="flex flex-row items-center justify-center gap-2">
                   <h2 className="text-2xl font-medium">Login to</h2>
-                  <img src={logo} alt="Logo" className="object-cover h-5 w-28" />
+                  <img src={logo} alt="Logo" className="object-cover  w-28" />
                 </div>
 
                 <input
@@ -376,7 +395,7 @@ const Login = () => {
                     <p className="text-xs">Keep Me Logged In</p>
                   </div>
                   <div className="flex flex-col items-end">
-                    <button className="text-xs text-[#334DE5]">
+                    <button className="text-xs text-[#334DE5]" onClick={() => setIsForgotOpen(true)}>
                       Forgotten Password?
                     </button>
                     <p className="text-xs">
@@ -405,7 +424,7 @@ const Login = () => {
               <div className="absolute flex flex-col w-full h-full rotate-y-180 backface-hidden overflow-y-auto p-2">
                 <div className="flex flex-row items-center justify-center gap-2">
                   <h2 className="text-2xl font-medium">Sign Up</h2>
-                  <img src={logo} alt="Logo" className="object-cover h-5 w-28" />
+                  <img src={logo} alt="Logo" className="object-cover  w-28" />
                 </div>
 
                 <input
@@ -516,6 +535,10 @@ const Login = () => {
       <p className="text-xs absolute bottom-[18px] left-5 text-gray-500">
         Developed By WebnestMedia
       </p>
+
+      {/* Forgot / Reset Modals */}
+      <ForgotPasswordModal isOpen={isForgotOpen} onClose={() => setIsForgotOpen(false)} />
+      <ResetPasswordModal isOpen={isResetOpen} onClose={() => setIsResetOpen(false)} token={resetToken} />
 
       <style>{`
         .perspective { perspective: 1000px; }

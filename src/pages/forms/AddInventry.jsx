@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useContext } from "react";
+import { useNavigate } from 'react-router-dom';
 import api from "../../api/api"; // added import for api
 import { AuthContext } from "../../context/AuthContext";
 import Step1SellerDetails from "./components/Stepperform/Step1SellerDetails";
 import Step2ProjectDetails from "./components/Stepperform/Step2ProjectDetails";
 import Step3EmployeeDetails from "./components/Stepperform/Step3EmployeeDetails";
 const StepperForm = () => {
+  const navigate = useNavigate();
   const { user } = useContext(AuthContext);
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -110,6 +112,17 @@ const StepperForm = () => {
     }
   }, [user]);
 
+  // Prevent Enter key from submitting the form while using stepper
+  const handleFormKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      // allow Enter in textarea fields
+      const tag = e.target && e.target.tagName ? e.target.tagName.toUpperCase() : '';
+      if (tag !== 'TEXTAREA') {
+        e.preventDefault();
+      }
+    }
+  };
+
 
 
   const handleSubmit = async (e) => {
@@ -187,7 +200,7 @@ const StepperForm = () => {
       </div>
       <h2 className="text-2xl font-medium">Seller Details</h2>
       {/* Form Steps */}
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} onKeyDown={handleFormKeyDown}>
         {step === 1 && (
   <Step1SellerDetails
     formData={formData}
@@ -221,15 +234,25 @@ const StepperForm = () => {
         {/* Navigation Buttons */}
         <div className="flex justify-between mt-8">
   {/* Back button */}
-  {step > 1 && (
-    <button
-      type="button"
-      onClick={() => setStep(step - 1)}
-      className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
-    >
-      Back
-    </button>
-  )}
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+
+          {step > 1 && (
+            <button
+              type="button"
+              onClick={() => setStep(step - 1)}
+              className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+            >
+              Back
+            </button>
+          )}
+        </div>
 
   {/* Next / Submit button */}
   {step < 3 ? (

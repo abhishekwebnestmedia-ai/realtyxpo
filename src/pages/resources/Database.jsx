@@ -125,12 +125,12 @@ const Database = () => {
         </div>
       )}
 
-  <div className="overflow-x-auto rounded-xl bg-white scrollbar-hidden">
+  <div className="overflow-x-auto rounded-xl bg-white">
         <table className="w-full border-collapse text-sm">
           <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
             <tr>
               <th className="px-4 py-3 text-left font-medium theading">Project</th>
-              <th className="px-4 py-3 text-left font-medium theading">Division</th>
+              <th className="px-4 py-3 text-left font-medium theading">Location</th>
               <th className="px-4 py-3 text-left font-medium theading">Typology</th>
               <th className="px-4 py-3 text-left font-medium theading">Sector</th>
               <th className="px-4 py-3 text-left font-medium theading">Price</th>

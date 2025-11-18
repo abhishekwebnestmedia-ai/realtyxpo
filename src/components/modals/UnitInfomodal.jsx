@@ -294,6 +294,17 @@ const UnitInfoModal = ({
       ? contactNumbers.join(", ")
       : "—";
 
+  const normalizeStatus = (s) => {
+    if (!s && s !== 0) return s;
+    const v = String(s).toLowerCase().trim();
+    if (!v) return s;
+    // map old/varied labels to a consistent display
+    if (v.includes('interested') || v.includes('interested in calling') || v.includes('interested in selling')) return 'For Sale';
+    if (v === 'for sale' || v === 'sale' || v === 'selling') return 'For Sale';
+    // keep original casing for other values
+    return String(s);
+  };
+
   return (
     <div data-notif-modal className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-2xl shadow-xl w-[520px] max-h-[90vh] overflow-y-auto p-6 relative">
@@ -357,7 +368,7 @@ const UnitInfoModal = ({
           )}
 
           {hasValue(status || unit.status) && (
-            <Field label="Status" value={status || unit.status} />
+            <Field label="Status" value={normalizeStatus(status || unit.status)} />
           )}
 
           {hasValue(sellerName || unit.sellerName) && (
