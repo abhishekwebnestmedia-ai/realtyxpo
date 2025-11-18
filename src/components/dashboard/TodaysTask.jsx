@@ -981,7 +981,7 @@ const TodaysTask = ({ isDashboard = false, userRole = 'user' }) => {
       )}
    
       {/* Table */}
-      <div className={`overflow-x-auto rounded-2xl bg-white ${isDashboard ? 'h-96 overflow-y-auto border-none' : 'min-h-[45vh]'}`}>
+      <div className={`overflow-x-auto hide-scrollbar rounded-2xl bg-white ${isDashboard ? 'h-96 overflow-y-auto border-none' : 'min-h-[45vh]'}`}>
         <table className="w-full text-sm border-collapse">
           {/* Conditional Table Header - Only show on full page */}
         

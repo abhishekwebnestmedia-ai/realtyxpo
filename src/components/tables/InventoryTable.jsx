@@ -101,6 +101,32 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
     setSortConfig({ key, direction });
   };
 
+  // Format follow-up value to YYYY-MM-DD hh:mm AM/PM when possible
+  const formatFollowUp = (val) => {
+    if (!val && val !== 0) return "N/A";
+    if (typeof val !== 'string') return String(val);
+
+    // If already in 12-hour format with AM/PM, just return trimmed value
+    if (/[AP]M/i.test(val)) return val.trim();
+
+    // Try to parse as ISO/date string
+    const d = new Date(val);
+    if (!isNaN(d.getTime())) {
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      let hours = d.getHours();
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12 || 12;
+      const hh = String(hours).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd} ${hh}:${minutes} ${ampm}`;
+    }
+
+    // Fallback: return original trimmed value
+    return val.trim();
+  };
+
   // ✅ Delete handler (optimistic update)
   const handleDelete = async (id) => {
    
@@ -512,7 +538,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                     {row.transferTo}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
-                    {row.followUpDate}
+                    {formatFollowUp(row.followUpDate)}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">{row.source}</td>
                   <td className="px-4 py-4 whitespace-nowrap">
@@ -728,7 +754,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                       </div>
                       <div>
                         <span className="text-sm font-medium text-gray-600">Follow-up Date</span>
-                        <p className="text-gray-800">{inventoryDetails?.followUpDate || selectedInventory?.followUpDate || 'N/A'}</p>
+                        <p className="text-gray-800">{formatFollowUp(inventoryDetails?.followUpDate ?? selectedInventory?.followUpDate)}</p>
                       </div>
                       <div>
                         <span className="text-sm font-medium text-gray-600">Source</span>

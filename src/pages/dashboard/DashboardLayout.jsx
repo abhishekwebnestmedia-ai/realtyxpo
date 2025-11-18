@@ -48,7 +48,7 @@ const DashboardLayout = () => {
         <TopBar toggleSidebar={toggleSidebar} />
 
         {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto px-5 pt-5 pb-5 bg-[#F4F6FF]">
+        <div className="flex-1 overflow-y-auto px-5 pt-5 pb-5 bg-[#F4F6FF] scrollbar-hidden">
           <FollowupReminderContainer />
           <Outlet /> {/* Page content */}
         </div>

@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useContext } from "react";
+import TimePicker from '../../../../components/ui/TimePicker';
 import { useParams, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { useUsers } from "../../../../hooks/useBroadcast";
@@ -106,11 +107,35 @@ const Step3EmployeeDetails = () => {
         // Inventory remarks key variations (remarks / remark)
         const inventoryRemark = inventoryData.remarks ?? inventoryData.remark ?? "";
 
+        // parse follow-up into separate date and 12-hour time for the edit form
+        let followUpDateVal = '';
+        let followUpTimeVal = '';
+        if (inventoryFollowUp) {
+          const asStr = String(inventoryFollowUp);
+          if (asStr.includes('T')) {
+            const parts = asStr.split('T');
+            followUpDateVal = parts[0];
+            const timePart = parts[1] || '';
+            const m = timePart.match(/^(\d{1,2}):(\d{2})/);
+            if (m) {
+              let hh = parseInt(m[1], 10);
+              const mm = m[2];
+              const ampm = hh >= 12 ? 'PM' : 'AM';
+              const hour12 = ((hh + 11) % 12) + 1;
+              followUpTimeVal = `${String(hour12).padStart(2, '0')}:${mm} ${ampm}`;
+            }
+          } else {
+            // no time part, treat as date-only
+            followUpDateVal = asStr.split('T')[0] || asStr;
+          }
+        }
+
         setFormData({
           capturedBy: resolveToUserName(inventoryData.capturedBy),
           assignTo: resolveToUserName(inventoryData.assignTo),
           transferTo: resolveToUserName(inventoryData.transferTo),
-          followUp: inventoryFollowUp,
+          followUpDate: followUpDateVal,
+          followUpTime: followUpTimeVal,
           remark: inventoryRemark,
           source: inventorySource,
         });
@@ -150,11 +175,31 @@ const Step3EmployeeDetails = () => {
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      // Combine followUpDate + followUpTime into an ISO-like timestamp in IST similar to AddInventry
+      let followUpCombined = '';
+      if (formData.followUpDate) {
+        const timeStr = formData.followUpTime || '';
+        let hour24 = '00';
+        let minute = '00';
+        if (timeStr) {
+          const parts = String(timeStr).trim().split(' ');
+          const hm = parts[0] || '';
+          const ampm = (parts[1] || '').toLowerCase();
+          const [hh, mm] = hm.split(':');
+          let h = parseInt(hh || '0', 10);
+          minute = (mm || '00').padStart(2, '0');
+          if (ampm === 'pm' && h !== 12) h += 12;
+          if (ampm === 'am' && h === 12) h = 0;
+          hour24 = String(h).padStart(2, '0');
+        }
+        followUpCombined = `${formData.followUpDate}T${hour24}:${minute}:00+05:30`;
+      }
+
       const payload = {
         capturedBy: resolveUserToString(formData.capturedBy),
         assignTo: resolveUserToString(formData.assignTo),
         transferTo: resolveUserToString(formData.transferTo),
-        followUpDate: formData.followUp,
+        followUpDate: followUpCombined,
         remarks: formData.remark,
         source: formData.source ? [formData.source] : [],
       };
@@ -255,15 +300,21 @@ const Step3EmployeeDetails = () => {
         </datalist>
       </div>
 
-      {/* Follow Up */}
+      {/* Follow Up Date + Time */}
       <div>
         <label className="block mb-2 font-medium">Follow up Date</label>
         <input
           type="date"
-          name="followUp"
-          value={formData.followUp}
+          name="followUpDate"
+          value={formData.followUpDate || ""}
           onChange={handleChange}
-          className="w-full border px-3 py-2 rounded-lg"
+          className="w-full border px-3 py-2 rounded-lg mb-2"
+        />
+        <TimePicker
+          name="followUpTime"
+          value={formData.followUpTime || ""}
+          onChange={handleChange}
+          className="w-full"
         />
       </div>
 

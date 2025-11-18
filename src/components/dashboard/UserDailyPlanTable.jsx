@@ -51,7 +51,7 @@ const UserDailyPlanTable = ({ userName }) => {
         {/* rows-per-page control removed from header; inline select will be in pagination */}
       </div>
       {/* Table */}
-      <div className="overflow-x-auto bg-white rounded-tr-3xl rounded-tl-3xl">
+      <div className="overflow-x-auto hide-scrollbar bg-white rounded-tr-3xl rounded-tl-3xl">
         <table className="w-full border-collapse">
         <thead className="sticky top-0 z-20 bg-[#FAFBFC]">
           <tr className="bg-[#FAFBFC] text-gray-700">

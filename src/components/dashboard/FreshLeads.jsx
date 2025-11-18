@@ -44,7 +44,7 @@ const FreshLeads = () => {
       </div>
 
       {/* Table */}
-      <div className="max-h-80 overflow-y-auto overflow-x-auto rounded-2xl bg-white min-h-[40vh]">
+      <div className="max-h-80 overflow-y-auto overflow-x-auto hide-scrollbar rounded-2xl bg-white min-h-[40vh]">
         <table className="w-full rounded-lg">
           <thead>
             <tr className="bg-gray-100 text-sm text-gray-600">
