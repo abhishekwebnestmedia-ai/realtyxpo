@@ -246,6 +246,8 @@ const InventoryPage = () => {
   const [typologyFilter, setTypologyFilter] = useState('');
 
   const { user: authUser } = useContext(AuthContext) || {};
+  const viewerPerms = getViewerPerms(authUser || {});
+  const isAdmin = Boolean(viewerPerms?.superAdmin);
 
   // ✅ Normalize API response
   const inventoryArray = useMemo(() => {
@@ -333,12 +335,14 @@ const InventoryPage = () => {
             onTokensChange={setExternalTokens}
           />
 
-          <button
-            className="btn ml-2"
-            onClick={() => setIsExportModalOpen(true)}
-          >
-            Export
-          </button>
+          {isAdmin && (
+            <button
+              className="btn ml-2"
+              onClick={() => setIsExportModalOpen(true)}
+            >
+              Export
+            </button>
+          )}
 
           {/* Typology filter is now triggered from the table header. Options passed to table below. */}
         </div>
@@ -371,15 +375,17 @@ const InventoryPage = () => {
       />
 
       {/* Export Modal */}
-      <ExportModal
-        isOpen={isExportModalOpen}
-        onClose={() => setIsExportModalOpen(false)}
-        data={filteredData}
-        fileName="inventory-export"
-        title="Export Inventory"
-        showDateRange={true}
-        dateField="date"
-      />
+      {isAdmin && (
+        <ExportModal
+          isOpen={isExportModalOpen}
+          onClose={() => setIsExportModalOpen(false)}
+          data={filteredData}
+          fileName="inventory-export"
+          title="Export Inventory"
+          showDateRange={true}
+          dateField="date"
+        />
+      )}
     </div>
   );
 };

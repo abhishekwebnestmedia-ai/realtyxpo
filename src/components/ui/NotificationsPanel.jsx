@@ -4,6 +4,7 @@ import { useNotifications } from '../../hooks/useNotifications';
 import { formatLocalTimestamp } from '../../utils/datetime';
 import UnitInfoModal from '../../components/modals/UnitInfomodal';
 import InventoryApprovalModal from '../../components/modals/InventoryApprovalModal';
+import NotificationItem from './NotificationItem';
 import { AuthContext } from '../../context/AuthContextCore';
 import api from '../../api/api';
 import { toast } from 'react-hot-toast';
@@ -165,15 +166,24 @@ const NotificationsPanel = () => {
 
         <div className="flex-1 overflow-auto hide-scrollbar">
           {notifications.length === 0 && <div className="p-4 text-sm text-gray-500">No notifications</div>}
-          {notifications.map(n => (
-            <div key={n.notificationId || n._id} className={`p-3 border-b hover:bg-gray-50 ${n.isRead ? 'bg-white' : 'bg-blue-50'}`}>
-              <div className="text-sm text-gray-800 cursor-pointer" onClick={() => goToNotification(n)} tabIndex={0}>{n.message}</div>
-                <div className="text-xs text-gray-500 flex justify-between items-center mt-2">
-                <span>{formatTimestamp(n._clientTs ?? n.createdAt)}</span>
-                {!n.isRead && <button onClick={() => markAsRead(n.notificationId || n._id)} className="text-xs text-blue-600">Mark read</button>}
-              </div>
-            </div>
-          ))}
+          {(() => {
+            // sort unread first, then newest
+            const sorted = [...notifications].sort((a, b) => {
+              if ((a.isRead ? 1 : 0) !== (b.isRead ? 1 : 0)) return (a.isRead ? 1 : 0) - (b.isRead ? 1 : 0);
+              const ta = new Date(a._clientTs ?? a.createdAt).getTime();
+              const tb = new Date(b._clientTs ?? b.createdAt).getTime();
+              return tb - ta;
+            });
+
+            return sorted.map(n => (
+              <NotificationItem
+                key={n.notificationId || n._id}
+                notification={n}
+                onOpen={(notif) => goToNotification(notif)}
+                onMarkRead={(notif) => markAsRead(notif.notificationId || notif._id)}
+              />
+            ));
+          })()}
         </div>
       </div>
 

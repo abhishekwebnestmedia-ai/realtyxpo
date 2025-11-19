@@ -217,13 +217,14 @@ const AddBulkBrokerRequirements = ({ isOpen, onClose }) => {
                     if (!fileHeaders || fileHeaders.length === 0) {
                       // show a suggested template for broker requirements
                       setFileHeaders([
-                        'brokerName',
-                        'contactNumber',
-                        'email',
-                        'requirement',
-                        'date',
-                        'remarks'
-                      ]);
+                          'brokerName',
+                          'companyName',
+                          'contactNumber',
+                          'email',
+                          'requirement',
+                          'date',
+                          'remarks'
+                        ]);
                     }
                     setShowHeaderPreview(true);
                   }}

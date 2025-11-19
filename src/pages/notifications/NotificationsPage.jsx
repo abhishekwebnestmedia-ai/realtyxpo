@@ -83,48 +83,20 @@ const NotificationsPage = () => {
               <span className="inline-block px-3 py-1 bg-white rounded-full shadow-sm">{group.title}</span>
             </div>
             {group.items.map((n) => (
-              <div
-                key={n.notificationId || n._id}
-                className={`p-4 border-b ${n.isRead ? 'bg-white' : 'bg-blue-50'}`}
-              >
-                <div className="flex justify-between items-start">
-                  <div
-                    className="cursor-pointer"
-                    onClick={() => {
-                      // If this notification requests inventory approval, open the modal
-                      if (n?.meta?.action === 'inventory_approval' || (n.type === 'Inventory' && n?.meta?.action === 'inventory_approval')) {
-                        setActiveNotification(n);
-                        setIsModalOpen(true);
-                        return;
-                      }
-                      // otherwise do nothing (or you could expand to show details)
-                    }}
-                  >
-                    <div className="text-sm text-gray-800">{n.message}</div>
-                    <div className="text-xs text-gray-500 mt-2">{formatTimestamp(n._clientTs ?? n.createdAt)}</div>
-                  </div>
-                  <div className="ml-4">
-                    {!n.isRead && <button onClick={() => markAsRead(n.notificationId || n._id)} className="text-blue-600 text-sm">Mark read</button>}
-                  </div>
-                  {isModalOpen && activeNotification && (
-                    <InventoryApprovalModal
-                      notification={activeNotification}
-                      isOpen={isModalOpen}
-                      onClose={() => { setIsModalOpen(false); setActiveNotification(null); }}
-                      onApproved={(data) => {
-                        // mark the notification read and close modal
-                        try { markAsRead(activeNotification.notificationId || activeNotification._id); } catch {};
-                        setIsModalOpen(false);
-                        setActiveNotification(null);
-                      }}
-                      onDismiss={() => {
-                        try { markAsRead(activeNotification.notificationId || activeNotification._id); } catch {};
-                        setIsModalOpen(false);
-                        setActiveNotification(null);
-                      }}
-                    />
-                  )}
-                </div>
+              <div key={n.notificationId || n._id}>
+                <NotificationItem
+                  notification={n}
+                  onOpen={(notif) => {
+                    // If this notification requests inventory approval, open the modal
+                    if (notif?.meta?.action === 'inventory_approval' || (notif.type === 'Inventory' && notif?.meta?.action === 'inventory_approval')) {
+                      setActiveNotification(notif);
+                      setIsModalOpen(true);
+                      return;
+                    }
+                    // Future: open detail drawer or expand
+                  }}
+                  onMarkRead={(notif) => markAsRead(notif.notificationId || notif._id)}
+                />
               </div>
             ))}
           </div>

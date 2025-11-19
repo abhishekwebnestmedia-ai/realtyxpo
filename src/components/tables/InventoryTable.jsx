@@ -1,7 +1,8 @@
 import React, { useMemo, useState } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil } from "lucide-react";
 import api from "../../api/api"; // ✅ axios instance
 import ConfirmDeleteButton from "../ui/notifications/ConfirmDelete"; // adjust path
+import useIsSuperAdmin from "../../hooks/useIsSuperAdmin";
 import EditOptionsPopup from "../modals/EditInventry"; // adjust path
 import TokenSearch from '../ui/TokenSearch';
 const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, externalSearch = "", externalRowsPerPage = 10, onPageRowsChange = null, externalTokens = [], onExternalTokensChange = undefined, typologyFilter = '', onTypologyFilterChange = () => {}, typologyOptions = [] }) => {
@@ -16,6 +17,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
   // local rows per page (sync with external prop)
   const [rowsPerPage, setRowsPerPage] = useState(externalRowsPerPage);
   const [showTypologyMenu, setShowTypologyMenu] = useState(false);
+  const isSuperAdmin = useIsSuperAdmin();
   
   // Use external search when provided
   const activeSearch = hideSearch ? externalSearch : searchTerm;
@@ -203,7 +205,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
         <table className="w-full border-collapse text-sm">
           <thead className="bg-gray-100 text-gray-600 uppercase text-xs sticky top-0 z-10 font-bold border-b">
             <tr>
-              <th className="px-4 py-2 font-semibold text-center theading sticky left-0 bg-white z-30">
+              <th className="px-4 py-2 font-semibold text-center theading sticky left-0 bg-gray-100 text-black z-30 border-b">
                 <input
                   type="checkbox"
                   aria-label="Select all inventory"
@@ -222,7 +224,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                 />
               </th>
               <th
-                className="px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold sticky left-12 bg-white z-20"
+                className="px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-left font-semibold sticky left-12 bg-gray-100 text-black z-20 border-b"
                 onClick={() => handleSort("sellerName")}
               >
                 Seller Name{" "}
@@ -479,7 +481,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                   className="border-b hover:bg-gray-50 transition-colors cursor-pointer"
                   onDoubleClick={() => handleRowClick(row)}
                 >
-                  <td className="px-4 py-4 text-center sticky left-0 bg-white z-20">
+                  <td className="px-4 py-4 text-center sticky left-0 bg-gray-100 text-black z-20 border-b">
                     <input
                       type="checkbox"
                       className="w-4 h-4"
@@ -493,7 +495,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                       onClick={(e) => e.stopPropagation()}
                     />
                   </td>
-                  <td className="px-4 py-4 whitespace-nowrap sticky left-12 bg-white z-10">
+                  <td className="px-4 py-4 whitespace-nowrap sticky left-12 bg-gray-100 text-black z-10 border-b">
                     {row.sellerName}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">{row.Project}</td>
@@ -565,12 +567,14 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                         id={row._id}
                       />
                     </div>
-                    <div className="" onClick={(e) => e.stopPropagation()}>
-                      <ConfirmDeleteButton
-                        onConfirm={() => handleDelete(row._id)}
-                        disabled={deletingId === row._id}
-                      />
-                    </div>
+                    {isSuperAdmin && (
+                      <div className="" onClick={(e) => e.stopPropagation()}>
+                        <ConfirmDeleteButton
+                          onConfirm={() => handleDelete(row._id)}
+                          disabled={deletingId === row._id}
+                        />
+                      </div>
+                    )}
                     </div>
                   </td>
                 </tr>

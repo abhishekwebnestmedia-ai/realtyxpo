@@ -401,12 +401,14 @@ const AllLeads = () => {
               tokens={externalTokens}
               onTokensChange={setExternalTokens}
             />
-            <button
-              className="btn ml-2"
-              onClick={() => setShowExportModal(true)}
-            >
-              Export
-            </button>
+            {isAdmin && (
+              <button
+                className="btn ml-2"
+                onClick={() => setShowExportModal(true)}
+              >
+                Export
+              </button>
+            )}
             {/* Status filter is now opened by clicking the Status table header. Options passed into table. */}
           </div>
         </div>
@@ -429,15 +431,17 @@ const AllLeads = () => {
         isOpen={showBulkUploadPopup}
         onClose={() => setShowBulkUploadPopup(false)}
       />
-      <ExportModal
-        isOpen={showExportModal}
-        onClose={() => setShowExportModal(false)}
-        data={filteredLeads}
-        fileName="leads-export"
-        title="Export Leads"
-        showDateRange={true}
-        dateField="date"
-      />
+      {isAdmin && (
+        <ExportModal
+          isOpen={showExportModal}
+          onClose={() => setShowExportModal(false)}
+          data={filteredLeads}
+          fileName="leads-export"
+          title="Export Leads"
+          showDateRange={true}
+          dateField="date"
+        />
+      )}
     </div>
   );
 };

@@ -13,6 +13,7 @@ const AddBrokerRequirement = () => {
 
   const [form, setForm] = useState({
     brokerName: '',
+    companyName: '',
     contactNumber: '',
     status: 'Hot',
     requirement: '',
@@ -73,6 +74,11 @@ const AddBrokerRequirement = () => {
             <input name="brokerName" value={form.brokerName} onChange={handleChange} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" placeholder="Enter brokerName" />
           </div>
           <div>
+            <label className="block mb-1 font-medium">Company Name</label>
+            <input name="companyName" value={form.companyName} onChange={handleChange} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" placeholder="Enter company name (optional)" />
+          </div>
+
+          <div>
             <label className="block mb-1 font-medium">Contact No.</label>
             <input
               name="contactNumber"
@@ -96,23 +102,24 @@ const AddBrokerRequirement = () => {
               <option value="Dead Lead">Dead Lead</option>
             </select>
           </div>
+
           <div>
             <label className="block mb-1 font-medium">Follow-up Date</label>
             <input name="followUpDate" value={form.followUpDate} onChange={handleChange} type="date" required className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" />
           </div>
           <div>
+            <label className="block mb-1 font-medium">Source</label>
+            <input name="source" value={form.source} onChange={handleChange} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" placeholder="Enter source" />
+          </div>
+
+          <div>
             <label className="block mb-1 font-medium">Remark</label>
-            <textarea name="remark" value={form.remark} onChange={handleChange} rows={6} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" placeholder="Enter remark" />
+            <textarea name="remark" value={form.remark} onChange={handleChange} rows={4} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" placeholder="Enter remark" />
           </div>
 
           <div>
             <label className="block mb-1 font-medium">Requirement</label>
-            <textarea name="requirement" value={form.requirement} onChange={handleChange} rows={6} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" placeholder="Enter requirement" />
-          </div>
-
-          <div className="">
-            <label className="block mb-1 font-medium">Source</label>
-            <input name="source" value={form.source} onChange={handleChange} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" placeholder="Enter source" />
+            <textarea name="requirement" value={form.requirement} onChange={handleChange} rows={4} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" placeholder="Enter requirement" />
           </div>
         </div>
 

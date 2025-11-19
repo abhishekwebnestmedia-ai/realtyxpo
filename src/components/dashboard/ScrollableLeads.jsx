@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { Pencil, Trash2, Clock } from "lucide-react";
+import useIsSuperAdmin from '../../hooks/useIsSuperAdmin';
 import { useNavigate } from "react-router-dom";
 import api from "../../api/api";
 import { toast } from 'react-hot-toast';
@@ -111,6 +112,8 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
     }
   };
   const navigate = useNavigate();
+
+  const isSuperAdmin = useIsSuperAdmin();
 
   // Use external search and rows-per-page when provided. Use local state so we can render an inline select.
   const activeSearch = hideSearch ? externalSearch : search;
@@ -392,7 +395,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
       )}
 
       {/* Bulk actions toolbar */}
-      {selectedIds.size > 0 && (
+      {selectedIds.size > 0 && isSuperAdmin && (
         <div className="mb-3 flex items-center justify-between bg-white p-2 rounded">
           <div className="flex items-center gap-3">
             <div className="text-sm text-gray-700">{selectedIds.size} selected</div>
@@ -421,7 +424,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
         <table className="w-full border-collapse">
           <thead className="bg-gray-100 text-gray-600 uppercase text-xs sticky top-0 z-10 border-b">
             <tr>
-              <th className="px-4 py-2 font-medium text-center theading sticky left-0 bg-white z-30">
+              <th className="px-4 py-2 font-medium text-center theading sticky left-0 bg-gray-100 text-black z-30 border-b">
                 <input
                   type="checkbox"
                   aria-label="Select all"
@@ -440,7 +443,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                 />
               </th>
               <th
-                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading sticky left-12 bg-white z-20"
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading sticky left-12 bg-gray-100 text-black z-20 border-b"
                 onClick={() => handleSort("customerName")}
               >
                 Customer Name{" "}
@@ -557,7 +560,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                 className="border-b hover:bg-gray-50 transition cursor-pointer"
                 onDoubleClick={() => handleRowClick(row)}
               >
-                <td className="px-4 py-2 text-center font-medium sticky left-0 bg-white z-20">
+                <td className="px-4 py-2 text-center font-medium sticky left-0 bg-gray-100 text-black z-20 border-b">
                   <input
                     type="checkbox"
                     className="w-4 h-4"
@@ -572,7 +575,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                     onClick={(e) => e.stopPropagation()}
                   />
                 </td>
-                <td className="px-4 py-4  whitespace-nowrap sticky left-12 bg-white z-10">{row.customerName}</td>
+                <td className="px-4 py-4  whitespace-nowrap sticky left-12 bg-gray-100 text-black z-10 border-b">{row.customerName}</td>
                 <td className="px-4 py-4 whitespace-nowrap ">{row.contactNumber || row.contactNo || 'N/A'}</td>
                 <td className="px-4 py-4 whitespace-nowrap ">{row.email}</td>
                 <td className="px-4 py-4 whitespace-nowrap">
@@ -640,29 +643,33 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                       <Pencil size={16} />
                     </button>
                     
-                    <div onClick={(e) => e.stopPropagation()}>
-                      <ConfirmDeleteButton
-                        onConfirm={() => handleDelete(row)}
-                        disabled={row.deleting} // optional, if you track deleting state
-                        label={<Trash2 size={16} />} // optional: shows your icon inside button
-                        className="text-red-600 hover:text-red-800"
-                      />
-                    </div>
+                    {isSuperAdmin && (
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <ConfirmDeleteButton
+                          onConfirm={() => handleDelete(row)}
+                          disabled={row.deleting} // optional, if you track deleting state
+                          label={<Trash2 size={16} />} // optional: shows your icon inside button
+                          className="text-red-600 hover:text-red-800"
+                        />
+                      </div>
+                    )}
                     {/* History button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const id = row?.id ?? row?._id ?? row?.leadId;
-                        if (!id) return alert('Unable to fetch history: missing id');
-                        setSelectedLead(row);
-                        setIsHistoryOpen(true);
-                        fetchHistory(id);
-                      }}
-                      title="View history"
-                      className="text-[#D4AF37] hover:opacity-80"
-                    >
-                      <Clock size={16} />
-                    </button>
+                    {isSuperAdmin && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const id = row?.id ?? row?._id ?? row?.leadId;
+                          if (!id) return alert('Unable to fetch history: missing id');
+                          setSelectedLead(row);
+                          setIsHistoryOpen(true);
+                          fetchHistory(id);
+                        }}
+                        title="View history"
+                        className="text-[#D4AF37] hover:opacity-80"
+                      >
+                        <Clock size={16} />
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>

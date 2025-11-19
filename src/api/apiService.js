@@ -186,6 +186,7 @@ const apiService = {
       // Ensure required fields mapping
       const payload = {
         brokerName: data.brokerName || data.name || '',
+        companyName: data.companyName || data.company || '',
         contactNumber: data.contactNumber || data.phone || '',
         followUpDate: data.followUpDate || data.followUp || '',
         status: data.status || '',

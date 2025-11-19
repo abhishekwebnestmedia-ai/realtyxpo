@@ -63,8 +63,7 @@ const Step2ProjectDetails = ({ formData, handleChange, typologies }) => {
           value={formData.typology}
            className="w-full border px-3 py-2 rounded-lg"
            placeholder="Select or type typology"
-          className="w-full border px-3 py-2 rounded-lg"
-          placeholder="Select or type typology"
+
           required
         />
         <datalist id="typologyList">

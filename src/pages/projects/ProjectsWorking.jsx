@@ -448,6 +448,7 @@ import { toast } from 'react-hot-toast';
 import useProjects from '../../hooks/useProjects';
 import projectService from '../../services/projectService';
 import { Trash2 } from 'lucide-react';
+import useIsSuperAdmin from '../../hooks/useIsSuperAdmin';
 
 const ProjectsWorking = () => {
   // ✅ State Management
@@ -549,6 +550,8 @@ const ProjectsWorking = () => {
         return [];
     }
   };
+
+  const isSuperAdmin = useIsSuperAdmin();
 
   const getProjectIcon = () => {
     const { projectType, constructionStatus } = filters;
@@ -770,28 +773,30 @@ const ProjectsWorking = () => {
               </div>
 
               {/* Delete Unit Button */}
-              <button
-                type="button"
-                className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 bg-white/90 border border-gray-200 rounded-full p-1 hover:bg-red-50"
-                title="Delete Unit"
-                onClick={async (e) => {
-                  e.stopPropagation();
-                  const confirmed = window.confirm('Delete this unit?');
-                  if (!confirmed) return;
-                  try {
-                    const id = unit._id;
-                    if (!id) throw new Error('Missing unit id');
-                    await projectService.deleteUnit(id);
-                    toast.success('Unit deleted');
-                    refresh();
-                  } catch (err) {
-                    console.error('Delete unit failed:', err);
-                    toast.error(err?.response?.data?.message || err.message || 'Delete failed');
-                  }
-                }}
-              >
-                <Trash2 size={14} className="text-red-600" />
-              </button>
+              {isSuperAdmin && (
+                <button
+                  type="button"
+                  className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 bg-white/90 border border-gray-200 rounded-full p-1 hover:bg-red-50"
+                  title="Delete Unit"
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    const confirmed = window.confirm('Delete this unit?');
+                    if (!confirmed) return;
+                    try {
+                      const id = unit._id;
+                      if (!id) throw new Error('Missing unit id');
+                      await projectService.deleteUnit(id);
+                      toast.success('Unit deleted');
+                      refresh();
+                    } catch (err) {
+                      console.error('Delete unit failed:', err);
+                      toast.error(err?.response?.data?.message || err.message || 'Delete failed');
+                    }
+                  }}
+                >
+                  <Trash2 size={14} className="text-red-600" />
+                </button>
+              )}
             </div>
           ))}
       </div>
@@ -843,46 +848,48 @@ const ProjectsWorking = () => {
             </h3>
 
             {/* Delete button */}
-            <button
-              type="button"
-              className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 bg-white/90 border border-gray-200 rounded-full p-1 hover:bg-red-50"
-              title="Delete"
-              onClick={async (e) => {
-                e.stopPropagation();
-                const confirmed = window.confirm('Are you sure you want to delete this item?');
-                if (!confirmed) return;
-                try {
-                  const id = item._id;
-                  if (!id) throw new Error('Missing id');
-                  switch (currentLevel) {
-                    case 'cities':
-                      await projectService.deleteCity(id);
-                      break;
-                    case 'divisions':
-                      await projectService.deleteDivision(id);
-                      break;
-                    case 'sectors':
-                      await projectService.deleteSector(id);
-                      break;
-                    case 'projects':
-                      await projectService.deleteProjectById(id);
-                      break;
-                    case 'towers':
-                      await projectService.deleteTower(id);
-                      break;
-                    default:
-                      throw new Error('Delete not supported at this level');
+            {isSuperAdmin && (
+              <button
+                type="button"
+                className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 bg-white/90 border border-gray-200 rounded-full p-1 hover:bg-red-50"
+                title="Delete"
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  const confirmed = window.confirm('Are you sure you want to delete this item?');
+                  if (!confirmed) return;
+                  try {
+                    const id = item._id;
+                    if (!id) throw new Error('Missing id');
+                    switch (currentLevel) {
+                      case 'cities':
+                        await projectService.deleteCity(id);
+                        break;
+                      case 'divisions':
+                        await projectService.deleteDivision(id);
+                        break;
+                      case 'sectors':
+                        await projectService.deleteSector(id);
+                        break;
+                      case 'projects':
+                        await projectService.deleteProjectById(id);
+                        break;
+                      case 'towers':
+                        await projectService.deleteTower(id);
+                        break;
+                      default:
+                        throw new Error('Delete not supported at this level');
+                    }
+                    toast.success('Deleted successfully');
+                    refresh();
+                  } catch (err) {
+                    console.error('Delete failed:', err);
+                    toast.error(err?.response?.data?.message || err.message || 'Delete failed');
                   }
-                  toast.success('Deleted successfully');
-                  refresh();
-                } catch (err) {
-                  console.error('Delete failed:', err);
-                  toast.error(err?.response?.data?.message || err.message || 'Delete failed');
-                }
-              }}
-            >
-              <Trash2 size={16} className="text-red-600" />
-            </button>
+                }}
+              >
+                <Trash2 size={16} className="text-red-600" />
+              </button>
+            )}
           </div>
         ))}
       </div>

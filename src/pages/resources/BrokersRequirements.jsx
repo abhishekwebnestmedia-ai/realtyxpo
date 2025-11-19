@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import TokenSearch from '../../components/ui/TokenSearch';
 import { Pencil, Trash2 } from 'lucide-react';
+import useIsSuperAdmin from '../../hooks/useIsSuperAdmin';
 import { Link } from 'react-router-dom';
 import AddBulkBrokerRequirements from '../../components/modals/AddBulkBrokerRequirements';
 import Pagination from '../../components/ui/Pagination';
@@ -65,6 +66,8 @@ const BrokersRequirements = () => {
   const startIndex = (currentPage - 1) * rowsPerPage;
   const paginatedData = filteredData.slice(startIndex, startIndex + rowsPerPage);
 
+  const isSuperAdmin = useIsSuperAdmin();
+
   const getStatusColor = (status) => {
     return status === "Hot" ? "text-red-600" : "text-green-600";
   };
@@ -109,6 +112,9 @@ const BrokersRequirements = () => {
               <th className="min-w-32 px-4 py-6 whitespace-nowrap theading text-left font-medium">
                 Broker Name
               </th>
+              <th className="min-w-32 px-4 py-6 whitespace-nowrap theading text-left font-medium">
+                Company
+              </th>
               <th className="min-w-20 px-4 py-6 whitespace-nowrap theading text-left font-medium">
                 Contact
               </th>
@@ -147,8 +153,11 @@ const BrokersRequirements = () => {
                     {row.capturedBy || row.sellerName || 'N/A'}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
-                    {row.brokerName}
-                  </td>
+                      {row.brokerName}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      {row.companyName || row.company || '—'}
+                    </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     {row.contactNumber}
                   </td>
@@ -178,19 +187,21 @@ const BrokersRequirements = () => {
                       >
                         <Pencil size={16} />
                       </button>
-                      <button
-                        className="p-1 hover:bg-gray-100 rounded transition-colors text-red-600"
-                        title={`Delete ${row.capturedBy || row.sellerName || 'record'}`}
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      {isSuperAdmin && (
+                        <button
+                          className="p-1 hover:bg-gray-100 rounded transition-colors text-red-600"
+                          title={`Delete ${row.capturedBy || row.sellerName || 'record'}`}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={11} className="text-center py-6 text-gray-500">
+                <td colSpan={12} className="text-center py-6 text-gray-500">
                   No data found
                 </td>
               </tr>

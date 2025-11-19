@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, Edit3, FilePlus2, FolderOpen, Loader2, Plus, RefreshCcw, Trash2 } from 'lucide-react';
+import useIsSuperAdmin from '../../hooks/useIsSuperAdmin';
 import api from '../../api/api';
 import AnimatedFolder from '../../components/ui/AnimatedFolder';
 
@@ -39,6 +40,7 @@ const LearnGrow = () => {
   const [uploadLoading, setUploadLoading] = useState(false);
 
   const fileInputRef = useRef(null);
+  const isSuperAdmin = useIsSuperAdmin();
 
   const activeFolder = useMemo(
     () => folders.find((folder) => folder._id === activeFolderId) || null,
@@ -457,19 +459,21 @@ const LearnGrow = () => {
             Rename
           </button>
           {/* Add File is shown in the folder contents area only */}
-          <button
-            type="button"
-            onClick={handleDeleteFolder}
-            disabled={!hasActiveFolder}
-            className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold shadow-sm transition ${
-              hasActiveFolder
-                ? 'border border-red-200 bg-white text-red-600 hover:border-red-300 hover:bg-red-50'
-                : 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed opacity-60'
-            }`}
-          >
-            <Trash2 className="h-4 w-4" />
-            Delete
-          </button>
+          {isSuperAdmin && (
+            <button
+              type="button"
+              onClick={handleDeleteFolder}
+              disabled={!hasActiveFolder}
+              className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold shadow-sm transition ${
+                hasActiveFolder
+                  ? 'border border-red-200 bg-white text-red-600 hover:border-red-300 hover:bg-red-50'
+                  : 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed opacity-60'
+              }`}
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete
+            </button>
+          )}
         </div>
       </div>
 

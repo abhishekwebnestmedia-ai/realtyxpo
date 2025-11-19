@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { X, Building2, UserCheck, Phone, MapPin, CheckCircle2, ShieldAlert } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Building2, Phone, CheckCircle2, ShieldAlert } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import api from '../../api/api';
 import { formatLocalTimestamp } from '../../utils/datetime';
@@ -41,19 +41,7 @@ const InventoryApprovalModal = ({ notification, isOpen, onClose, onApproved, onD
   const unitSnapshot = meta.unit || {};
   const statusLabel = meta.targetType === 'Rent' ? 'Rental' : 'For Sale';
 
-  const contactNumbers = useMemo(() => {
-    const raw = unitSnapshot.mobileNumbers;
-    if (Array.isArray(raw)) return raw.filter(Boolean);
-    if (typeof raw === 'string' && raw.trim()) return [raw.trim()];
-    if (raw && typeof raw === 'object') {
-      // handle objects like { primary: '123', secondary: ['456'] }
-      return Object.values(raw)
-        .flat()
-        .filter((value) => typeof value === 'string' && value.trim().length)
-        .map((v) => v.trim());
-    }
-    return [];
-  }, [unitSnapshot.mobileNumbers]);
+  
 
   const parts = [];
   if (hierarchy.cityName) parts.push(hierarchy.cityName);
@@ -113,17 +101,17 @@ const InventoryApprovalModal = ({ notification, isOpen, onClose, onApproved, onD
   return (
     <div data-notif-modal className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="w-full max-w-3xl rounded-3xl bg-white shadow-2xl border border-slate-100 overflow-hidden"
+        className="w-full max-w-2xl rounded-3xl bg-white shadow-2xl border border-slate-100 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
         onMouseDown={(e) => e.stopPropagation()}
       >
-        <div className="relative bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 px-8 py-6 text-white">
+        <div className="relative bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 px-6 py-4 text-white">
           <button onClick={onClose} className="absolute right-4 top-4 text-white/70 hover:text-white">
             <X size={20} />
           </button>
           <div className="flex flex-col gap-2">
             <span className="text-xs uppercase tracking-[0.25em] text-white/70">Inventory Approval</span>
-            <h2 className="text-2xl font-semibold">{unitSnapshot.unitNumber || hierarchy.unitNumber || 'Requested Unit'}</h2>
+            <h2 className="text-xl font-semibold">{unitSnapshot.unitNumber || hierarchy.unitNumber || 'Requested Unit'}</h2>
             {breadcrumb && <p className="text-sm text-white/80">{breadcrumb}</p>}
           </div>
           <div className="mt-4 flex flex-wrap gap-3">
@@ -131,12 +119,7 @@ const InventoryApprovalModal = ({ notification, isOpen, onClose, onApproved, onD
               <CheckCircle2 size={14} />
               {statusLabel}
             </span>
-            {requestedBy?.name && (
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
-                <UserCheck size={14} />
-                Requested by {requestedBy.name}
-              </span>
-            )}
+            {/* requestedBy badge removed per UX */}
             {notification.createdAt && (
               <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
                 <ShieldAlert size={14} />
@@ -146,8 +129,8 @@ const InventoryApprovalModal = ({ notification, isOpen, onClose, onApproved, onD
           </div>
         </div>
 
-        <div className="grid gap-6 bg-slate-50 px-8 py-8 md:grid-cols-12">
-          <section className="md:col-span-7 space-y-4">
+        <div className="grid gap-6 bg-slate-50 px-6 py-6 md:grid-cols-12">
+          <section className="md:col-span-12 space-y-4">
             <div className="rounded-2xl bg-white p-5 shadow-sm border border-slate-100">
               <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
                 <Building2 className="text-slate-500" size={18} />
@@ -157,63 +140,16 @@ const InventoryApprovalModal = ({ notification, isOpen, onClose, onApproved, onD
                 <InfoRow label="Owner" value={unitSnapshot.ownerName} />
                 <InfoRow label="Status" value={statusLabel} />
                 <InfoRow label="Email" value={unitSnapshot.email} />
-                <InfoRow label="Requested Follow-up" value={meta.followUpReadable} />
+                <InfoRow label="Requested Follow-up" value={requestedBy?.name || meta.followUpReadable} />
               </div>
             </div>
-
-            <div className="rounded-2xl bg-white p-5 shadow-sm border border-slate-100">
-              <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
-                <Phone className="text-slate-500" size={18} />
-                <h3 className="text-base font-semibold text-slate-900">Contact Numbers</h3>
-              </div>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {contactNumbers.length ? (
-                  contactNumbers.map((num) => (
-                    <span key={num} className="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700">
-                      {num}
-                    </span>
-                  ))
-                ) : (
-                  <span className="text-sm text-slate-500">No contact numbers provided</span>
-                )}
-              </div>
-            </div>
+          
           </section>
 
-          <section className="md:col-span-5 space-y-4">
-            <div className="rounded-2xl bg-white p-5 shadow-sm border border-slate-100">
-              <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
-                <MapPin className="text-slate-500" size={18} />
-                <h3 className="text-base font-semibold text-slate-900">Hierarchy</h3>
-              </div>
-              <div className="mt-4 space-y-3 text-sm text-slate-700">
-                {['cityName', 'divisionName', 'sectorName', 'projectName', 'towerName'].map((key) => (
-                  hierarchy[key] ? (
-                    <div key={key} className="flex justify-between border-b border-dashed border-slate-100 pb-2">
-                      <span className="capitalize text-slate-500">{key.replace('Name', '')}</span>
-                      <span className="font-semibold text-slate-900">{hierarchy[key]}</span>
-                    </div>
-                  ) : null
-                ))}
-              </div>
-            </div>
-
-            {requestedBy && (
-              <div className="rounded-2xl bg-white p-5 shadow-sm border border-slate-100">
-                <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
-                  <UserCheck className="text-slate-500" size={18} />
-                  <h3 className="text-base font-semibold text-slate-900">Requested By</h3>
-                </div>
-                <div className="mt-4 space-y-2">
-                  <InfoRow label="Name" value={requestedBy.name} />
-                  <InfoRow label="Email" value={requestedBy.email} />
-                </div>
-              </div>
-            )}
-          </section>
+          {/* Requested By section removed per UX */}
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 bg-white px-8 py-5">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 bg-white px-6 py-4">
           <button
             type="button"
             onClick={handleDismiss}
