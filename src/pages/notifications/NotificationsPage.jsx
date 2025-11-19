@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNotifications } from '../../hooks/useNotifications';
 import { formatLocalTimestamp, parseLocalTimestamp } from '../../utils/datetime';
+import InventoryApprovalModal from '../../components/modals/InventoryApprovalModal';
 
 const formatGroupTitle = (dateStr) => {
   if (!dateStr) return 'Unknown';
@@ -57,6 +58,8 @@ const groupNotificationsByDate = (list) => {
 
 const NotificationsPage = () => {
   const { notifications, markAsRead } = useNotifications();
+  const [activeNotification, setActiveNotification] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const formatTimestamp = (raw) => formatLocalTimestamp(raw);
 
@@ -80,15 +83,47 @@ const NotificationsPage = () => {
               <span className="inline-block px-3 py-1 bg-white rounded-full shadow-sm">{group.title}</span>
             </div>
             {group.items.map((n) => (
-              <div key={n.notificationId || n._id} className={`p-4 border-b ${n.isRead ? 'bg-white' : 'bg-blue-50'}`}>
+              <div
+                key={n.notificationId || n._id}
+                className={`p-4 border-b ${n.isRead ? 'bg-white' : 'bg-blue-50'}`}
+              >
                 <div className="flex justify-between items-start">
-                  <div>
+                  <div
+                    className="cursor-pointer"
+                    onClick={() => {
+                      // If this notification requests inventory approval, open the modal
+                      if (n?.meta?.action === 'inventory_approval' || (n.type === 'Inventory' && n?.meta?.action === 'inventory_approval')) {
+                        setActiveNotification(n);
+                        setIsModalOpen(true);
+                        return;
+                      }
+                      // otherwise do nothing (or you could expand to show details)
+                    }}
+                  >
                     <div className="text-sm text-gray-800">{n.message}</div>
                     <div className="text-xs text-gray-500 mt-2">{formatTimestamp(n._clientTs ?? n.createdAt)}</div>
                   </div>
                   <div className="ml-4">
                     {!n.isRead && <button onClick={() => markAsRead(n.notificationId || n._id)} className="text-blue-600 text-sm">Mark read</button>}
                   </div>
+                  {isModalOpen && activeNotification && (
+                    <InventoryApprovalModal
+                      notification={activeNotification}
+                      isOpen={isModalOpen}
+                      onClose={() => { setIsModalOpen(false); setActiveNotification(null); }}
+                      onApproved={(data) => {
+                        // mark the notification read and close modal
+                        try { markAsRead(activeNotification.notificationId || activeNotification._id); } catch {};
+                        setIsModalOpen(false);
+                        setActiveNotification(null);
+                      }}
+                      onDismiss={() => {
+                        try { markAsRead(activeNotification.notificationId || activeNotification._id); } catch {};
+                        setIsModalOpen(false);
+                        setActiveNotification(null);
+                      }}
+                    />
+                  )}
                 </div>
               </div>
             ))}

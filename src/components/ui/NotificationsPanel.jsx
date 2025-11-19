@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../../hooks/useNotifications';
 import { formatLocalTimestamp } from '../../utils/datetime';
 import UnitInfoModal from '../../components/modals/UnitInfomodal';
+import InventoryApprovalModal from '../../components/modals/InventoryApprovalModal';
 import { AuthContext } from '../../context/AuthContextCore';
 import api from '../../api/api';
 import { toast } from 'react-hot-toast';
@@ -13,6 +14,7 @@ const NotificationsPanel = () => {
   const panelRef = useRef(null);
   const previouslyFocused = useRef(null);
   const [modalNotif, setModalNotif] = useState(null);
+  const [approvalNotif, setApprovalNotif] = useState(null);
   const { user } = useContext(AuthContext) || {};
   const isAdmin = Boolean(user && user.role === 'admin');
 
@@ -94,7 +96,14 @@ const NotificationsPanel = () => {
   const formatTimestamp = (raw) => formatLocalTimestamp(raw);
 
   const goToNotification = (n) => {
-    // If inventory notification contains project unit meta, open approval modal
+    // Approval notifications should open InventoryApprovalModal and stay in place
+    if (n?.meta?.action === 'inventory_approval') {
+      setApprovalNotif(n);
+      setModalNotif(null);
+      return;
+    }
+
+    // Other inventory notifications with unit meta open read-only modal
     try {
       if (n.type === 'Inventory' && n.meta && (n.meta.unitId || n.meta.unitNumber)) {
         setModalNotif(n);
@@ -103,7 +112,7 @@ const NotificationsPanel = () => {
     } catch { /* ignore */ }
 
     if (n.type === 'Lead') navigate(`/all-leads/${n.itemId}`, { state: { notification: n } });
-    else if (n.type === 'Inventory') navigate(`/inventory/${n.itemId}`);
+    else if (n.type === 'Inventory') navigate(`/inventory/${n.itemId}`, { state: { notification: n } });
     markAsRead(n.notificationId || n._id);
     closePanel();
   };
@@ -178,6 +187,25 @@ const NotificationsPanel = () => {
         onConfirm={() => setModalNotif(null)}
         confirmLoading={false}
         confirmText="Approve & Copy"
+      />
+
+      <InventoryApprovalModal
+        notification={approvalNotif}
+        isOpen={Boolean(approvalNotif)}
+        onClose={() => setApprovalNotif(null)}
+        onApproved={() => {
+          if (approvalNotif) {
+            try { markAsRead(approvalNotif.notificationId || approvalNotif._id); } catch {}
+          }
+          setApprovalNotif(null);
+          closePanel();
+        }}
+        onDismiss={() => {
+          if (approvalNotif) {
+            try { markAsRead(approvalNotif.notificationId || approvalNotif._id); } catch {}
+          }
+          setApprovalNotif(null);
+        }}
       />
     </>
   );

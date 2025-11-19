@@ -6,6 +6,7 @@ import { OverviewDashboard } from "./components/dashboard";
 import DailyPlan from "./pages/team/DailyPlan";
 import { AllLeads } from "./pages/leads";
 import Inventory from "./pages/inventory/Inventory";
+import InventoryDetail from "./pages/inventory/InventoryDetail";
 import { ProjectsWorking } from "./pages/projects";
 import BrokersRequirements from "./pages/resources/BrokersRequirements";
 import MyTeam from "./pages/team/MyTeam";
@@ -58,6 +59,7 @@ const App = () => {
             <Route path="all-leads/addLead" element={<AddLead />} />
             <Route path="all-leads/:id" element={<EditLead />} />
             <Route path="inventory" element={<Inventory />} />
+            <Route path="inventory/:id" element={<InventoryDetail />} />
             <Route path="inventory/seller-details/:id" element={<Step1SellerDetails />} />
             <Route path="inventory/project-details/:id" element={<Step2ProjectDetails />} />
             <Route path="inventory/employee-details/:id" element={<Step3EmployeeDetails />} />
