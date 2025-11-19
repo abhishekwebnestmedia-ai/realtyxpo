@@ -4,6 +4,8 @@ export { default as AddBulkLead } from './AddBulkLead';
 export { default as AddDailyTaskModal } from './AddDailyTaskModal';
 export { default as EditInventry } from './EditInventry';
 export { default as ProjectModal } from './ProjectModal';
+export { default as EditUnitModal } from './EditUnitModal';
+export { default as ProjectUnitModal } from './ProjectUnitModal';
 export { default as AssignLeadModal } from './AssignLeadModal';
 export { default as EditMemberModal } from './EditMemberModal';
 export { default as ForgotPasswordModal } from './ForgotPasswordModal';

@@ -124,6 +124,7 @@ const useProjects = (filters = {}) => {
                             }
 
                             tower.units.forEach(unit => {
+                              // Attach hierarchy identifiers so UI modals (edit/update) can derive API paths
                               hierarchy.units[towerId].push({
                                 _id: unit._id || `${towerId}-${unit.unitNumber}`,
                                 unitNumber: unit.unitNumber,
@@ -132,7 +133,17 @@ const useProjects = (filters = {}) => {
                                 email: unit.email || '',
                                 mobileNumbers: unit.mobileNumbers || [],
                                 remarks: unit.remarks || '',
-                                followUpDate: unit.followUpDate || null
+                                followUpDate: unit.followUpDate || null,
+                                // hierarchy ids
+                                cityId: cityId,
+                                divisionId: divisionId,
+                                sectorId: sectorId,
+                                projectId: projectId,
+                                towerId: towerId,
+                                unitId: unit._id || `${towerId}-${unit.unitNumber}`,
+                                // preserve top-level project metadata
+                                category: project.category || 'Residential',
+                                projectcategory: project.projectcategory || 'ReadyToMove'
                               });
                             });
                           }

@@ -443,10 +443,9 @@ import React, { useState } from 'react';
 import { Home, ChevronRight, Building2 } from 'lucide-react';
 import { ToggleSwitch } from '../../components/ui';
 import AnimatedFolder from '../../components/ui/AnimatedFolder';
-import { ProjectModal } from '../../components/modals';
+import { ProjectModal, ProjectUnitModal } from '../../components/modals';
 import { toast } from 'react-hot-toast';
 import useProjects from '../../hooks/useProjects';
-import UnitInfoModal from '../../components/modals/UnitInfomodal';
 import projectService from '../../services/projectService';
 import { Trash2 } from 'lucide-react';
 
@@ -911,11 +910,14 @@ const ProjectsWorking = () => {
         }}
       />
 
-      {/* 📌 Unit Info Modal */}
-      <UnitInfoModal
+      {/* 📌 Project-specific Unit Info Modal (opens on double-click) */}
+      <ProjectUnitModal
         isOpen={isUnitModalOpen}
         onClose={() => setIsUnitModalOpen(false)}
         unit={selectedUnit}
+        onUpdated={() => {
+          refresh();
+        }}
       />
     </div>
   );
