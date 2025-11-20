@@ -32,6 +32,8 @@ const ProjectUnitModal = ({ isOpen, onClose, unit, onUpdated }) => {
             <div className="mb-2"><strong>Owner:</strong> {unit.ownerName || unit.sellerName || '—'}</div>
             <div className="mb-2"><strong>Contact:</strong> {displayPhones}</div>
             <div className="mb-2"><strong>Status:</strong> {normalizeStatus(unit.status)}</div>
+            {unit.typology && <div className="mb-2"><strong>Typology:</strong> {Array.isArray(unit.typology) ? unit.typology.join(', ') : unit.typology}</div>}
+            {unit.size && <div className="mb-2"><strong>Size:</strong> {unit.size}</div>}
             {unit.remarks && <div className="mb-2"><strong>Remarks:</strong> {unit.remarks}</div>}
           </div>
 

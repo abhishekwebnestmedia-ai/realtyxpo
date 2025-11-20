@@ -46,6 +46,7 @@ const MyTeam = () => {
   const [savingPermissions, setSavingPermissions] = useState(false);
   const [permissionsLoading, setPermissionsLoading] = useState(false);
   const [deletingUserId, setDeletingUserId] = useState(null);
+  const { showConfirm } = useModal();
   // helper to resolve user id from various shapes
   // Priority: _id (from /auth/teams API) > id > userId > uid > nested user._id > nested user.id
   const resolveUserId = (u) =>
@@ -63,7 +64,6 @@ const MyTeam = () => {
       return;
     }
 
-    const { showConfirm } = useModal();
     const confirmed = await showConfirm(
       `Are you sure you want to permanently delete ${member.name || member.username || 'this user'}? This action cannot be undone.`
     );

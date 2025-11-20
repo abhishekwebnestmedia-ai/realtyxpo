@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useCallback, useState, useRef } from 'react';
-import ReactDOM from 'react-dom/client';
+import { createPortal } from 'react-dom';
 import { setModalHandlers } from '../services/modalService';
 
 const ModalContext = createContext(null);
@@ -57,7 +57,7 @@ export function useModal() {
 
 function ModalShell({ state, onClose }) {
   // create a portal attached to document.body
-  return ReactDOM.createPortal(
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black opacity-40" onClick={() => onClose(false)} />
       <div className="relative w-full max-w-lg mx-4">

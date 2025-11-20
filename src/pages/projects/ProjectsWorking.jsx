@@ -553,7 +553,8 @@ const ProjectsWorking = () => {
   };
 
   const isSuperAdmin = useIsSuperAdmin();
-  const { showConfirm } = useModal();
+  const { showConfirm, showAlert } = useModal();
+  const [showLegend, setShowLegend] = useState(false);
 
   const getProjectIcon = () => {
     const { projectType, constructionStatus } = filters;
@@ -720,19 +721,95 @@ const ProjectsWorking = () => {
 
       return (
         <div className="w-full mt-6 space-y-8">
-          {/* Add Unit Button */}
-          <div
-            onClick={() => setIsModalOpen(true)}
-            className="w-32 h-40 rounded-lg cursor-pointer flex flex-col items-center justify-center hover:bg-gray-50 transition-colors"
-          >
-            <div className="w-24 h-20 flex items-center justify-center mb-2">
-              <img src="/AddIcon.svg" alt="" className="w-22 h-22" />
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              {/* Add Unit Button */}
+              <div
+                onClick={() => setIsModalOpen(true)}
+                className="w-32 h-40 rounded-lg cursor-pointer flex flex-col items-center justify-center hover:bg-gray-50 transition-colors"
+              >
+                <div className="w-24 h-20 flex items-center justify-center mb-2">
+                  <img src="/AddIcon.svg" alt="" className="w-22 h-22" />
+                </div>
+                <h3 className="text-xl text-center font-medium leading-tight min-h-12">
+                  Add New Unit
+                </h3>
+              </div>
             </div>
-            <h3 className="text-xl text-center font-medium leading-tight min-h-12">
-              Add New Unit
-            </h3>
-          </div>
 
+            {/* Inline popover: Unit Colors legend (hover/click) */}
+            <div className="relative group">
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 px-3 py-2  rounded text-sm  hover:bg-gray-50 "
+                onClick={() => setShowLegend((s) => !s)}
+                onMouseEnter={() => setShowLegend(true)}
+                onMouseLeave={() => setShowLegend(false)}
+                aria-expanded={showLegend}
+                aria-controls="unit-legend-box"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/></svg>
+                
+              </button>
+
+              <div
+                id="unit-legend-box"
+                role="dialog"
+                aria-hidden={!showLegend}
+                className={`absolute right-0 mt-2 w-48 p-4 bg-white rounded-lg  border text-sm transition-opacity ${showLegend ? 'opacity-100 block' : 'opacity-0 pointer-events-none hidden group-hover:block'}`}
+                onMouseEnter={() => setShowLegend(true)}
+                onMouseLeave={() => setShowLegend(false)}
+              >
+                <div className="flex items-start gap-6">
+                  <div className="min-w-[220px]">
+                    <h4 className="text-sm font-semibold mb-3">Color Legend</h4>
+                    <div className="grid grid-cols-1 gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-5 h-5 rounded-sm border" style={{ background: '#f8fafc' }} />
+                        <div>
+                          <div className="text-sm font-medium">Vacant</div>
+                          <div className="text-xs text-gray-500">Gray / White</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-5 h-5 rounded-sm border" style={{ background: '#22c55e' }} />
+                        <div>
+                          <div className="text-sm font-medium">Rental</div>
+                          <div className="text-xs text-gray-500">Green</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-5 h-5 rounded-sm border" style={{ background: '#ff3131' }} />
+                        <div>
+                          <div className="text-sm font-medium">For Sale</div>
+                          <div className="text-xs text-gray-500">Red</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-5 h-5 rounded-sm border" style={{ background: '#eab308' }} />
+                        <div>
+                          <div className="text-sm font-medium">Self Occupied</div>
+                          <div className="text-xs text-gray-500">Yellow</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex-1">
+                    <h4 className="text-sm font-semibold mb-2">Preview</h4>
+                    <div className="flex gap-3 justify-center">
+                      <div className="w-28">
+                        <div className="w-28 h-14 rounded-t-md" style={{ background: '#f8fafc' }} />
+                        <div className="w-28 h-8 bg-gray-200 flex items-center justify-center text-sm font-medium">U-101</div>
+                      </div>
+                    </div>
+                    <div className="mt-3 text-xs text-gray-500">Double-click a unit card to open details. Use the Delete icon on unit cards to remove (admins only).</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+ 
          <div className="grid justify-start w-full gap-10">
   {sortedFloors.map(([floor, units]) => (
     <div

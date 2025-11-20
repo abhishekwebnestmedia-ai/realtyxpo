@@ -9,6 +9,8 @@ const EditUnitModal = ({ isOpen, onClose, unit, onSuccess }) => {
     unitNumber: '',
     ownerName: '',
     mobileNumbers: [''],
+    typology: '',
+    size: '',
     email: '',
     status: '',
     remarks: '',
@@ -25,6 +27,8 @@ const EditUnitModal = ({ isOpen, onClose, unit, onSuccess }) => {
       unitNumber: u.unitNumber || u.unitNo || '',
       ownerName: u.ownerName || u.sellerName || '',
       mobileNumbers: (u.mobileNumbers && u.mobileNumbers.length) ? u.mobileNumbers : (u.contactNumbers && u.contactNumbers.length) ? u.contactNumbers : [''],
+      typology: Array.isArray(u.typology) ? u.typology.join(', ') : (u.typology || ''),
+      size: u.size || '',
       email: u.email || '',
       status: u.status || '',
       remarks: u.remarks || '',
@@ -102,6 +106,11 @@ const EditUnitModal = ({ isOpen, onClose, unit, onSuccess }) => {
       const currentUnitStatus = unit.status || '';
       if (mappedStatus && mappedStatus !== currentUnitStatus) payload.status = mappedStatus;
       if ((form.remarks || '') !== (unit.remarks || '')) payload.remarks = form.remarks;
+        // typology: store as array on backend, accept comma-separated input here
+        const typologyClean = (form.typology || '').split(',').map(s => s.trim()).filter(Boolean);
+        const currentTypology = Array.isArray(unit.typology) ? unit.typology : (unit.typology ? [unit.typology] : []);
+        if (JSON.stringify(typologyClean) !== JSON.stringify(currentTypology)) payload.typology = typologyClean;
+        if ((form.size || '') !== (unit.size || '')) payload.size = form.size;
           // Normalize current assignTo to an id string for reliable comparison
           const currentAssignId = (unit.assignTo && typeof unit.assignTo === 'object') ? (unit.assignTo._id || '') : (typeof unit.assignTo === 'string' ? unit.assignTo : '');
           if ((form.assignTo || '') !== currentAssignId) payload.assignTo = form.assignTo || null;
@@ -143,6 +152,17 @@ const EditUnitModal = ({ isOpen, onClose, unit, onSuccess }) => {
             <div>
               <label className="text-sm text-gray-700">Owner Name</label>
               <input value={form.ownerName} onChange={(e) => handleChange('ownerName', e.target.value)} className="w-full border rounded-md px-3 py-2" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm text-gray-700">Typology (comma separated)</label>
+              <input value={form.typology} onChange={(e) => handleChange('typology', e.target.value)} placeholder="e.g. 2BHK, 3BHK" className="w-full border rounded-md px-3 py-2" />
+            </div>
+            <div>
+              <label className="text-sm text-gray-700">Size</label>
+              <input value={form.size} onChange={(e) => handleChange('size', e.target.value)} placeholder="e.g. 1200 sqft" className="w-full border rounded-md px-3 py-2" />
             </div>
           </div>
 

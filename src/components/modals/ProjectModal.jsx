@@ -22,6 +22,8 @@ const ProjectModal = ({
     unitNumber: '',
     ownerName: '',
     mobileNumbers: [''],
+    typology: '',
+    size: '',
     email: '',
     status: 'Vacant',
     remarks: '',
@@ -429,6 +431,32 @@ const ProjectModal = ({
             ))}
           </select>
         </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Typology
+          </label>
+          <input
+            type="text"
+            value={formData.typology}
+            onChange={(e) => handleInputChange('typology', e.target.value)}
+            placeholder="e.g. 2BHK, 3BHK (comma separated)"
+            className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Size
+          </label>
+          <input
+            type="text"
+            value={formData.size}
+            onChange={(e) => handleInputChange('size', e.target.value)}
+            placeholder="e.g. 1200 sqft"
+            className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
       </div>
 
       {/* Mobile Numbers - Full Width */}
@@ -593,7 +621,9 @@ const ProjectModal = ({
                   email: formData.email,
                   status: formData.status,
                   remarks: formData.remarks,
-                  assignTo: formData.assignTo || undefined
+                  assignTo: formData.assignTo || undefined,
+                  typology: (formData.typology || '').split(',').map(s => s.trim()).filter(Boolean),
+                  size: formData.size || undefined
                 }];
               }
             }
