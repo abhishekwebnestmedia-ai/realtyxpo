@@ -28,6 +28,7 @@ import {
   hasAnyLeadAccess,
   hasAnyInventoryAccess,
 } from "../../utils/permissions";
+import { useModal } from '../../context/ModalContext';
 
 const MyTeam = () => {
   const [users, setUsers] = useState([]);
@@ -62,10 +63,11 @@ const MyTeam = () => {
       return;
     }
 
-    const confirm = window.confirm(
+    const { showConfirm } = useModal();
+    const confirmed = await showConfirm(
       `Are you sure you want to permanently delete ${member.name || member.username || 'this user'}? This action cannot be undone.`
     );
-    if (!confirm) return;
+    if (!confirmed) return;
 
     setDeletingUserId(userId);
     setDataLoading(true);

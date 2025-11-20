@@ -3,6 +3,8 @@
  * Provides additional security measures for production deployment
  */
 
+import { showAlert } from '../services/modalService';
+
 class SecurityManager {
   constructor() {
     this.isProduction = import.meta.env.PROD;
@@ -215,7 +217,7 @@ class SecurityManager {
   // Handle DevTools detection
   handleDevToolsOpen() {
     console.clear();
-    alert('Developer tools detected. For security reasons, this action has been logged.');
+    showAlert('Developer tools detected. For security reasons, this action has been logged.');
     
     // Log security event
     this.logSecurityEvent('devtools_opened', {

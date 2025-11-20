@@ -7,26 +7,26 @@ import CreateTeamModal from './shared/CreateTeamModal';
 import { useTeams, useBroadcasts } from '../../hooks/useBroadcast';
 
 const AdminBroadCast = () => {
-  const [selectedTeam, setSelectedTeam] = useState('All');
+  const [selectedTeamId, setSelectedTeamId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   
   const { teams, loading: teamsLoading, createTeam } = useTeams();
-  const selectedTeamData = teams.find(team => team.name === selectedTeam);
-  const { messages, sendBroadcast, clearMessages } = useBroadcasts(selectedTeamData?.id);
+  const selectedTeamData = teams.find(team => team.id === selectedTeamId);
+  const { messages, sendBroadcast, clearMessages } = useBroadcasts(selectedTeamId);
 
   const filteredTeams = teams.filter(team =>
     team.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // Handle team selection and clear messages
-  const handleTeamSelect = (teamName) => {
+  const handleTeamSelect = (teamId) => {
     clearMessages();
-    setSelectedTeam(teamName);
+    setSelectedTeamId(teamId);
   };
 
   const handleSendMessage = async (messageData, attachment = null) => {
-    if (selectedTeamData?.id && selectedTeamData.id !== 'all') {
+    if (selectedTeamId) {
       try {
         await sendBroadcast(messageData, attachment);
       } catch (error) {
@@ -59,6 +59,7 @@ const AdminBroadCast = () => {
     <div className="flex justify-between gap-4  h-[85vh] overflow-hidden">
       <ChatList 
         teams={filteredTeams}
+        selectedTeam={selectedTeamId}
         onTeamSelect={handleTeamSelect}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -68,8 +69,8 @@ const AdminBroadCast = () => {
       
       <div className="flex-1 min-w-0 bg-white rounded-lg flex flex-col h-[80vh] overflow-hidden">
         <ChatHeader 
-          teamName={selectedTeam}
-          showActiveCount={selectedTeam !== 'All'}
+          teamName={selectedTeamData?.name || 'All'}
+          showActiveCount={Boolean(selectedTeamId)}
           activeCount={selectedTeamData?.members?.length || 0}
         />
         
@@ -80,7 +81,7 @@ const AdminBroadCast = () => {
         
         <MessageComposer
           onSendMessage={handleSendMessage}
-          disabled={selectedTeam === 'All'}
+          disabled={!selectedTeamId}
         />
       </div>
       

@@ -3,6 +3,8 @@ import { Search, Plus } from 'lucide-react';
 
 const ChatList = ({ 
   teams, 
+  selectedTeam,
+  selectedStyle = 'bg-blue-50',
   onTeamSelect, 
   searchQuery, 
   onSearchChange,
@@ -47,12 +49,12 @@ const ChatList = ({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto scrollbar-hidden">
+      <div className="flex-1 overflow-y-auto scrollbar-hidden hide-scrollbar">
         {teams.map((team) => (
           <div
             key={team.id}
-            onClick={() => onTeamSelect(team.name)}
-            className="p-4 cursor-pointer hover:bg-gray-50 border-b border-gray-100"
+            onClick={() => onTeamSelect(team.id)}
+            className={`p-4 cursor-pointer hover:bg-gray-50 border-b border-gray-100 ${selectedTeam === team.id ? selectedStyle : ''}`}
           >
             <div className="flex justify-between items-start">
               <div className="flex-1 min-w-0">

@@ -3,6 +3,7 @@ import { AlertCircle, Edit3, FilePlus2, FolderOpen, Loader2, Plus, RefreshCcw, T
 import useIsSuperAdmin from '../../hooks/useIsSuperAdmin';
 import api from '../../api/api';
 import AnimatedFolder from '../../components/ui/AnimatedFolder';
+import { useModal } from '../../context/ModalContext';
 
 const colorPalette = [
   { tip: '#FF9A56', cover: '#FFE563' },
@@ -38,6 +39,7 @@ const LearnGrow = () => {
 
   const [feedback, setFeedback] = useState(null);
   const [uploadLoading, setUploadLoading] = useState(false);
+  const [deletingFileId, setDeletingFileId] = useState(null);
 
   const fileInputRef = useRef(null);
   const isSuperAdmin = useIsSuperAdmin();
@@ -46,6 +48,7 @@ const LearnGrow = () => {
     () => folders.find((folder) => folder._id === activeFolderId) || null,
     [folders, activeFolderId]
   );
+  const { showConfirm } = useModal();
   const hasActiveFolder = Boolean(activeFolder && activeFolder._id);
 
   const apiOrigin = useMemo(() => {
@@ -209,7 +212,7 @@ const LearnGrow = () => {
       return;
     }
 
-    const confirmed = window.confirm(`Are you sure you want to delete "${activeFolder.name}"? This action cannot be undone.`);
+    const confirmed = await showConfirm(`Are you sure you want to delete "${activeFolder.name}"? This action cannot be undone.`);
     if (!confirmed) return;
 
     try {
@@ -271,6 +274,30 @@ const LearnGrow = () => {
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
+    }
+  };
+
+  const handleDeleteFile = async (fileId) => {
+    if (!fileId) return;
+    if (!authHeaders) {
+      setFeedback({ type: 'error', message: 'Authentication token missing. Please log in again.' });
+      return;
+    }
+
+    const confirmed = await showConfirm('Are you sure you want to delete this file? This action cannot be undone.');
+    if (!confirmed) return;
+
+    try {
+      setDeletingFileId(fileId);
+      await api.delete(`/learn/file/${fileId}`, { headers: authHeaders });
+      setFeedback({ type: 'success', message: 'File deleted successfully.' });
+      // refresh folder contents
+      if (activeFolder?._id) fetchFolderContents(activeFolder._id);
+    } catch (err) {
+      console.error('Failed to delete file', err);
+      setFeedback({ type: 'error', message: extractApiError(err) });
+    } finally {
+      setDeletingFileId(null);
     }
   };
 
@@ -368,7 +395,7 @@ const LearnGrow = () => {
               </button>
             </div>
             <ul className="space-y-2">
-              {items.map((item) => (
+                {items.map((item) => (
                 <li
                   key={item._id || item.id || item.name}
                   className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm"
@@ -380,16 +407,36 @@ const LearnGrow = () => {
                       {item.updatedAt ? ` • Updated ${new Date(item.updatedAt).toLocaleString()}` : ''}
                     </p>
                   </div>
-                  {item.type === 'file' && item.fileUrl ? (
-                    <a
-                      href={item.fileUrl.startsWith('http') ? item.fileUrl : `${apiOrigin}${item.fileUrl}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm font-semibold text-primary hover:underline"
-                    >
-                      Open
-                    </a>
-                  ) : null}
+                  <div className="flex items-center gap-3">
+                    {item.type === 'file' && item.fileUrl ? (
+                      <a
+                        href={item.fileUrl.startsWith('http') ? item.fileUrl : `${apiOrigin}${item.fileUrl}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-semibold text-primary hover:underline"
+                      >
+                        Open
+                      </a>
+                    ) : null}
+
+                    {isSuperAdmin && item._id && (
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteFile(item._id)}
+                        disabled={deletingFileId === item._id}
+                        className={`inline-flex items-center gap-2 rounded-md px-2 py-1 text-sm font-medium transition ${
+                          deletingFileId === item._id ? 'text-gray-400 cursor-not-allowed' : 'text-red-600 hover:bg-red-50'
+                        }`}
+                        title="Delete file"
+                      >
+                        {deletingFileId === item._id ? (
+                          <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </button>
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>

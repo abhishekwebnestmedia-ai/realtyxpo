@@ -1,6 +1,8 @@
 // Minimal client-side exporter: CSV, Excel (.xls), and PDF without external heavy deps
 // For true .xlsx support, consider adding 'xlsx' package later
 
+import { showAlert } from '../services/modalService';
+
 const safeFilename = (name) => name.replace(/[^a-z0-9\-_. ]/gi, '_');
 
 /**
@@ -11,7 +13,7 @@ const safeFilename = (name) => name.replace(/[^a-z0-9\-_. ]/gi, '_');
  */
 export function exportToCsv(rows = [], columns = null, fileName = 'export') {
   if (!Array.isArray(rows) || rows.length === 0) {
-    alert('No data to export');
+    showAlert('No data to export');
     return;
   }
   
@@ -49,7 +51,7 @@ export function exportToCsv(rows = [], columns = null, fileName = 'export') {
  */
 export async function exportToExcel(rows = [], columns = null, fileName = 'export') {
   if (!Array.isArray(rows) || rows.length === 0) {
-    alert('No data to export');
+    showAlert('No data to export');
     return;
   }
 
@@ -110,7 +112,7 @@ export async function exportToExcel(rows = [], columns = null, fileName = 'expor
  */
 export async function exportToOds(rows = [], columns = null, fileName = 'export') {
   if (!Array.isArray(rows) || rows.length === 0) {
-    alert('No data to export');
+    showAlert('No data to export');
     return;
   }
 
@@ -232,7 +234,7 @@ export async function exportToPdf(rows = [], columns = null, title = 'Export', w
   // Open in new window and trigger print
   const printWindow = window.open('', '_blank');
   if (!printWindow) {
-    alert('Please allow popups to export PDF');
+    showAlert('Please allow popups to export PDF');
     return;
   }
   

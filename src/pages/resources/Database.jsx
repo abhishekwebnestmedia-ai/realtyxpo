@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import api from '../../api/api';
 import TokenSearch from '../../components/ui/TokenSearch';
 import { exportToExcel, exportToPdf } from '../../utils/exporter';
+import { useModal } from '../../context/ModalContext';
 
 const useAuthHeaders = () => {
   const [token] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('token') : null));
@@ -51,6 +52,7 @@ const Database = () => {
   }, [fetchRecords]);
 
   const isSuperAdmin = useIsSuperAdmin();
+  const { showConfirm } = useModal();
 
   const tokens = useMemo(() => {
     if (searchTokens?.length) return searchTokens.map((t) => String(t).toLowerCase());
@@ -82,7 +84,7 @@ const Database = () => {
 
   const handleDelete = async (record) => {
     if (!record?._id) return;
-    const confirmed = window.confirm(`Delete "${record.projectName}"?`);
+    const confirmed = await showConfirm(`Delete "${record.projectName}"?`);
     if (!confirmed) return;
     if (!authHeaders) {
       toast.error('Authentication token missing.');

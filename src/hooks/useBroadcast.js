@@ -275,7 +275,7 @@ export const useBroadcasts = (groupId) => {
   // Clear messages when switching groups
   const clearMessages = () => {
     // Remove messages for the current groupId so UI doesn't show stale data
-    if (groupId && groupId !== 'all') {
+    if (groupId) {
       setMessagesPerGroup(prev => ({
         ...prev,
         [groupId]: []
@@ -288,12 +288,12 @@ export const useBroadcasts = (groupId) => {
     const socket = ensureBroadcastSocket();
     socketRef.current = socket;
 
-    const handleConnect = () => {
+      const handleConnect = () => {
       const userId = ensureCurrentUserId();
       if (userId) {
         socket.emit('register_user', userId);
       }
-      const activeGroup = previousGroupRef.current || (groupId && groupId !== 'all' ? groupId : null);
+      const activeGroup = previousGroupRef.current || (groupId ? groupId : null);
       if (activeGroup) {
         const payload = { groupId: activeGroup };
         socket.emit('join_group', payload);
@@ -341,12 +341,12 @@ export const useBroadcasts = (groupId) => {
     const socket = socketRef.current || ensureBroadcastSocket();
     socketRef.current = socket;
     const prevGroup = previousGroupRef.current;
-    if (prevGroup && prevGroup !== 'all' && prevGroup !== groupId) {
+    if (prevGroup && prevGroup !== groupId) {
       const payload = { groupId: prevGroup };
       socket.emit('leave_group', payload);
       socket.emit('broadcast:leave', payload);
     }
-    if (groupId && groupId !== 'all') {
+    if (groupId) {
       const payload = { groupId };
       socket.emit('join_group', payload);
       socket.emit('broadcast:join', payload);
@@ -356,7 +356,7 @@ export const useBroadcasts = (groupId) => {
 
   // Fetch messages when groupId changes
   useEffect(() => {
-    if (groupId && groupId !== 'all') {
+    if (groupId) {
       fetchMessages(groupId);
     }
   }, [groupId]); // eslint-disable-line react-hooks/exhaustive-deps

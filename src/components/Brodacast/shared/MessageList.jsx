@@ -81,14 +81,21 @@ const MessageList = ({ messages }) => {
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Scroll the last element into view at the end of the container.
+    // Use block:'end' to ensure the message sits at the bottom when the list is short.
+    try {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'nearest' });
+    } catch {
+      // Fallback for older browsers
+      messagesEndRef.current?.scrollIntoView();
+    }
   }, [messages]);
 
   const { map: grouped, keys: sortedDates } = groupMessagesByDate(messages || []);
 
   return (
-    <div className="flex flex-col">
-      <div className={`px-6 py-4 flex flex-col ${((messages || []).length <= 3) ? 'justify-end' : ''}`}>
+    <div className="flex-1 overflow-y-auto">
+      <div className={`px-6 py-4 flex flex-col min-h-full ${((messages || []).length <= 3) ? 'justify-end' : ''} pb-2`}>
         <div className="flex flex-col gap-3">
           {sortedDates.map((dateKey) => (
             <React.Fragment key={dateKey}>

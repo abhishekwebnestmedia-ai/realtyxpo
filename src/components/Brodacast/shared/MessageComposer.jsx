@@ -32,7 +32,7 @@ const MessageComposer = ({ onSendMessage, disabled = false }) => {
   if (disabled) return null; // Hide for read-only users
 
   return (
-    <div className="p-4 flex-shrink-0">
+    <div className="p-4 flex-shrink-0 sticky bottom-0 z-20 bg-white">
       {attachment && (
         <div className="mb-3 p-3 bg-gray-50 rounded-lg flex items-center justify-between">
           <span className="text-sm text-gray-700 truncate">

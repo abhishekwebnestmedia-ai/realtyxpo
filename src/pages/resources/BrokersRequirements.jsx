@@ -34,6 +34,10 @@ const BrokersRequirements = () => {
     });
   }, [brokers, searchTerm, searchTokens]);
 
+  // Ensure hooks are called in the same order every render by calling
+  // `useIsSuperAdmin` before any early returns below.
+  const isSuperAdmin = useIsSuperAdmin();
+
   // Loading and error states
   if (isLoading) {
     return (
@@ -66,7 +70,6 @@ const BrokersRequirements = () => {
   const startIndex = (currentPage - 1) * rowsPerPage;
   const paginatedData = filteredData.slice(startIndex, startIndex + rowsPerPage);
 
-  const isSuperAdmin = useIsSuperAdmin();
 
   const getStatusColor = (status) => {
     return status === "Hot" ? "text-red-600" : "text-green-600";

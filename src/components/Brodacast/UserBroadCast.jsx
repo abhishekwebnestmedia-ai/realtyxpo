@@ -5,21 +5,21 @@ import MessageList from './shared/MessageList';
 import { useTeams, useBroadcasts } from '../../hooks/useBroadcast';
 
 const UserBroadCast = () => {
-  const [selectedTeam, setSelectedTeam] = useState('All');
+  const [selectedTeamId, setSelectedTeamId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   const { teams, loading: teamsLoading } = useTeams();
-  const selectedTeamData = teams.find(team => team.name === selectedTeam);
-  const { messages, clearMessages } = useBroadcasts(selectedTeamData?.id);
+  const selectedTeamData = teams.find(team => team.id === selectedTeamId);
+  const { messages, clearMessages } = useBroadcasts(selectedTeamId);
 
   const filteredTeams = teams.filter(team =>
     team.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // Handle team selection and clear messages
-  const handleTeamSelect = (teamName) => {
+  const handleTeamSelect = (teamId) => {
     clearMessages();
-    setSelectedTeam(teamName);
+    setSelectedTeamId(teamId);
   };
 
   if (teamsLoading) {
@@ -37,6 +37,7 @@ const UserBroadCast = () => {
     <div className="flex gap-4  h-[85vh] overflow-hidden">
       <ChatList
         teams={filteredTeams}
+        selectedTeam={selectedTeamId}
         onTeamSelect={handleTeamSelect}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -44,8 +45,8 @@ const UserBroadCast = () => {
 
       <div className="flex-1 min-w-0 bg-white rounded-lg flex flex-col h-[80vh] overflow-hidden">
         <ChatHeader
-          teamName={selectedTeam}
-          showActiveCount={selectedTeam !== 'All'}
+          teamName={selectedTeamData?.name || 'All'}
+          showActiveCount={Boolean(selectedTeamId)}
           activeCount={selectedTeamData?.members?.length || 0}
         />
 

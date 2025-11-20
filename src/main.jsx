@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
+import { ModalProvider } from './context/ModalContext.jsx';
 import './index.css';
 import "simple-datatables/dist/style.css";
 
@@ -25,7 +26,9 @@ document.head.appendChild(style);
 ReactDOM.createRoot(document.getElementById('root')).render(
   
     <QueryClientProvider client={queryClient}>
-      <App />
+      <ModalProvider>
+        <App />
+      </ModalProvider>
       {/* Devtools are optional, but super helpful in dev */}
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>

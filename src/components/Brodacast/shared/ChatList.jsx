@@ -51,13 +51,13 @@ const ChatList = ({
       </div>
 
       {/* Teams List */}
-      <div className="flex-1 overflow-y-auto scrollbar-hidden m-1">
+      <div className="flex-1 overflow-y-auto scrollbar-hidden hide-scrollbar m-1">
         {teams.map((team) => (
           <div
             key={team.id}
-            onClick={() => onTeamSelect(team.name)}
+            onClick={() => onTeamSelect(team.id)}
             className={`p-4 cursor-pointer hover:bg-gray-50 border-b border-gray-100 ${
-              selectedTeam === team.name ? selectedStyle : ''
+              selectedTeam === team.id ? selectedStyle : ''
             }`}
           >
             <div className="flex justify-between items-start">

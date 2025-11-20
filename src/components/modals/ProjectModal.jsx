@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Plus } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import api from '../../api/api';
@@ -34,6 +34,8 @@ const ProjectModal = ({
   const [users, setUsers] = useState([]);
 
   // Update form data when currentPath changes (when modal opens at different levels)
+  const firstInputRef = useRef(null);
+
   useEffect(() => {
     if (isOpen) {
       setFormData(prev => ({
@@ -49,6 +51,8 @@ const ProjectModal = ({
       // Reset to step 1 when modal opens
       setCurrentStep(1);
       setFormErrors({});
+      // focus the first input for keyboard users
+      setTimeout(() => firstInputRef.current?.focus?.(), 50);
       // Fetch users for Assign To when modal opens
       (async () => {
         try {
@@ -62,6 +66,16 @@ const ProjectModal = ({
       })();
     }
   }, [isOpen, currentPath]);
+
+  // Close on Escape for better accessibility
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e) => {
+      if (e.key === 'Escape') onClose?.();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [isOpen, onClose]);
 
   // Flexible hierarchy validation - only check logical dependencies
   const validateHierarchy = () => {
@@ -179,7 +193,7 @@ const ProjectModal = ({
       </div>
 
       {/* Form Fields in 2-column Grid */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* City Name */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -187,11 +201,12 @@ const ProjectModal = ({
           </label>
           <input
             type="text"
+            ref={firstInputRef}
             value={formData.cityName}
             onChange={(e) => handleInputChange('cityName', e.target.value)}
             disabled={getFieldReadonly('cityName')}
             placeholder="Enter city name"
-            className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 ${
+            className={`w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors disabled:bg-gray-100 ${
               formErrors.cityName ? 'border-red-500' : 'border-gray-300'
             }`}
           />
@@ -684,36 +699,37 @@ const ProjectModal = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="project-modal-title"
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4"
+    >
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl mx-auto max-h-[90vh] overflow-y-auto transform transition-transform duration-150 ease-out">
         <div className="flex justify-between items-center p-6 border-b">
           <div>
-            <h2 className="text-xl font-semibold">
+            <h2 id="project-modal-title" className="text-xl font-semibold">
               {currentLevel === 'units' ? 'View Unit' : 'New Project'}
             </h2>
             {/* Stepper Indicator */}
-            <div className="flex items-center mt-2 space-x-4">
-              <div className={`flex items-center ${currentStep === 1 ? 'text-blue-600' : 'text-green-600'}`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                  currentStep === 1 ? 'bg-blue-600 text-white' : 'bg-green-600 text-white'
-                }`}>
-                  {currentStep === 1 ? '1' : '✓'}
+            <div className="flex items-center mt-3 gap-3" aria-hidden>
+              <div className="flex items-center gap-3">
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-semibold ${currentStep === 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}>
+                  1
                 </div>
-                <span className="ml-2 text-sm font-medium">Project Details</span>
+                <div className={`${currentStep === 1 ? 'text-blue-700' : 'text-gray-500'} text-sm`}>Project Details</div>
               </div>
-              <div className={`w-8 h-0.5 ${currentStep === 2 ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
-              <div className={`flex items-center ${currentStep === 2 ? 'text-blue-600' : 'text-gray-400'}`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                  currentStep === 2 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'
-                }`}>
+              <div className={`h-0.5 flex-1 ${currentStep === 2 ? 'bg-blue-600' : 'bg-gray-200'}`} />
+              <div className="flex items-center gap-3">
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-semibold ${currentStep === 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}>
                   2
                 </div>
-                <span className="ml-2 text-sm font-medium">Unit Details</span>
+                <div className={`${currentStep === 2 ? 'text-blue-700' : 'text-gray-500'} text-sm`}>Unit Details</div>
               </div>
             </div>
           </div>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-            <X size={24} />
+          <button onClick={onClose} aria-label="Close dialog" className="text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 rounded">
+            <X size={22} />
           </button>
         </div>
 
@@ -724,32 +740,32 @@ const ProjectModal = ({
           </div>
 
           {/* Navigation Buttons */}
-          <div className="flex justify-between pt-6 border-t">
-            <div>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between pt-6 border-t gap-3">
+            <div className="flex items-center gap-3">
               {currentStep === 2 && (
                 <button
                   type="button"
                   onClick={handlePrevStep}
-                  className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-200"
                 >
-                  Previous
+                  ← Previous
                 </button>
               )}
             </div>
-            
-            <div className="flex gap-2">
+
+            <div className="flex gap-2 w-full sm:w-auto">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                className="flex-1 sm:flex-none px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
               >
                 Cancel
               </button>
-              
+
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 sm:flex-none px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? 'Submitting...' : currentStep === 1 ? 'Next' : 'Create Project'}
               </button>

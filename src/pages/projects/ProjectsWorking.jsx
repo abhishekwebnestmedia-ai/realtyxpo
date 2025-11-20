@@ -449,6 +449,7 @@ import useProjects from '../../hooks/useProjects';
 import projectService from '../../services/projectService';
 import { Trash2 } from 'lucide-react';
 import useIsSuperAdmin from '../../hooks/useIsSuperAdmin';
+import { useModal } from '../../context/ModalContext';
 
 const ProjectsWorking = () => {
   // ✅ State Management
@@ -552,6 +553,7 @@ const ProjectsWorking = () => {
   };
 
   const isSuperAdmin = useIsSuperAdmin();
+  const { showConfirm } = useModal();
 
   const getProjectIcon = () => {
     const { projectType, constructionStatus } = filters;
@@ -737,8 +739,8 @@ const ProjectsWorking = () => {
       key={floor}
       className="flex items-start justify-start gap-6"
     >
-      {/* Floor Label */}
-      <div className="text-right pt-3">
+      {/* Floor Label (fixed width) */}
+      <div className="w-40 flex-shrink-0 text-right pt-3">
         <h2 className="text-lg font-semibold text-gray-800 capitalize">
           {floor}
         </h2>
@@ -778,9 +780,9 @@ const ProjectsWorking = () => {
                   type="button"
                   className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 bg-white/90 border border-gray-200 rounded-full p-1 hover:bg-red-50"
                   title="Delete Unit"
-                  onClick={async (e) => {
+                    onClick={async (e) => {
                     e.stopPropagation();
-                    const confirmed = window.confirm('Delete this unit?');
+                    const confirmed = await showConfirm('Delete this unit?');
                     if (!confirmed) return;
                     try {
                       const id = unit._id;
@@ -855,7 +857,7 @@ const ProjectsWorking = () => {
                 title="Delete"
                 onClick={async (e) => {
                   e.stopPropagation();
-                  const confirmed = window.confirm('Are you sure you want to delete this item?');
+                  const confirmed = await showConfirm('Are you sure you want to delete this item?');
                   if (!confirmed) return;
                   try {
                     const id = item._id;
