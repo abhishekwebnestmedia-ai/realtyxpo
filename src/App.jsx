@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { Login } from "./pages/auth";
+import { Login, ResetPassword } from "./pages/auth";
 import { DashboardLayout } from "./pages/dashboard";
 import { OverviewDashboard } from "./components/dashboard";
 import DailyPlan from "./pages/team/DailyPlan";
@@ -43,6 +43,10 @@ const App = () => {
           <Routes>
           {/* Login Route */}
           <Route path="/login" element={<Login />} />
+          {/* Reset password page (link from email) - token as path param */}
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
+          {/* Backward-compatible fallback so query-style links still work */}
+          <Route path="/reset-password" element={<ResetPassword />} />
 
           {/* Protected Dashboard Routes */}
           <Route

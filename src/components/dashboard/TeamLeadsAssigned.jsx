@@ -14,7 +14,11 @@ const TeamLeadsAssigned = () => {
       const response = await api.get('/dailyreport');
       
       if (response.data.success) {
-        setData(response.data.data);
+        const hidden = new Set(['Backup', 'Backup from everywhere']);
+        const result = Array.isArray(response.data.data)
+          ? response.data.data.filter(item => !hidden.has(((item?.name) || '').trim()))
+          : response.data.data;
+        setData(result);
         setError(null);
       } else {
         setError('Failed to fetch team data');

@@ -667,7 +667,12 @@ const MyTeam = () => {
       <div>
         <h1 className="text-2xl font-medium text-gray-900 mb-4">My Team</h1>
         <div className="flex flex-wrap">
-          {users.map((u) => {
+          {users
+            .filter(u => {
+              const name = (u?.name || u?.username || '').trim();
+              return !(name === 'Backup' || name === 'Backup from everywhere');
+            })
+            .map((u) => {
             const profileSrc = getImageUrl(
               u.profileImage || u.profilePicture || u.avatar || u.profilePhoto
             );

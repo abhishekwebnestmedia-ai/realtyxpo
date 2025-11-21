@@ -98,9 +98,16 @@ const StepperForm = () => {
         setPaymentStatuses(
           Array.isArray(dd.paymentStatus) ? dd.paymentStatus : []
         );
-        // expect usersRes.data to be an array of users
-        setUsers(Array.isArray(usersRes.data.users) ? usersRes.data.users : []);
-        console.log("Users API response:", usersRes.data.users);
+        // expect usersRes.data to be an array of users; filter out backup/internal accounts
+        const allUsers = usersRes.data?.users || usersRes.data || [];
+        const filteredUsers = Array.isArray(allUsers)
+          ? allUsers.filter(u => {
+              const name = (u?.name || u?.fullName || u?.displayName || '').trim();
+              return name !== 'Backup' && name !== 'Backup from everywhere';
+            })
+          : [];
+        setUsers(filteredUsers);
+        console.log("Users API response (filtered):", filteredUsers);
 
       } catch (err) {
         console.error(

@@ -12,7 +12,11 @@ const MembersAttendanceTable = ({ isDashboard = true, onClose = null }) => {
 
   // Transform API data to match component structure
   const members = useMemo(() => {
-    return activeUsersData?.users?.map(user => ({
+    // Exclude any internal/backup users by exact name match
+    const hiddenNames = new Set(['Backup', 'Backup from everywhere']);
+    return activeUsersData?.users
+      ?.filter(u => !hiddenNames.has((u?.name || '').trim()))
+      .map(user => ({
       id: user._id,
       status: user.isLoggedIn ? "present" : "absent",
       name: user.name,

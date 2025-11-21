@@ -59,8 +59,14 @@ const ProjectModal = ({
       (async () => {
         try {
           const res = await api.get('/auth/alluser');
-          const list = res?.data?.users || [];
-          setUsers(Array.isArray(list) ? list : []);
+          const all = res?.data?.users || res?.data || [];
+          const filtered = Array.isArray(all)
+            ? all.filter(u => {
+                const name = (u?.name || u?.fullName || u?.displayName || '').trim();
+                return name !== 'Backup' && name !== 'Backup from everywhere';
+              })
+            : [];
+          setUsers(filtered);
         } catch (err) {
           console.error('Failed to fetch users for assignTo', err);
           setUsers([]);
@@ -735,8 +741,8 @@ const ProjectModal = ({
       aria-labelledby="project-modal-title"
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4"
     >
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl mx-auto max-h-[90vh] overflow-y-auto transform transition-transform duration-150 ease-out">
-        <div className="flex justify-between items-center p-6 border-b">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl mx-auto max-h-[90vh] overflow-y-auto transform transition-transform duration-150 ease-out scrollbar-hidden">
+        <div className="flex justify-between items-center p-6 border-b sticky top-0 bg-white">
           <div>
             <h2 id="project-modal-title" className="text-xl font-semibold">
               {currentLevel === 'units' ? 'View Unit' : 'New Project'}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import LeadsTable from '../dashboard/ScrollableLeads.jsx';
 import { X, User, Search, Trash } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -46,8 +46,15 @@ const AssignLeadModal = ({ isOpen, onClose }) => {
 
   const fetchUsers = async () => {
     try {
-      const response = await api.get('/auth/teams');
-      setUsers(response.data.users || response.data || []);
+      const response = await api.get('/auth/alluser');
+      const all = response.data?.users || response.data || [];
+      const filtered = Array.isArray(all)
+        ? all.filter(u => {
+            const name = (u?.name || u?.fullName || u?.displayName || '').trim();
+            return name !== 'Backup' && name !== 'Backup from everywhere';
+          })
+        : [];
+      setUsers(filtered);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast.error('Failed to fetch users');
@@ -72,16 +79,21 @@ const AssignLeadModal = ({ isOpen, onClose }) => {
 
   // Filter leads based on search term
   // Only show leads whose assignTo is empty (unassigned) and match search
-  const filteredLeads = leads.filter(lead => {
-    const isUnassigned =
-      !lead.assignTo ||
-      (typeof lead.assignTo === 'object' ? !lead.assignTo.name || lead.assignTo.name.trim() === '' : lead.assignTo.trim() === '');
-    const matchesSearch =
-      lead.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead.contactNumber?.includes(searchTerm) ||
-      lead.email?.toLowerCase().includes(searchTerm.toLowerCase());
-    return isUnassigned && matchesSearch;
-  });
+  const filteredLeads = useMemo(() => {
+    const s = (searchTerm || '').toLowerCase();
+    return (leads || []).filter(lead => {
+      const isUnassigned =
+        !lead.assignTo ||
+        (typeof lead.assignTo === 'object' ? !lead.assignTo.name || lead.assignTo.name.trim() === '' : String(lead.assignTo || '').trim() === '');
+      if (!isUnassigned) return false;
+      if (!s) return true;
+      const matchesSearch =
+        (lead.customerName || '').toLowerCase().includes(s) ||
+        String(lead.contactNumber || '').includes(s) ||
+        (lead.email || '').toLowerCase().includes(s);
+      return matchesSearch;
+    });
+  }, [leads, searchTerm]);
 
   // Select-all logic for visible leads (must be after filteredLeads)
   const selectAllRef = React.useRef(null);

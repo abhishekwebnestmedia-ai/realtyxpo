@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { X, Search } from 'lucide-react';
 import api from '../../../api/api';
 
@@ -13,8 +13,15 @@ const CreateTeamModal = ({ isOpen, onClose, onCreateTeam }) => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/auth/teams');
-      setUsers(response.data.users);
+      const response = await api.get('/auth/alluser');
+      const all = response.data?.users || response.data || [];
+      const filtered = Array.isArray(all)
+        ? all.filter(u => {
+            const name = (u?.name || u?.fullName || u?.displayName || '').trim();
+            return name !== 'Backup' && name !== 'Backup from everywhere';
+          })
+        : [];
+      setUsers(filtered);
       setError(null);
     } catch (err) {
       setError('Failed to fetch users');
@@ -30,12 +37,13 @@ const CreateTeamModal = ({ isOpen, onClose, onCreateTeam }) => {
     }
   }, [isOpen]);
 
-  const filteredUsers = users.filter(user =>
-    user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredUsers = useMemo(() => {
+    const q = (searchQuery || '').toLowerCase();
+    if (!q) return users;
+    return users.filter(user => (user.name || '').toLowerCase().includes(q) || (user.email || '').toLowerCase().includes(q));
+  }, [users, searchQuery]);
 
-  const handleMemberToggle = (user) => {
+  const handleMemberToggle = useCallback((user) => {
     setSelectedMembers(prev => {
       const isSelected = prev.find(member => member._id === user._id);
       if (isSelected) {
@@ -44,7 +52,7 @@ const CreateTeamModal = ({ isOpen, onClose, onCreateTeam }) => {
         return [...prev, user];
       }
     });
-  };
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

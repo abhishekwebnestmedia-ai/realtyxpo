@@ -361,7 +361,11 @@ const TodaysTask = ({ isDashboard = false, userRole = 'user' }) => {
   };
 
   // Transform API data to match the expected format
-  const transformedData = dailyTasksData.map(task => ({
+  // Exclude internal backup users from admin listing
+  const hiddenNamesSet = new Set(['Backup', 'Backup from everywhere']);
+  const transformedData = (dailyTasksData || [])
+    .filter(task => !hiddenNamesSet.has(((task?.name) || '').trim()))
+    .map(task => ({
     name: task.name,
     morning: {
       commitment: "Morning Commitment",

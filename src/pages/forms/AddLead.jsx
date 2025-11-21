@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { AuthContext } from "../../context/AuthContext";
@@ -58,7 +58,14 @@ const AddLead = () => {
         const userRes = await api.get("/auth/alluser", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setUsers(userRes.data?.users || []);
+        const all = userRes.data?.users || userRes.data || [];
+        const filtered = Array.isArray(all)
+          ? all.filter(u => {
+              const name = (u?.name || u?.fullName || u?.displayName || '').trim();
+              return name !== 'Backup' && name !== 'Backup from everywhere';
+            })
+          : [];
+        setUsers(filtered);
 
         const sourceRes = await api.get("/inventry/dropdown", {
           headers: { Authorization: `Bearer ${token}` },
@@ -80,6 +87,10 @@ const AddLead = () => {
       setForm((prev) => ({ ...prev, capturedBy: user.name }));
     }
   }, [user]);
+
+  // Memoize select option lists to avoid recreating arrays on every render
+  const capturedByOptions = useMemo(() => (users || []).map(u => ({ value: u.name, label: u.name })), [users]);
+  const assignToOptions = useMemo(() => getFilteredUsersForAssignTo().map(u => ({ value: u._id, label: u.name })), [users, user]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -294,7 +305,7 @@ const AddLead = () => {
               name="capturedBy"
               value={form.capturedBy}
               onChange={handleChange}
-              options={users.map(u => ({ value: u.name, label: u.name }))}
+              options={capturedByOptions}
               placeholder="-- Select User --"
             />
           </div>
@@ -309,7 +320,7 @@ const AddLead = () => {
               name="assignTo"
               value={form.assignTo}
               onChange={handleChange}
-              options={getFilteredUsersForAssignTo().map(u => ({ value: u._id, label: u.name }))}
+              options={assignToOptions}
               placeholder="-- Select User --"
             />
           </div>
@@ -324,7 +335,7 @@ const AddLead = () => {
               name="transferTo"
               value={form.transferTo}
               onChange={handleChange}
-              options={getFilteredUsersForAssignTo().map(u => ({ value: u._id, label: u.name }))}
+              options={assignToOptions}
               placeholder="-- Select User --"
             />
           </div>

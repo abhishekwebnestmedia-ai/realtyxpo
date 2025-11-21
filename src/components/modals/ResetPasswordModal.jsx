@@ -18,7 +18,7 @@ const ResetPasswordModal = ({ isOpen, onClose, token }) => {
     if (password.length < 6) return setError('Password must be at least 6 characters');
     setLoading(true);
     try {
-      await api.post('/auth/reset-password', { token, password });
+      await api.post('/auth/reset-password', { token, newPassword: password });
       showToast({ message: 'Password reset successful. Please login with your new password.' });
       setPassword('');
       setConfirmPassword('');

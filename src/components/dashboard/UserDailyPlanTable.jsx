@@ -6,6 +6,12 @@ import { CheckSquare, NotebookPen } from "lucide-react";
 const UserDailyPlanTable = ({ userName }) => {
   const { data: dailyPlans = [], isLoading, isError } = useUserAllDailyPlans(userName);
 
+  // Hide plans for internal backup users
+  const normalizedUserName = (userName || '').trim().toLowerCase();
+  if (normalizedUserName === 'backup' || normalizedUserName === 'backup from everywhere') {
+    return null;
+  }
+
   // Search and pagination state
   const [search, setSearch] = useState("");
   const [searchTokens, setSearchTokens] = useState([]);

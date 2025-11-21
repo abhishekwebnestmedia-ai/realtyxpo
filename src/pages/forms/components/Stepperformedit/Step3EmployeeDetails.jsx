@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useMemo } from "react";
 import TimePicker from '../../../../components/ui/TimePicker';
 import { useParams, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
@@ -32,7 +32,7 @@ const Step3EmployeeDetails = () => {
 
   // Filter users for Assign To dropdown: admin sees all, regular users see only themselves
   const getFilteredUsersForAssignTo = () => {
-    const pool = getUserPool();
+    const pool = getUserPool;
     if (user?.role === "admin") return pool;
     // try to find the current user in the pool
     const current = pool.find((u) => u._id === user?._id || u.id === user?._id);
@@ -43,7 +43,7 @@ const Step3EmployeeDetails = () => {
   };
 
   // Merge realtime allUsers and locally fetched users into a de-duped pool
-  const getUserPool = () => {
+  const getUserPool = useMemo(() => {
     const a = Array.isArray(allUsers) ? allUsers : [];
     const b = Array.isArray(users) ? users : [];
     const map = new Map();
@@ -53,7 +53,7 @@ const Step3EmployeeDetails = () => {
       if (!map.has(key)) map.set(key, u);
     });
     return Array.from(map.values());
-  };
+  }, [allUsers, users]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -74,7 +74,14 @@ const Step3EmployeeDetails = () => {
           : Array.isArray(usersRes.data?.users)
           ? usersRes.data.users
           : [];
-        setUsers(fetchedUsers);
+        // Filter out known internal backup accounts
+        const filtered = Array.isArray(fetchedUsers)
+          ? fetchedUsers.filter(u => {
+              const name = (u?.name || u?.fullName || u?.displayName || '').trim();
+              return name !== 'Backup' && name !== 'Backup from everywhere';
+            })
+          : [];
+        setUsers(filtered);
 
         const inventoryData = inventoryRes.data || {};
         const fetchedSources = dropdownRes.data?.source || [];
@@ -158,7 +165,7 @@ const Step3EmployeeDetails = () => {
   // Map an id (or value) to the corresponding user name/email if possible
   const resolveUserToString = (val) => {
     if (!val) return "";
-    const pool = getUserPool();
+    const pool = getUserPool;
 
     // if already a name-like string and not an id in pool, return it
     if (typeof val === "string" && !pool.find((u) => u._id === val || u.id === val)) {
@@ -238,7 +245,7 @@ const Step3EmployeeDetails = () => {
           className="w-full border px-3 py-2 rounded-lg bg-[#FAFBFC]"
         >
           <option value="">-- Select User --</option>
-          {getUserPool().map((u) => (
+          {getUserPool.map((u) => (
             <option key={u._id || u.id || u.email} value={u.name || u.email}>
               {u.name || u.email}
             </option>
@@ -274,7 +281,7 @@ const Step3EmployeeDetails = () => {
           className="w-full border px-3 py-2 rounded-lg bg-[#FAFBFC]"
         >
           <option value="">-- Select User --</option>
-          {getUserPool().map((u) => (
+          {getUserPool.map((u) => (
             <option key={u._id || u.id || u.email} value={u.name || u.email}>
               {u.name || u.email}
             </option>

@@ -235,7 +235,7 @@ import logo from "/logo.svg";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { Eye, EyeOff } from "lucide-react";
-import { ForgotPasswordModal, ResetPasswordModal } from '../../components/modals';
+import { ForgotPasswordModal } from '../../components/modals';
 
 const Login = () => {
   const [loginEmail, setLoginEmail] = useState("");
@@ -253,8 +253,6 @@ const Login = () => {
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [isFlipped, setIsFlipped] = useState(false);
   const [isForgotOpen, setIsForgotOpen] = useState(false);
-  const [isResetOpen, setIsResetOpen] = useState(false);
-  const [resetToken, setResetToken] = useState(null);
   const navigate = useNavigate();
 
   const { login, register } = useContext(AuthContext);
@@ -264,15 +262,21 @@ const Login = () => {
   const registerLastRef = useRef(0);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
+  const [loginError, setLoginError] = useState("");
+  const [registerError, setRegisterError] = useState("");
 
   // core login action
   const doLogin = async () => {
-    const success = await login(loginEmail, loginPassword);
-    if (success) {
+    setLoginError("");
+    const res = await login(loginEmail, loginPassword);
+    if (res && res.success) {
       navigate("/");
-    } else {
-      alert("Invalid email or password");
+      return res;
     }
+    // Show server-provided message if available
+    const msg = res?.message || "Invalid email or password";
+    setLoginError(msg);
+    return res;
   };
 
   // debounced/throttled wrapper to prevent double clicks
@@ -290,7 +294,8 @@ const Login = () => {
   };
 
   const doRegister = async () => {
-    await register({
+    setRegisterError("");
+    const res = await register({
       name: signupName,
       email: signupEmail,
       password: signupPassword,
@@ -299,8 +304,15 @@ const Login = () => {
       address,
       empid,
     });
-    alert("Registration successful! Please login.");
-    setIsFlipped(false);
+    if (res && res.success) {
+      // success
+      alert("Registration successful! Please login.");
+      setIsFlipped(false);
+      return res;
+    }
+    const msg = res?.message || "Registration failed";
+    setRegisterError(msg);
+    throw new Error(msg);
   };
 
   const handleRegister = async () => {
@@ -311,7 +323,8 @@ const Login = () => {
     try {
       await doRegister();
     } catch (error) {
-      alert("Registration failed: " + (error.response?.data?.message || error.message));
+      // registerError state already set in doRegister; fallback to alert
+      alert("Registration failed: " + (error.message || "Registration failed"));
     } finally {
       setTimeout(() => setIsRegistering(false), 300);
     }
@@ -323,13 +336,13 @@ const Login = () => {
       const params = new URLSearchParams(location.search);
       const token = params.get('token');
       if (token) {
-        setResetToken(token);
-        setIsResetOpen(true);
+        // Redirect to the dedicated reset-password page (path param)
+        navigate(`/reset-password/${token}`);
       }
-    } catch (err) {
+    } catch {
       // ignore
     }
-  }, [location.search]);
+  }, [location.search, navigate]);
 
 
 
@@ -350,7 +363,7 @@ const Login = () => {
               "linear-gradient(rgba(255,255,255,0.6), rgba(255,255,255,0.6)), url('/bgleft.png')",
           }}
         >
-          <div className="w-80 h-[550px] perspective mt-[30%]">
+          <div className="w-80 h-[550px] perspective mt-[40%]">
             <div
               className={`w-full h-full transition-transform duration-1000 transform-style-preserve-3d ${
                 isFlipped ? "rotate-y-180" : ""
@@ -410,9 +423,12 @@ const Login = () => {
                   </div>
                 </div>
 
+                {loginError && (
+                  <div className="mt-4 text-sm text-red-600 " role="alert">{loginError}</div>
+                )}
                 <button
                   type="button"
-                  className={`w-full ${isLoggingIn ? 'opacity-60 cursor-not-allowed' : ''} bg-[#334DE5] text-white rounded-md py-[6px] mt-10`}
+                  className={`w-full ${isLoggingIn ? 'opacity-60 cursor-not-allowed' : ''} bg-[#334DE5] text-white rounded-md py-[6px] mt-3`}
                   onClick={handleLogin}
                   disabled={isLoggingIn}
                 >
@@ -497,9 +513,12 @@ const Login = () => {
                   </button>
                 </p>
 
+                {registerError && (
+                  <div className="mt-3 text-sm text-red-600" role="alert">{registerError}</div>
+                )}
                 <button
                   type="button"
-                  className={`w-full ${isRegistering ? 'opacity-60 cursor-not-allowed' : ''} bg-[#334DE5] text-white rounded-md py-[6px] mt-4`}
+                  className={`w-full ${isRegistering ? 'opacity-60 cursor-not-allowed' : ''} bg-[#334DE5] text-white rounded-md py-[6px] mt-3`}
                   onClick={handleRegister}
                   disabled={isRegistering}
                 >
@@ -538,7 +557,6 @@ const Login = () => {
 
       {/* Forgot / Reset Modals */}
       <ForgotPasswordModal isOpen={isForgotOpen} onClose={() => setIsForgotOpen(false)} />
-      <ResetPasswordModal isOpen={isResetOpen} onClose={() => setIsResetOpen(false)} token={resetToken} />
 
       <style>{`
         .perspective { perspective: 1000px; }

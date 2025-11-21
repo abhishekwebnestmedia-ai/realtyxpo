@@ -19,6 +19,19 @@ const EditUnitModal = ({ isOpen, onClose, unit, onSuccess }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const mapBackendStatusToUI = (s) => {
+    if (!s) return '';
+    const v = String(s).toLowerCase();
+    if (/interested/.test(v) || /interested in calling/.test(v) || /interest/.test(v)) return 'For Sale';
+    if (v.includes('sale')) return 'For Sale';
+    if (v.includes('vacant')) return 'Vacant';
+    if (v.includes('rental') || v.includes('rent')) return 'Rental';
+    if (v.includes('self') || v.includes('occupied')) return 'Self Occupied';
+    // fallback: return original trimmed string if it matches a known UI option casing
+    const trimmed = String(s).trim();
+    return trimmed;
+  };
+
   useEffect(() => {
     if (!isOpen) return;
     // initialize from provided unit
@@ -30,7 +43,7 @@ const EditUnitModal = ({ isOpen, onClose, unit, onSuccess }) => {
       typology: Array.isArray(u.typology) ? u.typology.join(', ') : (u.typology || ''),
       size: u.size || '',
       email: u.email || '',
-      status: u.status || '',
+      status: mapBackendStatusToUI(u.status || ''),
       remarks: u.remarks || '',
       // initialize assignTo as empty; we'll map to user _id after fetching users
       assignTo: (typeof u.assignTo === 'string' && /^[0-9a-fA-F]{24}$/.test(u.assignTo)) ? u.assignTo : ''
@@ -40,7 +53,13 @@ const EditUnitModal = ({ isOpen, onClose, unit, onSuccess }) => {
     (async () => {
       try {
         const res = await api.get('/auth/alluser');
-        const list = res?.data?.users || [];
+        const all = res?.data?.users || res?.data || [];
+        const list = Array.isArray(all)
+          ? all.filter(u => {
+              const name = (u?.name || u?.fullName || u?.displayName || '').trim();
+              return name !== 'Backup' && name !== 'Backup from everywhere';
+            })
+          : [];
         setUsers(list);
 
         // If unit had assignTo set as a name/email, try to resolve to _id from the fetched users
@@ -50,7 +69,7 @@ const EditUnitModal = ({ isOpen, onClose, unit, onSuccess }) => {
             setForm(prev => ({ ...prev, assignTo: matched._id }));
           }
         }
-      } catch (err) {
+      } catch {
         // non-fatal
         setUsers([]);
       }
@@ -137,7 +156,7 @@ const EditUnitModal = ({ isOpen, onClose, unit, onSuccess }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-xl p-6">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-xl p-4 max-h-[80vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">Edit Unit</h3>
           <button onClick={onClose} className="text-gray-600 hover:text-gray-800"><X /></button>

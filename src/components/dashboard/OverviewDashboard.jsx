@@ -56,7 +56,7 @@ const OverviewDashboard = () => {
                 onClick={handleAssignLead}
                 className="white-btn"
               >
-                Assign Lead +
+                Bulk Assign Lead +
               </button>
               
               <button 
