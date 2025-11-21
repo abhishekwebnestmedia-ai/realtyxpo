@@ -173,8 +173,9 @@ const SidebarMenu = ({ isOpen }) => {
           marginLeft: isOpen ? "20px" : "5px",
         }}
       >
-        <img
-          src={isOpen ? "/webnest-logo-full.svg" : "/public/webnst-logo.svg"}
+      <a href="https://webnestmedia.in/" target="_blank" rel="noopener noreferrer">
+          <img
+          src={isOpen ? "/webnest-logo-full.svg" : "/webnst-logo.svg"}
           alt="Logo"
           style={{
             width: isOpen ? "11rem" : "2rem",
@@ -183,6 +184,7 @@ const SidebarMenu = ({ isOpen }) => {
             transition: "opacity 0.3s ease",
           }}
         />
+      </a>
       </div>
     </div>
   );
