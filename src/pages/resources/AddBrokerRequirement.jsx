@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { AuthContext } from '../../context/AuthContext';
 import api from '../../api/api';
 import apiService from '../../api/apiService';
-import showToast from '../../components/ui/notifications/AddSuccess';
+import { toast } from 'react-hot-toast';
 
 const AddBrokerRequirement = () => {
   const navigate = useNavigate();
@@ -45,6 +45,12 @@ const AddBrokerRequirement = () => {
         form.status?.toLowerCase() === 'not connected' ? 'Not Connected' : form.status;
 
       const payload = { ...form, status: normalizedStatus };
+      // Convert datetime-local value to ISO for backend
+      if (payload.followUpDate) {
+        const d = new Date(payload.followUpDate);
+        if (!isNaN(d.getTime())) payload.followUpDate = d.toISOString();
+        else delete payload.followUpDate;
+      }
       // Try via centralized service first (POST /broker)
       try {
         await apiService.createBrokerRequirement(payload);
@@ -54,7 +60,7 @@ const AddBrokerRequirement = () => {
         await api.post(endpoint, payload);
       }
       queryClient.invalidateQueries({ queryKey: ['brokers'] });
-      showToast({ message: 'Broker requirement added', type: 'success' });
+      toast.success('Broker requirement created successfully!');
       navigate('/brokers-requirements');
     } catch (err) {
       console.error('AddBrokerRequirement error', err);
@@ -104,8 +110,15 @@ const AddBrokerRequirement = () => {
           </div>
 
           <div>
-            <label className="block mb-1 font-medium">Follow-up Date</label>
-            <input name="followUpDate" value={form.followUpDate} onChange={handleChange} type="date" required className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" />
+            <label className="block mb-1 font-medium">Follow-up Date & Time</label>
+            <input
+              name="followUpDate"
+              value={form.followUpDate}
+              onChange={handleChange}
+              type="datetime-local"
+              required
+              className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2"
+            />
           </div>
           <div>
             <label className="block mb-1 font-medium">Source</label>

@@ -21,4 +21,5 @@ const showToast = ({ message, type = "success", autoClose = 3000 }) => {
   );
 };
 
+
 export default showToast;

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { AuthContext } from "../../context/AuthContext";
 import api from "../../api/api";
-import showToast from "../../components/ui/notifications/AddSuccess";
+import { toast } from 'react-hot-toast';
 import CustomSelect from "../../components/ui/CustomSelect";
 import TimePicker from "../../components/ui/TimePicker";
 
@@ -183,9 +183,9 @@ const AddLead = () => {
 
   await api.post("/realtleads/create", payload);
 
-      // Invalidate leads cache to show new lead immediately
-      queryClient.invalidateQueries({ queryKey: ["leads"] });
-  showToast({ message: "Lead created successfully!", type: "success" });
+        // Invalidate leads cache to show new lead immediately
+        queryClient.invalidateQueries({ queryKey: ["leads"] });
+        toast.success('Lead created successfully!');
       navigate("/all-leads");
     } catch (err) {
       console.error(err);

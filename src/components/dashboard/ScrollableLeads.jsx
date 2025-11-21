@@ -101,11 +101,11 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
       const resp = await api.post('/realtleads/bulk-delete', { ids });
       setLocalData((prev) => prev.filter((r) => !ids.includes(r._id ?? r.id ?? r.leadId)));
       setSelectedIds(new Set());
-      toast.success(resp?.data?.message || `Deleted ${ids.length} lead(s)`);
+      toast.success(resp?.data?.message || `${ids.length} lead(s) deleted successfully!`);
       ids.forEach(id => onDelete?.({ _id: id }));
     } catch (err) {
       console.error('Bulk delete failed', err);
-      toast.error(err?.response?.data?.message || 'Bulk delete failed');
+      toast.error(err?.response?.data?.message || 'Failed to delete leads');
     } finally {
       setBulkDeleting(false);
       setShowBulkDeleteModal(false);
@@ -281,12 +281,12 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
       await api.delete(`/realtleads/delete/${row._id}`);
       // success: notify parent
       onDelete?.(row);
-      alert("Lead deleted successfully ✅");
-    } catch {
-      // keep variable for message but avoid console noise
+      toast.success('Lead deleted successfully!');
+    } catch (err) {
       // revert on failure
       setLocalData(prev);
-      alert("Failed to delete lead ❌");
+      console.error('Delete lead failed', err);
+      toast.error(err?.response?.data?.message || 'Failed to delete lead');
     }
   };
 

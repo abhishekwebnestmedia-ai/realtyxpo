@@ -283,6 +283,7 @@ import { AuthContext } from '../../context/AuthContext';
 import { useUsers } from '../../hooks/useBroadcast';
 import api from '../../api/api';
 import TimePicker from '../../components/ui/TimePicker';
+import { toast } from 'react-hot-toast';
 
 const EditLead = () => {
   const { id } = useParams();
@@ -393,8 +394,8 @@ const EditLead = () => {
 
   const handleUpdate = async () => {
     if (!id) {
-      alert('No lead ID found');
-      return;
+      toast.error('No lead ID found');
+      return
     }
 
     setLoading(true);
@@ -454,11 +455,11 @@ const EditLead = () => {
       console.log('EditLead: Update response:', response.data);
 
       queryClient.invalidateQueries({ queryKey: ['leads'] });
-      alert('Lead updated successfully!');
+      toast.success('Lead updated successfully!');
       navigate('/all-leads');
     } catch (error) {
       console.error('EditLead: Update failed:', error);
-      alert('Failed to update lead. Please try again.');
+      toast.error('Failed to update lead. Please try again.')
     } finally {
       setLoading(false);
     }

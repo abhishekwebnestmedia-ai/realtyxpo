@@ -1,6 +1,11 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
+import api from '../../api/api';
+import { toast } from 'react-hot-toast';
+import ConfirmDeleteButton from '../../components/ui/notifications/ConfirmDelete';
 import TokenSearch from '../../components/ui/TokenSearch';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil } from 'lucide-react';
 import useIsSuperAdmin from '../../hooks/useIsSuperAdmin';
 import { Link } from 'react-router-dom';
 import AddBulkBrokerRequirements from '../../components/modals/AddBulkBrokerRequirements';
@@ -37,6 +42,27 @@ const BrokersRequirements = () => {
   // Ensure hooks are called in the same order every render by calling
   // `useIsSuperAdmin` before any early returns below.
   const isSuperAdmin = useIsSuperAdmin();
+
+  // Routing & query helpers (must be called unconditionally)
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const handleEdit = (id) => {
+    if (!id) return;
+    navigate(`/brokers-requirements/edit/${id}`);
+  };
+
+  const handleDelete = async (id) => {
+    if (!id) return;
+    try {
+      await api.delete(`/broker/${id}`);
+      toast.success('Broker requirement deleted successfully!');
+      queryClient.invalidateQueries({ queryKey: ['brokers'] });
+    } catch (err) {
+      console.error('Delete broker error', err);
+      toast.error(err?.response?.data?.message || 'Failed to delete broker');
+    }
+  };
 
   // Loading and error states
   if (isLoading) {
@@ -75,6 +101,7 @@ const BrokersRequirements = () => {
     return status === "Hot" ? "text-red-600" : "text-green-600";
   };
 
+  
   return (
     <div className="rounded-lg">
       <div className="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
@@ -177,7 +204,13 @@ const BrokersRequirements = () => {
                     {row.source}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
-                    {row.followUpDate}
+                    {row.followUpDate ? (
+                      row.followUpDate
+                    ) : row.followUpDateRaw ? (
+                      new Date(row.followUpDateRaw).toLocaleString('en-IN', { hour12: true, day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })
+                    ) : (
+                      '—'
+                    )}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     {row.remark}
@@ -185,18 +218,14 @@ const BrokersRequirements = () => {
                   <td className="px-4 py-2 align-middle font-medium">
                     <div className="flex gap-2 justify-center items-center">
                       <button
+                        onClick={() => handleEdit(row._id || row.id)}
                         className="p-1 hover:bg-gray-100 rounded transition-colors text-blue-600"
                         title={`Edit ${row.capturedBy || row.sellerName || 'record'}`}
                       >
                         <Pencil size={16} />
                       </button>
                       {isSuperAdmin && (
-                        <button
-                          className="p-1 hover:bg-gray-100 rounded transition-colors text-red-600"
-                          title={`Delete ${row.capturedBy || row.sellerName || 'record'}`}
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        <ConfirmDeleteButton onConfirm={() => handleDelete(row._id || row.id)} />
                       )}
                     </div>
                   </td>
