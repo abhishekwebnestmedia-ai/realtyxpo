@@ -221,7 +221,7 @@ const Step3EmployeeDetails = () => {
       alert("Step3 details updated successfully!");
       
       // ✅ Navigate back to inventory page
-      navigate("/inventory");
+      navigate("/inventry");
     } catch (err) {
       console.error("Error updating Step3:", err.response?.data || err.message || err);
       alert("Failed to update Step3! See console for details.");

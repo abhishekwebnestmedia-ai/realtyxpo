@@ -108,7 +108,7 @@ const Step1SellerDetails = ({ paymentStatuses }) => {
       alert("Step1 details updated successfully!");
       
       // ✅ Navigate back to inventory page
-      navigate("/inventory");
+      navigate("/inventry");
     } catch (err) {
       console.error("Error updating inventory:", err);
       alert("Failed to update Step1!");

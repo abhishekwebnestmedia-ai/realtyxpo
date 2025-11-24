@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from 'react-router-dom';
+import { toast } from "react-hot-toast";
 import api from "../../api/api"; // added import for api
 import { AuthContext } from "../../context/AuthContext";
 import Step1SellerDetails from "./components/Stepperform/Step1SellerDetails";
@@ -9,6 +10,7 @@ const StepperForm = () => {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
   const [step, setStep] = useState(1);
+  const totalSteps = 3;
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -140,74 +142,74 @@ const StepperForm = () => {
     }
   };
 
+  const goToNextStep = () => setStep((prev) => Math.min(prev + 1, totalSteps));
+  const goToPreviousStep = () => setStep((prev) => Math.max(prev - 1, 1));
 
-
-  const handleSubmit = async (e) => {
-  e.preventDefault();
-
-  // Map formData → API body
-  // Combine follow-up date and 12h time into IST string like leads
-  let followUpCombined = '';
-  if (formData.followUpDate) {
-    const timeStr = formData.followUpTime || '';
-    let hour24 = '00';
-    let minute = '00';
-    if (timeStr) {
-      const parts = String(timeStr).trim().split(' ');
-      const hm = parts[0] || '';
-      const ampm = (parts[1] || '').toLowerCase();
-      const [hh, mm] = hm.split(':');
-      let h = parseInt(hh || '0', 10);
-      minute = (mm || '00').padStart(2, '0');
-      if (ampm === 'pm' && h !== 12) h += 12;
-      if (ampm === 'am' && h === 12) h = 0;
-      hour24 = String(h).padStart(2, '0');
+  const handleFinalSubmit = async () => {
+    // Map formData → API body
+    // Combine follow-up date and 12h time into IST string like leads
+    let followUpCombined = '';
+    if (formData.followUpDate) {
+      const timeStr = formData.followUpTime || '';
+      let hour24 = '00';
+      let minute = '00';
+      if (timeStr) {
+        const parts = String(timeStr).trim().split(' ');
+        const hm = parts[0] || '';
+        const ampm = (parts[1] || '').toLowerCase();
+        const [hh, mm] = hm.split(':');
+        let h = parseInt(hh || '0', 10);
+        minute = (mm || '00').padStart(2, '0');
+        if (ampm === 'pm' && h !== 12) h += 12;
+        if (ampm === 'am' && h === 12) h = 0;
+        hour24 = String(h).padStart(2, '0');
+      }
+      followUpCombined = `${formData.followUpDate}T${hour24}:${minute}:00+05:30`;
     }
-    followUpCombined = `${formData.followUpDate}T${hour24}:${minute}:00+05:30`;
-  }
 
-  const payload = {
-    sellerName: formData.name,
-    inventoryType: "Sales", // static? or add field if dynamic
-    sector: formData.sector,
-    unitNo: formData.unitNo,
-    towerNo: formData.tower,
-    typology: formData.typology ? [formData.typology] : [],
-    size: formData.size,
-    demand: formData.budget, // mapping budget → demand
-    Project: formData.projectName ? [formData.projectName] : [],
-    contactNumbers: formData.contactNumbers,
-    email: formData.email,
-    paymentStatus: formData.status ? [formData.status] : [],
-    registryType: "Registry", // static? or add field
-    requirement: formData.requirement,
-    date: new Date().toISOString().split("T")[0], // today’s date
-    capturedBy: formData.capturedBy,
-    assignTo: formData.assignTo,
-    transferTo: formData.transferTo,
-    followUpDate: followUpCombined,
-    source: formData.source ? [formData.source] : [],
-    loanStatus: formData.loanStatus,
-    remarks: formData.remark,
+    const payload = {
+      sellerName: formData.name,
+      inventoryType: "Sales", // static? or add field if dynamic
+      sector: formData.sector,
+      unitNo: formData.unitNo,
+      towerNo: formData.tower,
+      typology: formData.typology ? [formData.typology] : [],
+      size: formData.size,
+      demand: formData.budget, // mapping budget → demand
+      Project: formData.projectName ? [formData.projectName] : [],
+      contactNumbers: formData.contactNumbers,
+      email: formData.email,
+      paymentStatus: formData.status ? [formData.status] : [],
+      registryType: "Registry", // static? or add field
+      requirement: formData.requirement,
+      date: new Date().toISOString().split("T")[0], // today’s date
+      capturedBy: formData.capturedBy,
+      assignTo: formData.assignTo,
+      transferTo: formData.transferTo,
+      followUpDate: followUpCombined,
+      source: formData.source ? [formData.source] : [],
+      loanStatus: formData.loanStatus,
+      remarks: formData.remark,
+    };
+
+    try {
+      const res = await api.post("/inventry/createinventry", payload, {
+        headers: {
+          "Content-Type": "application/json",
+          // 👇 your api instance should already attach token,
+          // but if not, explicitly add:
+          // Authorization: `Bearer ${localStorage.getItem("token")}`
+        },
+      });
+
+      console.log("API Success:", res.data);
+      toast.success("Inventory created successfully!");
+      navigate("/inventry");
+    } catch (err) {
+      console.error("API Error:", err.response?.data || err.message);
+      toast.error(err.response?.data?.message || "Failed to create inventory");
+    }
   };
-
-  try {
-    const res = await api.post("/inventry/createinventry", payload, {
-      headers: {
-        "Content-Type": "application/json",
-        // 👇 your api instance should already attach token,
-        // but if not, explicitly add:
-        // Authorization: `Bearer ${localStorage.getItem("token")}`
-      },
-    });
-
-    console.log("API Success:", res.data);
-    alert("Inventory created successfully!");
-  } catch (err) {
-    console.error("API Error:", err.response?.data || err.message);
-    alert("Failed to create inventory");
-  }
-};
 
 
   return (
@@ -237,7 +239,7 @@ const StepperForm = () => {
       </div>
       <h2 className="text-2xl font-medium">Seller Details</h2>
       {/* Form Steps */}
-      <form onSubmit={handleSubmit} onKeyDown={handleFormKeyDown}>
+      <form onSubmit={(e) => e.preventDefault()} onKeyDown={handleFormKeyDown}>
         {step === 1 && (
   <Step1SellerDetails
     formData={formData}
@@ -270,45 +272,40 @@ const StepperForm = () => {
 
         {/* Navigation Buttons */}
         <div className="flex justify-between mt-8">
-  {/* Back button */}
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="px-6 py-2 rounded border border-red-500 text-red-600 hover:bg-red-50"
-          >
-            Cancel
-          </button>
-
-          {step > 1 && (
+          {/* Back button */}
+          <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => setStep(step - 1)}
-              className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+              onClick={() => navigate(-1)}
+              className="px-6 py-2 rounded border border-red-500 text-red-600 hover:bg-red-50"
             >
-              Back
+              Cancel
             </button>
-          )}
-        </div>
 
-  {/* Next / Submit button */}
-  {step < 3 ? (
-    <button
-      type="button"
-      onClick={() => setStep(step + 1)}
-      className="ml-auto px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-    >
-      Next
-    </button>
-  ) : (
-    <button
-      type="submit"
-      className="ml-auto px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-    >
-      Submit
-    </button>
-  )}
-</div>
+            {step > 1 && (
+              <button
+                type="button"
+                onClick={goToPreviousStep}
+                className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+              >
+                Back
+              </button>
+            )}
+          </div>
+
+            {/* Next / Submit button */}
+            <button
+              type="button"
+              onClick={step === totalSteps ? handleFinalSubmit : goToNextStep}
+            className={`ml-auto px-6 py-2 text-white rounded-lg ${
+              step === totalSteps
+                ? "bg-green-600 hover:bg-green-700"
+                : "bg-blue-600 hover:bg-blue-700"
+            }`}
+          >
+            {step === totalSteps ? "Submit" : "Next"}
+          </button>
+        </div>
 
       </form>
     </div>

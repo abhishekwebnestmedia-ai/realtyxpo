@@ -276,7 +276,7 @@
 // export default EditLead;
 
 
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { AuthContext } from '../../context/AuthContext';
@@ -292,6 +292,13 @@ const EditLead = () => {
   const queryClient = useQueryClient();
   const { user } = useContext(AuthContext);
   const { users, fetchUsers } = useUsers();
+  const filteredUsers = useMemo(() => {
+    const blacklist = new Set(["backup", "backup from everywhere"]);
+    return (users || []).filter((u) => {
+      const name = (u?.name || u?.username || '').trim().toLowerCase();
+      return name && !blacklist.has(name);
+    });
+  }, [users]);
 
   const [form, setForm] = useState({
     customerName: '',
@@ -590,7 +597,7 @@ const EditLead = () => {
               >
                 <option value="">Select User</option>
                 {user?.role === 'admin'
-                  ? users?.map((userItem) => (
+                  ? filteredUsers.map((userItem) => (
                       <option
                         key={userItem._id || userItem.id}
                         value={userItem.name || userItem.username}
@@ -620,7 +627,7 @@ const EditLead = () => {
               >
                 <option value="">Select User</option>
                 {user?.role === 'admin'
-                  ? users?.map((userItem) => (
+                  ? filteredUsers.map((userItem) => (
                       <option
                         key={userItem._id || userItem.id}
                         value={userItem.name || userItem.username}
@@ -649,7 +656,7 @@ const EditLead = () => {
               >
                 <option value="">Select User</option>
                 {user?.role === 'admin'
-                  ? users?.map((userItem) => (
+                  ? filteredUsers.map((userItem) => (
                       <option
                         key={userItem._id || userItem.id}
                         value={userItem.name || userItem.username}

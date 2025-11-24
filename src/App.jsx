@@ -62,12 +62,25 @@ const App = () => {
             <Route path="all-leads" element={<AllLeads />} />
             <Route path="all-leads/addLead" element={<AddLead />} />
             <Route path="all-leads/:id" element={<EditLead />} />
-            <Route path="inventory" element={<Inventory />} />
-            <Route path="inventory/:id" element={<InventoryDetail />} />
-            <Route path="inventory/seller-details/:id" element={<Step1SellerDetails />} />
-            <Route path="inventory/project-details/:id" element={<Step2ProjectDetails />} />
-            <Route path="inventory/employee-details/:id" element={<Step3EmployeeDetails />} />
-            <Route path="inventory/addInventory" element={<AddInventry />} />
+            {["inventory", "inventry"].map((inventoryPath) => (
+              <React.Fragment key={inventoryPath}>
+                <Route path={`${inventoryPath}`} element={<Inventory />} />
+                <Route path={`${inventoryPath}/:id`} element={<InventoryDetail />} />
+                <Route
+                  path={`${inventoryPath}/seller-details/:id`}
+                  element={<Step1SellerDetails />}
+                />
+                <Route
+                  path={`${inventoryPath}/project-details/:id`}
+                  element={<Step2ProjectDetails />}
+                />
+                <Route
+                  path={`${inventoryPath}/employee-details/:id`}
+                  element={<Step3EmployeeDetails />}
+                />
+                <Route path={`${inventoryPath}/addInventory`} element={<AddInventry />} />
+              </React.Fragment>
+            ))}
             <Route path="projects-working" element={<ProjectsWorking />} />
             <Route path="brokers-requirements" element={<BrokersRequirements />} />
             <Route path="brokers-requirements/add" element={<AddBrokerRequirement />} />

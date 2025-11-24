@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import api from "../../../../api/api"; // axios instance
+
+const DEFAULT_TYPOLOGY_CATEGORIES = ["1BHK", "2BHK", "3BHK", "4BHK", "5BHK"];
 
 const Step2ProjectDetails = () => {
   const { id } = useParams();
@@ -18,6 +20,9 @@ const Step2ProjectDetails = () => {
 
   const [fullPayload, setFullPayload] = useState(null);
   const [typologies, setTypologies] = useState([]); // ⬅️ store dropdown values
+  const typologyOptions = useMemo(() => {
+    return Array.from(new Set([...DEFAULT_TYPOLOGY_CATEGORIES, ...typologies]));
+  }, [typologies]);
 
   // ✅ Fetch inventory details on mount
   useEffect(() => {
@@ -52,7 +57,9 @@ const Step2ProjectDetails = () => {
       try {
         const res = await api.get(`/inventry/dropdown`);
         if (res.data?.typology) {
-          setTypologies(res.data.typology); // assuming response has `typology` array
+          setTypologies(res.data.typology);
+        } else {
+          setTypologies([]);
         }
       } catch (err) {
         console.error("Error fetching dropdowns:", err);
@@ -91,7 +98,7 @@ const Step2ProjectDetails = () => {
       alert("Step2 details updated successfully!");
       
       // ✅ Navigate back to inventory page
-      navigate("/inventory");
+      navigate("/inventry");
     } catch (err) {
       console.error("Error updating inventory:", err);
       alert("Failed to update Step2!");
@@ -160,8 +167,8 @@ const Step2ProjectDetails = () => {
           placeholder="Select or type typology"
         />
         <datalist id="typologyList">
-          {typologies.map((t, i) => (
-            <option key={i} value={t} />
+          {typologyOptions.map((t) => (
+            <option key={t} value={t} />
           ))}
         </datalist>
       </div>
