@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Edit3, Loader2, Notebook, Trash2 } from 'lucide-react';
 import useIsSuperAdmin from '../../hooks/useIsSuperAdmin';
@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import api from '../../api/api';
 import TokenSearch from '../../components/ui/TokenSearch';
 import { exportToExcel, exportToPdf } from '../../utils/exporter';
+import ConfirmDeleteButton from '../../components/ui/notifications/ConfirmDelete';
 
 const useAuthHeaders = () => {
   const [token] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('token') : null));
@@ -22,10 +23,40 @@ const Database = () => {
   const [searchTokens, setSearchTokens] = useState([]);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const [showPriceFilter, setShowPriceFilter] = useState(false);
+  const [priceRange, setPriceRange] = useState([1, 40]); // in Crores
   // kept for potential future use (was used for PDF downloads)
   // eslint-disable-next-line no-unused-vars
   const [downloading, setDownloading] = useState(false);
-  const [showExportMenu, setShowExportMenu] = useState(false);
+  
+  const exportMenuRef = useRef(null);
+  const priceFilterRef = useRef(null);
+
+  // Click outside handlers
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target)) {
+        setShowExportMenu(false);
+      }
+    };
+    if (showExportMenu) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showExportMenu]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (priceFilterRef.current && !priceFilterRef.current.contains(e.target)) {
+        setShowPriceFilter(false);
+      }
+    };
+    if (showPriceFilter) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showPriceFilter]);
 
   const fetchRecords = useCallback(async () => {
     if (!authHeaders) {
@@ -58,32 +89,49 @@ const Database = () => {
   }, [searchTerm, searchTokens]);
 
   const filteredRecords = useMemo(() => {
-    if (!tokens.length) return records;
-    return records.filter((record) => {
-      const haystack = [
-        record.projectName,
-        record.divisionName,
-        record.typology,
-        record.sector,
-        record.price,
-        record.size,
-        record.type,
-        record.constructionType,
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
-      return tokens.every((tok) => haystack.includes(tok));
+    let result = records;
+    
+    // Apply text search
+    if (tokens.length) {
+      result = result.filter((record) => {
+        const haystack = [
+          record.projectName,
+          record.divisionName,
+          record.typology,
+          record.sector,
+          record.price,
+          record.size,
+          record.type,
+          record.constructionType,
+          record.remarks,
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
+        return tokens.every((tok) => haystack.includes(tok));
+      });
+    }
+    
+    // Apply price filter
+    result = result.filter((record) => {
+      if (!record.price) return true;
+      const priceStr = String(record.price).toLowerCase();
+      const match = priceStr.match(/([0-9.]+)\s*cr/);
+      if (match) {
+        const value = parseFloat(match[1]);
+        return value >= priceRange[0] && value <= priceRange[1];
+      }
+      return true; // Include if price format doesn't match
     });
-  }, [records, tokens]);
+    
+    return result;
+  }, [records, tokens, priceRange]);
 
   const startIndex = (currentPage - 1) * rowsPerPage;
   const paginatedRecords = filteredRecords.slice(startIndex, startIndex + rowsPerPage);
 
   const handleDelete = async (record) => {
     if (!record?._id) return;
-    const confirmed = window.confirm(`Delete "${record.projectName}"?`);
-    if (!confirmed) return;
     if (!authHeaders) {
       toast.error('Authentication token missing.');
       return;
@@ -110,53 +158,85 @@ const Database = () => {
           <Link to="/database/add" className="btn inline-flex items-center gap-2">
             Add Entry
           </Link>
-          {isSuperAdmin && (
-            <div className="relative inline-block">
-              <button
-                type="button"
-                onClick={() => setShowExportMenu((s) => !s)}
-                className="inline-flex items-center gap-2 px-3 py-2 border rounded bg-white hover:bg-gray-50"
-              >
-                Export
-              </button>
-              {showExportMenu && (
-                <div className="absolute right-0 mt-2 w-44 bg-white border rounded shadow-lg z-40">
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      try {
-                        await exportToExcel(filteredRecords, null, `database-export`);
-                      } catch (err) {
-                        console.error('Export XLSX failed', err);
-                        toast.error('Export failed');
-                      } finally {
-                        setShowExportMenu(false);
-                      }
-                    }}
-                    className="w-full text-left px-4 py-2 hover:bg-gray-50"
-                  >
-                    Export as XLSX
-                  </button>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      try {
-                        await exportToPdf(filteredRecords, null, `Database Export`, '/watermark.svg');
-                      } catch (err) {
-                        console.error('Export PDF failed', err);
-                        toast.error('Export failed');
-                      } finally {
-                        setShowExportMenu(false);
-                      }
-                    }}
-                    className="w-full text-left px-4 py-2 hover:bg-gray-50"
-                  >
-                    Export as PDF
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
+{isSuperAdmin && (
+  <div className="relative inline-block">
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        setShowExportMenu((prev) => !prev);
+      }}
+      className="inline-flex items-center gap-2 px-3 py-2 border rounded bg-white hover:bg-gray-50"
+    >
+      Export
+    </button>
+
+    {showExportMenu && (
+      <div
+        ref={exportMenuRef}
+        className="absolute right-0 mt-2 w-44 bg-white border rounded shadow-lg z-50"
+        onClick={(e) => e.stopPropagation()} // <-- IMPORTANT FIX
+      >
+        {/* Export as XLSX */}
+        <button
+          type="button"
+          className="w-full text-left px-4 py-2 hover:bg-gray-50"
+          onClick={async (e) => {
+            e.stopPropagation();
+
+            try {
+              if (!filteredRecords?.length) {
+                toast.error("No data to export");
+                setShowExportMenu(false);
+                return;
+              }
+
+              await exportToExcel(filteredRecords, null, `database-export`);
+              toast.success("Excel exported successfully");
+            } catch (err) {
+              console.error("Export XLSX failed", err);
+              toast.error(err?.message || "Export failed");
+            } finally {
+              setShowExportMenu(false);
+            }
+          }}
+        >
+          Export as XLSX
+        </button>
+
+        {/* Export as PDF */}
+        <button
+          type="button"
+          className="w-full text-left px-4 py-2 hover:bg-gray-50"
+          onClick={async (e) => {
+            e.stopPropagation();
+
+            try {
+              if (!filteredRecords?.length) {
+                toast.error("No data to export");
+                setShowExportMenu(false);
+                return;
+              }
+
+              // Export only specific columns
+              const columnsToExport = ['projectName', 'divisionName', 'typology', 'sector', 'price', 'pdfLink', 'constructionType', 'remarks'];
+              await exportToPdf(filteredRecords, columnsToExport, `Welcome to Realtyxpo`, "/watermark.png");
+              toast.success("PDF exported successfully");
+            } catch (err) {
+              console.error("Export PDF failed", err);
+              toast.error(err?.message || "Export failed");
+            } finally {
+              setShowExportMenu(false);
+            }
+          }}
+        >
+          Export as PDF
+        </button>
+      </div>
+    )}
+  </div>
+)}
+
         </div>
       </div>
 
@@ -184,16 +264,102 @@ const Database = () => {
 
   <div className="overflow-x-auto rounded-xl bg-white">
         <table className="w-full border-collapse text-sm">
-          <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
+          <thead className="bg-gray-100 text-gray-600 uppercase text-xs sticky top-0 z-10 border-b">
             <tr>
-              <th className="px-4 py-3 text-left font-medium theading">Project</th>
-              <th className="px-4 py-3 text-left font-medium theading">Location</th>
-              <th className="px-4 py-3 text-left font-medium theading">Typology</th>
-              <th className="px-4 py-3 text-left font-medium theading">Sector</th>
-              <th className="px-4 py-3 text-left font-medium theading">Price</th>
+              <th className="px-4 py-6 text-left font-medium theading">Project</th>
+              <th className="px-4 py-6 text-left font-medium theading">Location</th>
+              <th className="px-4 py-6 text-left font-medium theading">Typology</th>
+              <th className="px-4 py-6 text-left font-medium theading">Sector</th>
+              <th 
+                className="px-4 py-6 cursor-pointer select-none text-left font-medium theading relative"
+                onClick={(e) => { e.stopPropagation(); setShowPriceFilter((s) => !s); }}
+              >
+                Price{(priceRange[0] !== 1 || priceRange[1] !== 40) ? ` (₹${priceRange[0]}-${priceRange[1]} Cr)` : ''}
+                {showPriceFilter && (
+                  <div 
+                    ref={priceFilterRef}
+                    className="absolute left-0 top-full mt-2 w-80 bg-white border border-gray-300 rounded-xl shadow-2xl p-5"
+                    style={{ zIndex: 9999 }}
+                    onClick={(ev) => ev.stopPropagation()}
+                  >
+                    <div className="mb-4">
+                      <div className="text-sm font-semibold text-gray-800 mb-1">Price Range</div>
+                      <div className="text-lg font-bold text-blue-600">
+                        ₹{priceRange[0]} Cr - ₹{priceRange[1]} Cr
+                      </div>
+                    </div>
+                    <div className="relative px-2 py-4">
+                      {/* Track background */}
+                      <div className="absolute top-1/2 left-0 right-0 h-1.5 bg-gray-200 rounded-full -translate-y-1/2"></div>
+                      {/* Active range track */}
+                      <div 
+                        className="absolute top-1/2 h-1.5 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full -translate-y-1/2 shadow-sm"
+                        style={{
+                          left: `${((priceRange[0] - 1) / 39) * 100}%`,
+                          right: `${100 - ((priceRange[1] - 1) / 39) * 100}%`
+                        }}
+                      ></div>
+                      {/* Min slider */}
+                      <input
+                        type="range"
+                        min="1"
+                        max="40"
+                        value={priceRange[0]}
+                        onChange={(e) => {
+                          const val = Number(e.target.value);
+                          if (val < priceRange[1]) {
+                            setPriceRange([val, priceRange[1]]);
+                          }
+                        }}
+                        className="absolute w-full h-2 appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-blue-600 [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:hover:scale-110 [&::-webkit-slider-thumb]:transition-transform [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-blue-600 [&::-moz-range-thumb]:shadow-md"
+                        style={{ zIndex: priceRange[0] > 35 ? 5 : 3 }}
+                      />
+                      {/* Max slider */}
+                      <input
+                        type="range"
+                        min="1"
+                        max="40"
+                        value={priceRange[1]}
+                        onChange={(e) => {
+                          const val = Number(e.target.value);
+                          if (val > priceRange[0]) {
+                            setPriceRange([priceRange[0], val]);
+                          }
+                        }}
+                        className="absolute w-full h-2 appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-blue-600 [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:hover:scale-110 [&::-webkit-slider-thumb]:transition-transform [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-blue-600 [&::-moz-range-thumb]:shadow-md"
+                        style={{ zIndex: 4 }}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between mt-2 mb-4 text-xs text-gray-500">
+                      <span>₹1 Cr</span>
+                      <span>₹40 Cr</span>
+                    </div>
+                    <div className="flex justify-between gap-2 pt-3 border-t border-gray-200">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPriceRange([1, 40]);
+                          setShowPriceFilter(false);
+                        }}
+                        className="px-4 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        Reset
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowPriceFilter(false)}
+                        className="px-4 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+                      >
+                        Apply
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </th>
               <th className="px-4 py-3 text-left font-medium theading">Size</th>
               <th className="px-4 py-3 text-left font-medium theading">Type</th>
               <th className="px-4 py-3 text-left font-medium theading">Construction</th>
+              <th className="px-4 py-3 text-left font-medium theading">Remarks</th>
               <th className="px-4 py-3 text-center font-medium theading">PDF</th>
               <th className="px-4 py-3 text-center font-medium theading">Actions</th>
             </tr>
@@ -201,13 +367,13 @@ const Database = () => {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={10} className="py-16 text-center whitespace-nowrap">
+                <td colSpan={11} className="py-16 text-center whitespace-nowrap">
                   <Loader2 className="mx-auto h-6 w-6 animate-spin text-primary" />
                 </td>
               </tr>
             ) : paginatedRecords.length === 0 ? (
               <tr>
-                <td colSpan={10} className="py-10 text-center text-gray-500 whitespace-nowrap">
+                <td colSpan={11} className="py-10 text-center text-gray-500 whitespace-nowrap">
                   No records found. Try adjusting your search.
                 </td>
               </tr>
@@ -224,6 +390,7 @@ const Database = () => {
                   <td className="px-4 py-4 whitespace-nowrap">{record.size || '—'}</td>
                   <td className="px-4 py-4 whitespace-nowrap">{record.type || '—'}</td>
                   <td className="px-4 py-4 whitespace-nowrap">{record.constructionType || '—'}</td>
+                  <td className="px-4 py-4 max-w-xs truncate" title={record.remarks}>{record.remarks || '—'}</td>
                   <td className="px-4 py-4 text-center whitespace-nowrap">
                     {record.pdfLink ? (
                       <a
@@ -249,15 +416,14 @@ const Database = () => {
                         <Edit3 className="h-4 w-4 text-green-600" />
                       </Link>
                       {isSuperAdmin && (
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(record)}
-                          title="Delete"
-                          aria-label={`Delete ${record.projectName || 'record'}`}
+                        <ConfirmDeleteButton
+                          onConfirm={() => handleDelete(record)}
+                          title="Delete Database Entry"
+                          message={`Are you sure you want to delete "${record.projectName}"? This action cannot be undone.`}
+                          confirmLabel="Delete"
                           className="inline-flex items-center justify-center rounded p-2 text-red-600 transition hover:bg-red-50"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                          label={<Trash2 className="h-4 w-4" />}
+                        />
                       )}
                     </div>
                   </td>

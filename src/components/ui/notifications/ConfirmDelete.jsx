@@ -42,8 +42,14 @@ const ConfirmDeleteButton = ({
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-md rounded-2xl bg-white px-6 py-5 shadow-2xl">
+        <div 
+          className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 px-4"
+          onClick={() => setOpen(false)}
+        >
+          <div 
+            className="w-full max-w-md rounded-2xl bg-white px-6 py-5 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-start gap-3">
               <div className="mt-1 rounded-full bg-red-50 p-2">
                 <Trash2 size={24} className="text-red-600" />

@@ -217,10 +217,10 @@
 
 
 
-import React, { useState, useMemo, useContext } from "react";
+import React, { useState, useMemo, useContext, useEffect } from "react";
 import { useLeads } from "../../hooks/useLeads";
 import { ScrollableLeads } from "../../components/dashboard";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { AddBulkLead } from "../../components/modals";
 import { AuthContext } from "../../context/AuthContext";
 import { getViewerPerms, canViewLead } from "../../utils/permissions";
@@ -231,6 +231,7 @@ import { FilePlus2, Plus } from 'lucide-react';
 
 const AllLeads = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { data: leadsRaw, isLoading, error } = useLeads();
 
   const leads = useMemo(() => {
@@ -245,6 +246,25 @@ const AllLeads = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [externalTokens, setExternalTokens] = useState([]);
   const [statusFilter, setStatusFilter] = useState('');
+
+  // Handle navigation state for pre-selecting status filter and tab
+  useEffect(() => {
+    if (location.state?.filterKey) {
+      setStatusFilter(location.state.filterKey);
+    }
+    if (location.state?.selectedTab) {
+      const tab = location.state.selectedTab;
+      if (tab === 'Rental Business') {
+        setFilter('rental');
+      } else if (tab === 'All Buyers') {
+        setFilter('buyers');
+      }
+    }
+    // Clear the state after using it
+    if (location.state?.filterKey || location.state?.selectedTab) {
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state?.filterKey, location.state?.selectedTab, navigate]);
 
   const { user: authUser } = useContext(AuthContext) || {};
   const viewerPerms = getViewerPerms(authUser || {});

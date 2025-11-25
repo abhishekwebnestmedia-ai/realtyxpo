@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import api from '../../api/api';
@@ -15,9 +15,12 @@ const BrokersRequirements = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchTokens, setSearchTokens] = useState([]);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  
+  const [statusFilter, setStatusFilter] = useState('');
+  const [showStatusMenu, setShowStatusMenu] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+  
+  const statusFilterRef = useRef(null);
 
   // Fetch broker data from API
   const { data: brokersData = [], isLoading, error } = useBrokers();
@@ -32,12 +35,26 @@ const BrokersRequirements = () => {
   // Filter data based on tokenized search (AND semantics)
   const filteredData = useMemo(() => {
     const tokens = (searchTokens && searchTokens.length) ? searchTokens.map(t => String(t).toLowerCase()) : (searchTerm ? [searchTerm.toLowerCase()] : []);
-    if (!tokens || tokens.length === 0) return brokers;
-    return brokers.filter(row => {
-      const hay = Object.values(row).join(' ').toLowerCase();
-      return tokens.every(tok => hay.includes(tok));
-    });
-  }, [brokers, searchTerm, searchTokens]);
+    let result = brokers;
+    
+    // Apply status filter
+    if (statusFilter) {
+      result = result.filter(row => row?.status === statusFilter);
+    }
+    
+    // Apply search tokens
+    if (tokens && tokens.length > 0) {
+      result = result.filter(row => {
+        const hay = Object.values(row).join(' ').toLowerCase();
+        return tokens.every(tok => hay.includes(tok));
+      });
+    }
+    
+    return result;
+  }, [brokers, searchTerm, searchTokens, statusFilter]);
+
+  // Fixed status options
+  const statusOptions = ['Hot', 'Not Connected', 'Serious', 'Potential', 'Futuristic', 'Dead Lead'];
 
   // Ensure hooks are called in the same order every render by calling
   // `useIsSuperAdmin` before any early returns below.
@@ -96,9 +113,46 @@ const BrokersRequirements = () => {
   const startIndex = (currentPage - 1) * rowsPerPage;
   const paginatedData = filteredData.slice(startIndex, startIndex + rowsPerPage);
 
-
-  const getStatusColor = (status) => {
-    return status === "Hot" ? "text-red-600" : "text-green-600";
+  // Get status styles matching leads table
+  const getStatusStyles = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'hot':
+        return {
+          backgroundColor: '#FFF5F5',
+          color: '#FF3737',
+          borderColor: '#FFB5B5'
+        };
+      case 'not connected':
+        return {
+          backgroundColor: '#F7F9FA',
+          color: '#588EA5',
+          borderColor: '#A8C4D3'
+        };
+      case 'serious':
+        return {
+          backgroundColor: '#F2FCF7',
+          color: '#00BF63',
+          borderColor: '#80E5B1'
+        };
+      case 'futuristic':
+        return {
+          backgroundColor: '#FFF8FC',
+          color: '#FF6CC6',
+          borderColor: '#FFB6E3'
+        };
+      case 'potential':
+        return {
+          backgroundColor: '#F8F9FF',
+          color: '#748DFF',
+          borderColor: '#BAC6FF'
+        };
+      default:
+        return {
+          backgroundColor: '#F9FAFB',
+          color: '#6B7280',
+          borderColor: '#D1D5DB'
+        };
+    }
   };
 
   
@@ -148,8 +202,25 @@ const BrokersRequirements = () => {
               <th className="min-w-20 px-4 py-6 whitespace-nowrap theading text-left font-medium">
                 Contact
               </th>
-              <th className="min-w-20 px-4 py-6 whitespace-nowrap theading text-left font-medium">
-                Status
+              <th 
+                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-center font-medium relative"
+                onClick={(e) => { e.stopPropagation(); setShowStatusMenu((s) => !s); }}
+              >
+                Status{statusFilter ? `: ${statusFilter}` : ''}
+                {showStatusMenu && (
+                  <div ref={statusFilterRef} className="absolute left-0 top-full mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow p-2" style={{ zIndex: 9999 }} onClick={(ev) => ev.stopPropagation()}>
+                    <select
+                      className="w-full border rounded px-2 py-1 bg-[#FAFBFC]"
+                      value={statusFilter}
+                      onChange={(e) => { setStatusFilter(e.target.value); setShowStatusMenu(false); }}
+                    >
+                      <option value="">All</option>
+                      {statusOptions.map((s) => (
+                        <option key={String(s)} value={String(s)}>{String(s)}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </th>
               <th className="min-w-28 px-4 py-6 whitespace-nowrap theading text-left font-medium">
                 Date
@@ -191,8 +262,17 @@ const BrokersRequirements = () => {
                   <td className="px-4 py-4 whitespace-nowrap">
                     {row.contactNumber}
                   </td>
-                  <td className={`px-4 py-4 whitespace-nowrap font-medium ${getStatusColor(row.status)}`}>
-                    {row.status}
+                  <td className="px-4 py-4 whitespace-nowrap text-center">
+                    <span
+                      className="inline-block px-3 py-1 rounded-full text-sm font-medium border"
+                      style={{
+                        backgroundColor: getStatusStyles(row.status).backgroundColor,
+                        color: getStatusStyles(row.status).color,
+                        borderColor: getStatusStyles(row.status).borderColor
+                      }}
+                    >
+                      {row.status}
+                    </span>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     {row.createdAt ? new Date(row.createdAt).toLocaleDateString() : row.date || 'N/A'}

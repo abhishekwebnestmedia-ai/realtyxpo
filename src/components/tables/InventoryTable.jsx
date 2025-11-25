@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef, useEffect } from "react";
 import { Pencil } from "lucide-react";
 import api from "../../api/api"; // ✅ axios instance
 import ConfirmDeleteButton from "../ui/notifications/ConfirmDelete"; // adjust path
@@ -18,6 +18,8 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
   const [rowsPerPage, setRowsPerPage] = useState(externalRowsPerPage);
   const [showTypologyMenu, setShowTypologyMenu] = useState(false);
   const isSuperAdmin = useIsSuperAdmin();
+  
+  const typologyFilterRef = useRef(null);
   
   // Use external search when provided
   const activeSearch = hideSearch ? externalSearch : searchTerm;
@@ -40,6 +42,19 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
   React.useEffect(() => {
     setRowsPerPage(externalRowsPerPage);
   }, [externalRowsPerPage]);
+
+  // Click outside handler for typology filter
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (typologyFilterRef.current && !typologyFilterRef.current.contains(e.target)) {
+        setShowTypologyMenu(false);
+      }
+    };
+    if (showTypologyMenu) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showTypologyMenu]);
 
   // ✅ Search filter supporting tokenized AND search
   const filteredData = useMemo(() => {
@@ -103,30 +118,20 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
     setSortConfig({ key, direction });
   };
 
-  // Format follow-up value to YYYY-MM-DD hh:mm AM/PM when possible
-  const formatFollowUp = (val) => {
-    if (!val && val !== 0) return "N/A";
-    if (typeof val !== 'string') return String(val);
-
-    // If already in 12-hour format with AM/PM, just return trimmed value
-    if (/[AP]M/i.test(val)) return val.trim();
-
-    // Try to parse as ISO/date string
-    const d = new Date(val);
-    if (!isNaN(d.getTime())) {
-      const yyyy = d.getFullYear();
-      const mm = String(d.getMonth() + 1).padStart(2, '0');
-      const dd = String(d.getDate()).padStart(2, '0');
-      let hours = d.getHours();
-      const minutes = String(d.getMinutes()).padStart(2, '0');
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      hours = hours % 12 || 12;
-      const hh = String(hours).padStart(2, '0');
-      return `${yyyy}-${mm}-${dd} ${hh}:${minutes} ${ampm}`;
-    }
-
-    // Fallback: return original trimmed value
-    return val.trim();
+  // Helper: split ISO datetime (YYYY-MM-DDTHH:mm:SS+TZ) into date and 12-hour time
+  const splitIsoDateTime = (iso) => {
+    if (!iso || typeof iso !== 'string') return { date: '', time: '' };
+    // match YYYY-MM-DDTHH:MM  (accept 'T' or 't' or a space between date and time)
+    // Accept 1 or 2 digit hours (handles inputs like 'T0:00' or 'T9:05')
+    const m = iso.match(/^(\d{4}-\d{2}-\d{2})[Tt\s](\d{1,2}):(\d{2})/);
+    if (!m) return { date: iso, time: '' };
+    const date = m[1];
+    const hh = parseInt(m[2], 10);
+    const mm = m[3];
+    const ampm = hh >= 12 ? 'PM' : 'AM';
+    const hour12 = ((hh + 11) % 12) + 1;
+    const time = `${String(hour12).padStart(2, '0')}:${mm} ${ampm}`;
+    return { date, time };
   };
 
   // ✅ Delete handler (optimistic update)
@@ -285,7 +290,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                 Typology
                 {typologyFilter ? `: ${typologyFilter}` : ''}
                 {showTypologyMenu && (
-                  <div className="absolute left-0 top-full mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow z-50 p-2" onClick={(ev) => ev.stopPropagation()}>
+                  <div ref={typologyFilterRef} className="absolute left-0 top-full mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow p-2" style={{ zIndex: 9999 }} onClick={(ev) => ev.stopPropagation()}>
                     <select
                       className="w-full border rounded px-2 py-1 bg-[#FAFBFC]"
                       value={typologyFilter}
@@ -540,7 +545,16 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                     {row.transferTo}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
-                    {formatFollowUp(row.followUpDate)}
+                    {(() => {
+                      const raw = row.followUp || row.followUpDate || '';
+                      const { date, time } = splitIsoDateTime(raw);
+                      return (
+                        <div>
+                          <div>{date || 'N/A'}</div>
+                          {time && <div className="text-sm text-gray-500">{time}</div>}
+                        </div>
+                      );
+                    })()}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">{row.source}</td>
                   <td className="px-4 py-4 whitespace-nowrap">
@@ -654,7 +668,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                 </div>
               ) : (
                 <div className="space-y-6">
-                  {/* ✅ Basic Property Information */}
+                  {/* Property Information - matching table headers */}
                   <div className="bg-gray-50 rounded-lg p-4">
                     <h3 className="text-lg font-medium mb-3 text-gray-800">Property Information</h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -667,7 +681,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                         <p className="text-gray-800">{inventoryDetails?.Project || selectedInventory?.Project || 'N/A'}</p>
                       </div>
                       <div>
-                        <span className="text-sm font-medium text-gray-600">Sector</span>
+                        <span className="text-sm font-medium text-gray-600">Sector No</span>
                         <p className="text-gray-800">{inventoryDetails?.sector || selectedInventory?.sector || 'N/A'}</p>
                       </div>
                       <div>
@@ -691,22 +705,11 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                         <p className="text-gray-800">{inventoryDetails?.demand || selectedInventory?.demand || 'N/A'}</p>
                       </div>
                       <div>
-                        <span className="text-sm font-medium text-gray-600">Date</span>
-                        <p className="text-gray-800">{inventoryDetails?.date || selectedInventory?.date || 'N/A'}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* ✅ Contact Information */}
-                  <div className="bg-blue-50 rounded-lg p-4">
-                    <h3 className="text-lg font-medium mb-3 text-gray-800">Contact Information</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <span className="text-sm font-medium text-gray-600">Contact Numbers</span>
+                        <span className="text-sm font-medium text-gray-600">Contact No</span>
                         <div className="flex flex-wrap gap-1 mt-1">
                           {(inventoryDetails?.contactNumbers || selectedInventory?.contactNumbers || []).map((num, idx) => (
-                            <span key={idx} className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
-                              {num}
+                            <span key={idx} className="text-gray-800">
+                              {num}{idx < (inventoryDetails?.contactNumbers || selectedInventory?.contactNumbers || []).length - 1 ? ', ' : ''}
                             </span>
                           ))}
                           {(!inventoryDetails?.contactNumbers && !selectedInventory?.contactNumbers) && (
@@ -718,13 +721,6 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                         <span className="text-sm font-medium text-gray-600">Email</span>
                         <p className="text-gray-800">{inventoryDetails?.email || selectedInventory?.email || 'N/A'}</p>
                       </div>
-                    </div>
-                  </div>
-
-                  {/* ✅ Financial Information */}
-                  <div className="bg-green-50 rounded-lg p-4">
-                    <h3 className="text-lg font-medium mb-3 text-gray-800">Financial Information</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       <div>
                         <span className="text-sm font-medium text-gray-600">Payment Status</span>
                         <p className="text-gray-800">{inventoryDetails?.paymentStatus || selectedInventory?.paymentStatus || 'N/A'}</p>
@@ -734,22 +730,26 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                         <p className="text-gray-800">{inventoryDetails?.registryType || selectedInventory?.registryType || 'N/A'}</p>
                       </div>
                       <div>
-                        <span className="text-sm font-medium text-gray-600">Loan Status</span>
-                        <p className="text-gray-800">{inventoryDetails?.loanStatus || selectedInventory?.loanStatus || 'N/A'}</p>
+                        <span className="text-sm font-medium text-gray-600">Requirement</span>
+                        <p className="text-gray-800">{inventoryDetails?.requirement || selectedInventory?.requirement || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Date</span>
+                        <p className="text-gray-800">{inventoryDetails?.date || selectedInventory?.date || 'N/A'}</p>
                       </div>
                     </div>
                   </div>
 
-                  {/* ✅ Assignment & Tracking */}
-                  <div className="bg-yellow-50 rounded-lg p-4">
+                  {/* Assignment & Tracking - matching table headers */}
+                  <div className="bg-gray-50 rounded-lg p-4">
                     <h3 className="text-lg font-medium mb-3 text-gray-800">Assignment & Tracking</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div>
                         <span className="text-sm font-medium text-gray-600">Captured By</span>
                         <p className="text-gray-800">{inventoryDetails?.capturedBy || selectedInventory?.capturedBy || 'N/A'}</p>
                       </div>
                       <div>
-                        <span className="text-sm font-medium text-gray-600">Assigned To</span>
+                        <span className="text-sm font-medium text-gray-600">Assign To</span>
                         <p className="text-gray-800">{inventoryDetails?.assignTo || selectedInventory?.assignTo || 'N/A'}</p>
                       </div>
                       <div>
@@ -757,8 +757,20 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                         <p className="text-gray-800">{inventoryDetails?.transferTo || selectedInventory?.transferTo || 'N/A'}</p>
                       </div>
                       <div>
-                        <span className="text-sm font-medium text-gray-600">Follow-up Date</span>
-                        <p className="text-gray-800">{formatFollowUp(inventoryDetails?.followUpDate ?? selectedInventory?.followUpDate)}</p>
+                        <span className="text-sm font-medium text-gray-600">Follow-up</span>
+                        <p className="text-gray-800">
+                          {(() => {
+                            const raw = inventoryDetails?.followUpDate ?? selectedInventory?.followUpDate;
+                            if (!raw) return 'N/A';
+                            const { date, time } = splitIsoDateTime(raw);
+                            return (
+                              <div>
+                                <div>{date || 'N/A'}</div>
+                                {time && <div className="text-sm text-gray-500">{time}</div>}
+                              </div>
+                            );
+                          })()}
+                        </p>
                       </div>
                       <div>
                         <span className="text-sm font-medium text-gray-600">Source</span>
@@ -767,22 +779,11 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
                     </div>
                   </div>
 
-                  {/* ✅ Requirements & Remarks */}
-                  <div className="bg-purple-50 rounded-lg p-4">
-                    <h3 className="text-lg font-medium mb-3 text-gray-800">Requirements & Remarks</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <span className="text-sm font-medium text-gray-600">Requirements</span>
-                        <p className="text-gray-800 bg-white p-3 rounded border">
-                          {inventoryDetails?.requirement || selectedInventory?.requirement || 'No requirements specified'}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium text-gray-600">Remarks</span>
-                        <p className="text-gray-800 bg-white p-3 rounded border">
-                          {inventoryDetails?.remarks || selectedInventory?.remarks || 'No remarks available'}
-                        </p>
-                      </div>
+                  {/* Remarks Section - Separate */}
+                  <div className="bg-blue-50 rounded-lg p-4 md:col-span-2">
+                    <h3 className="text-lg font-medium mb-3 text-gray-800">Remarks</h3>
+                    <div className="bg-white p-4 rounded border border-blue-200">
+                      <p className="text-gray-800 whitespace-pre-wrap">{inventoryDetails?.remarks || selectedInventory?.remarks || 'No remarks available'}</p>
                     </div>
                   </div>
                 </div>

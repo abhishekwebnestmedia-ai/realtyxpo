@@ -48,7 +48,10 @@ const getStatusStyles = (status) => {
       };
   }
 };
-const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalSearch = "", externalRowsPerPage = 10, onPageRowsChange = null, externalTokens = [], onExternalTokensChange = undefined, statusFilter = '', onStatusFilterChange = () => {}, statusOptions = [] }) => {
+const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalSearch = "", externalRowsPerPage = 10, onPageRowsChange = null, externalTokens = [], onExternalTokensChange = undefined, statusFilter = '', onStatusFilterChange = () => {} }) => {
+  // Fixed status options
+  const statusOptions = ['Hot', 'Not Connected', 'Serious', 'Potential', 'Futuristic', 'Dead Lead'];
+  
   const [search, setSearch] = useState("");
   // tokenized search keys (entered words/tokens)
   const [searchTokens, setSearchTokens] = useState([]);
@@ -119,7 +122,22 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
   const activeSearch = hideSearch ? externalSearch : search;
   const [rowsPerPage, setRowsPerPage] = useState(externalRowsPerPage);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
+  const statusFilterRef = useRef(null);
+  
   useEffect(() => setRowsPerPage(externalRowsPerPage), [externalRowsPerPage]);
+
+  // Click outside handler for status filter
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (statusFilterRef.current && !statusFilterRef.current.contains(e.target)) {
+        setShowStatusMenu(false);
+      }
+    };
+    if (showStatusMenu) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showStatusMenu]);
 
   // Function to fetch lead details
   const fetchLeadDetails = async (leadId) => {
@@ -216,18 +234,28 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
 
   // 🔍 Tokenized Filtering (AND semantics)
   const filteredData = useMemo(() => {
-    // priority: internal tokens > externalTokens (from parent) > activeSearch
+    let result = localData || [];
+    
+    // Apply status filter first
+    if (statusFilter) {
+      result = result.filter(row => row?.status === statusFilter);
+    }
+    
+    // Then apply search tokens
     const tokens = (searchTokens && searchTokens.length) ? searchTokens : ((externalTokens && externalTokens.length) ? externalTokens : (activeSearch ? [activeSearch] : []));
-    if (!tokens || tokens.length === 0) return localData || [];
-    return (localData || []).filter((row) => {
-      // for each token, row must contain it in at least one field
-      return tokens.every((t) => {
-        const token = String(t || '').toLowerCase().trim();
-        if (!token) return true;
-        return Object.values(row).some((value) => String(value || '').toLowerCase().includes(token));
+    if (tokens && tokens.length > 0) {
+      result = result.filter((row) => {
+        // for each token, row must contain it in at least one field
+        return tokens.every((t) => {
+          const token = String(t || '').toLowerCase().trim();
+          if (!token) return true;
+          return Object.values(row).some((value) => String(value || '').toLowerCase().includes(token));
+        });
       });
-    });
-  }, [localData, activeSearch, searchTokens, externalTokens]);
+    }
+    
+    return result;
+  }, [localData, activeSearch, searchTokens, externalTokens, statusFilter]);
 
   // ↕️ Sorting
   const sortedData = useMemo(() => {
@@ -472,7 +500,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
               >
                 Status{statusFilter ? `: ${statusFilter}` : ''}
                 {showStatusMenu && (
-                  <div className="absolute left-0 top-full mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow z-50 p-2" onClick={(ev) => ev.stopPropagation()}>
+                  <div ref={statusFilterRef} className="absolute left-0 top-full mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow p-2" style={{ zIndex: 9999 }} onClick={(ev) => ev.stopPropagation()}>
                     <select
                       className="w-full border rounded px-2 py-1 bg-[#FAFBFC]"
                       value={statusFilter}
@@ -647,8 +675,11 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                       <div onClick={(e) => e.stopPropagation()}>
                         <ConfirmDeleteButton
                           onConfirm={() => handleDelete(row)}
-                          disabled={row.deleting} // optional, if you track deleting state
-                          label={<Trash2 size={16} />} // optional: shows your icon inside button
+                          title="Delete Lead"
+                          message={`Are you sure you want to delete the lead for "${row.customerName || 'this customer'}"? This action cannot be undone.`}
+                          confirmLabel="Delete"
+                          disabled={row.deleting}
+                          label={<Trash2 size={16} />}
                           className="text-red-600 hover:text-red-800"
                         />
                       </div>
@@ -749,21 +780,21 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                 </div>
               ) : leadDetails ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Basic Information */}
+                  {/* Contact Information - matching table headers */}
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Basic Information</h3>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Contact Information</h3>
                     <div className="space-y-3">
                       <div>
-                        <span className="font-medium text-gray-600">Name:</span>
+                        <span className="font-medium text-gray-600">Customer Name:</span>
                         <p className="text-gray-800">{leadDetails.customerName || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Contact Number:</span>
+                        <p className="text-gray-800">{leadDetails.contactNumber || leadDetails.phone || leadDetails.mobile || 'N/A'}</p>
                       </div>
                       <div>
                         <span className="font-medium text-gray-600">Email:</span>
                         <p className="text-gray-800">{leadDetails.email || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Phone:</span>
-                        <p className="text-gray-800">{leadDetails.contactNumber || leadDetails.phone || leadDetails.mobile || 'N/A'}</p>
                       </div>
                       <div>
                         <span className="font-medium text-gray-600">Status:</span>
@@ -781,10 +812,47 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                     </div>
                   </div>
 
-                  {/* Contact & Assignment */}
+                  {/* Lead Details - matching table headers */}
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Assignment & Tracking</h3>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Lead Details</h3>
                     <div className="space-y-3">
+                      <div>
+                        <span className="font-medium text-gray-600">Follow-up Date:</span>
+                        {(() => {
+                          const raw = leadDetails.followUp || leadDetails.followUpDate || '';
+                          const { date, time } = splitIsoDateTime(raw);
+                          return (
+                            <div>
+                              <p className="text-gray-800 mt-1">{date || 'N/A'}</p>
+                              {time && <p className="text-gray-700 text-sm">{time}</p>}
+                            </div>
+                          );
+                        })()}
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Requirement:</span>
+                        <p className="text-gray-800 mt-1">{leadDetails.requirement || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Date:</span>
+                        {(() => {
+                          const raw = leadDetails.date || leadDetails.createdAt || '';
+                          const { date, time } = splitIsoDateTime(raw);
+                          return (
+                            <div>
+                              <p className="text-gray-800 mt-1">{date || 'N/A'}</p>
+                              {time && <p className="text-gray-700 text-sm">{time}</p>}
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Assignment Information - matching table headers */}
+                  <div className="bg-gray-50 p-4 rounded-lg md:col-span-2">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Assignment Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                       <div>
                         <span className="font-medium text-gray-600">Captured By:</span>
                         <p className="text-gray-800">{leadDetails.capturedBy || 'N/A'}</p>
@@ -806,86 +874,13 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                     </div>
                   </div>
 
-                  {/* Requirements & Details */}
-                  <div className="bg-gray-50 p-4 rounded-lg md:col-span-2">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Requirements & Details</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <span className="font-medium text-gray-600">Requirement:</span>
-                        <p className="text-gray-800 mt-1">{leadDetails.requirement || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Budget:</span>
-                        <p className="text-gray-800 mt-1">{leadDetails.budget || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Location Preference:</span>
-                        <p className="text-gray-800 mt-1">{leadDetails.location || leadDetails.preferredLocation || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Property Type:</span>
-                        <p className="text-gray-800 mt-1">{leadDetails.propertyType || 'N/A'}</p>
-                      </div>
+                  {/* Remarks Section - Separate */}
+                  <div className="bg-blue-50 p-4 rounded-lg md:col-span-2">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Remarks</h3>
+                    <div className="bg-white p-4 rounded border border-blue-200">
+                      <p className="text-gray-800 whitespace-pre-wrap">{leadDetails.remark || leadDetails.remarks || 'No remarks available'}</p>
                     </div>
                   </div>
-
-                  {/* Remarks & Follow-up */}
-                  <div className="bg-gray-50 p-4 rounded-lg md:col-span-2">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Remarks & Follow-up</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <span className="font-medium text-gray-600">Remarks:</span>
-                        <p className="text-gray-800 mt-1">{leadDetails.remark || leadDetails.remarks || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Follow-up:</span>
-                        {(() => {
-                          const raw = leadDetails.followUp || leadDetails.followUpDate || '';
-                          const { date, time } = splitIsoDateTime(raw);
-                          return (
-                            <div>
-                              <p className="text-gray-800 mt-1">{date || 'N/A'}</p>
-                              {time && <p className="text-gray-700 text-sm">{time}</p>}
-                            </div>
-                          );
-                        })()}
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Created Date:</span>
-                        {(() => {
-                          const raw = leadDetails.date || leadDetails.createdAt || '';
-                          const { date, time } = splitIsoDateTime(raw);
-                          return (
-                            <div>
-                              <p className="text-gray-800 mt-1">{date || 'N/A'}</p>
-                              {time && <p className="text-gray-700 text-sm">{time}</p>}
-                            </div>
-                          );
-                        })()}
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Last Updated:</span>
-                        {(() => {
-                          const raw = leadDetails.updatedAt || '';
-                          const { date, time } = splitIsoDateTime(raw);
-                          return (
-                            <div>
-                              <p className="text-gray-800 mt-1">{date || 'N/A'}</p>
-                              {time && <p className="text-gray-700 text-sm">{time}</p>}
-                            </div>
-                          );
-                        })()}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Additional Information */}
-                  {leadDetails.additionalInfo && (
-                    <div className="bg-gray-50 p-4 rounded-lg md:col-span-2">
-                      <h3 className="text-lg font-semibold text-gray-800 mb-4">Additional Information</h3>
-                      <p className="text-gray-800">{leadDetails.additionalInfo}</p>
-                    </div>
-                  )}
                 </div>
               ) : (
                 <div className="text-center text-gray-600 h-32 flex items-center justify-center">

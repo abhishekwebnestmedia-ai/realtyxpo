@@ -11,6 +11,7 @@ const emptyForm = {
   price: '',
   size: '',
   pdfLink: '',
+  remarks: '',
   type: '',
   constructionType: '',
 };
@@ -23,6 +24,7 @@ const keepFormShape = (record = {}) => ({
   price: record.price || '',
   size: record.size || '',
   pdfLink: record.pdfLink || '',
+  remarks: record.remarks || '',
   type: record.type || '',
   constructionType: record.constructionType || '',
 });
@@ -208,6 +210,19 @@ const EditDatabaseEntry = () => {
             type="url"
             className="rounded border border-gray-300 bg-[#FAFBFC] px-3 py-2 text-sm"
             placeholder="Enter pdfLink"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1 md:col-span-2">
+          <label className="font-medium text-sm text-gray-700" htmlFor="remarks">Remarks</label>
+          <textarea
+            id="remarks"
+            name="remarks"
+            value={form.remarks}
+            onChange={handleChange}
+            rows={3}
+            className="rounded border border-gray-300 bg-[#FAFBFC] px-3 py-2 text-sm resize-none"
+            placeholder="Add any additional notes or remarks..."
           />
         </div>
 

@@ -440,10 +440,11 @@
 
 
 import React, { useState } from 'react';
-import { Home, ChevronRight, Building2 } from 'lucide-react';
+import { Home, ChevronRight, Building2, Upload } from 'lucide-react';
 import { ToggleSwitch } from '../../components/ui';
 import AnimatedFolder from '../../components/ui/AnimatedFolder';
 import { ProjectModal, ProjectUnitModal } from '../../components/modals';
+import BulkUploadProject from '../../components/modals/BulkUploadProject';
 import { toast } from 'react-hot-toast';
 import useProjects from '../../hooks/useProjects';
 import projectService from '../../services/projectService';
@@ -461,6 +462,7 @@ const ProjectsWorking = () => {
   const [currentPath, setCurrentPath] = useState([]);
   const [currentLevel, setCurrentLevel] = useState('cities');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
   const [selectedUnit, setSelectedUnit] = useState(null);
   const [isUnitModalOpen, setIsUnitModalOpen] = useState(false);
 
@@ -609,7 +611,18 @@ const ProjectsWorking = () => {
   // ✅ Render Filters
   const renderFilterSection = () => (
     <div>
-      <h1 className="pageheading mb-4">Projects Working</h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="pageheading">Projects Working</h1>
+        {currentLevel === 'cities' && (
+          <button
+            onClick={() => setIsBulkUploadOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          >
+            <Upload className="h-4 w-4" />
+            Bulk Upload Projects
+          </button>
+        )}
+      </div>
       {currentLevel === 'cities' && (
         <div className="flex flex-wrap gap-6 mb-4">
           <ToggleSwitch
@@ -993,6 +1006,15 @@ const ProjectsWorking = () => {
           refresh();
           setIsModalOpen(false);
           toast.success('Project created successfully!');
+        }}
+      />
+
+      <BulkUploadProject
+        isOpen={isBulkUploadOpen}
+        onClose={() => setIsBulkUploadOpen(false)}
+        onSuccess={() => {
+          refresh();
+          toast.success('Projects bulk uploaded successfully!');
         }}
       />
 

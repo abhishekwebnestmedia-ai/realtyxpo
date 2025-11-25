@@ -9,8 +9,10 @@ const emptyForm = {
   typology: '',
   sector: '',
   price: '',
+  priceNumber: '', // Store just the number
   size: '',
   pdfLink: '',
+  remarks: '',
   type: '',
   constructionType: '',
 };
@@ -32,7 +34,16 @@ const AddDatabaseEntry = () => {
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    if (name === 'priceNumber') {
+      // Update both priceNumber and formatted price
+      setForm((prev) => ({ 
+        ...prev, 
+        priceNumber: value,
+        price: value ? `${value} Cr` : ''
+      }));
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async (event) => {
@@ -110,15 +121,21 @@ const AddDatabaseEntry = () => {
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="font-medium text-sm text-gray-700" htmlFor="price">Price</label>
-          <input
-            id="price"
-            name="price"
-            value={form.price}
-            onChange={handleChange}
-            className="rounded border border-gray-300 bg-[#FAFBFC] px-3 py-2 text-sm"
-            placeholder="₹2 Cr onwards"
-          />
+          <label className="font-medium text-sm text-gray-700" htmlFor="priceNumber">Price</label>
+          <div className="flex items-center gap-2">
+            <input
+              id="priceNumber"
+              name="priceNumber"
+              type="number"
+              step="0.1"
+              min="0"
+              value={form.priceNumber}
+              onChange={handleChange}
+              className="flex-1 rounded border border-gray-300 bg-[#FAFBFC] px-3 py-2 text-sm"
+              placeholder="2"
+            />
+            <span className="text-sm text-gray-600 whitespace-nowrap">(in Crores)</span>
+          </div>
         </div>
 
         <div className="flex flex-col gap-1">
@@ -143,6 +160,19 @@ const AddDatabaseEntry = () => {
             type="url"
             className="rounded border border-gray-300 bg-[#FAFBFC] px-3 py-2 text-sm"
             placeholder="https://example.com/brochure.pdf"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1 md:col-span-2">
+          <label className="font-medium text-sm text-gray-700" htmlFor="remarks">Remarks</label>
+          <textarea
+            id="remarks"
+            name="remarks"
+            value={form.remarks}
+            onChange={handleChange}
+            rows={3}
+            className="rounded border border-gray-300 bg-[#FAFBFC] px-3 py-2 text-sm resize-none"
+            placeholder="Add any additional notes or remarks..."
           />
         </div>
 

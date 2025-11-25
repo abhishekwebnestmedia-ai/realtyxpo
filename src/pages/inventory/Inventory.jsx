@@ -224,11 +224,11 @@
 
 
 
-import React, { useState, useMemo, useContext } from "react";
+import React, { useState, useMemo, useContext, useEffect } from "react";
 import TokenSearch from "../../components/ui/TokenSearch";
 import { useInventory } from "../../hooks/useInventory";
 import { InventoryTable } from "../../components/tables";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { AddBulkInventry } from "../../components/modals";
 import { AuthContext } from "../../context/AuthContext";
 import { getViewerPerms, canViewInventory } from "../../utils/permissions";
@@ -237,6 +237,7 @@ import { ToggleSwitch } from "../../components/ui";
 
 const InventoryPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { data: allInventory = [], isLoading, error: isError } = useInventory();
   const [viewType, setViewType] = useState("Sales");
   const [searchTerm, setSearchTerm] = useState("");
@@ -244,6 +245,15 @@ const InventoryPage = () => {
   const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [typologyFilter, setTypologyFilter] = useState('');
+
+  // Handle navigation state for pre-selecting tab
+  useEffect(() => {
+    if (location.state?.selectedTab) {
+      setViewType(location.state.selectedTab);
+      // Clear the state after using it
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location, navigate]);
 
   const { user: authUser } = useContext(AuthContext) || {};
   const viewerPerms = getViewerPerms(authUser || {});

@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { ToggleSwitch } from '../../components/ui';
 import { useUnassignedLeads } from '../../hooks/useUnassignedLeads';
 import { useInventory } from '../../hooks/useInventory';
@@ -6,9 +7,34 @@ import { ScrollableLeads } from '../../components/dashboard';
 import { InventoryTable } from '../../components/tables';
 
 const FindOpportunity = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  
   // State for toggle switches
   const [primaryFilter, setPrimaryFilter] = useState('Leads');
   const [secondaryFilter, setSecondaryFilter] = useState('AllBuyers');
+  const [statusFilter, setStatusFilter] = useState('');
+
+  // Handle navigation state for pre-selecting tab and filter
+  useEffect(() => {
+    if (location.state?.selectedTab) {
+      const tab = location.state.selectedTab;
+      if (tab === 'All Buyers') {
+        setPrimaryFilter('Leads');
+        setSecondaryFilter('AllBuyers');
+      } else if (tab === 'Rental Business') {
+        setPrimaryFilter('Leads');
+        setSecondaryFilter('RentalBusiness');
+      }
+      // Clear the state after using it
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+    if (location.state?.filterKey) {
+      setStatusFilter(location.state.filterKey);
+      // Clear the state after using it
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state?.selectedTab, location.state?.filterKey, navigate]);
 
   // API hooks
   // useUnassignedLeads returns the API that already filters unassigned leads
@@ -169,7 +195,12 @@ const FindOpportunity = () => {
       <div className="">
         {primaryFilter === 'Leads' ? (
           filteredData.length > 0 ? (
-            <ScrollableLeads data={filteredData} hideSearch={true} />
+            <ScrollableLeads 
+              data={filteredData} 
+              hideSearch={true}
+              statusFilter={statusFilter}
+              onStatusFilterChange={setStatusFilter}
+            />
           ) : (
             <div className="text-center py-10 text-gray-500">
               No {secondaryFilter === 'AllBuyers' ? 'buyer' : 'rental'} leads found.
