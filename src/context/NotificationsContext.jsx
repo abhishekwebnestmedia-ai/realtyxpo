@@ -173,6 +173,7 @@ export const NotificationsProvider = ({ children }) => {
       socketRef.current = io(wsUrl, opts);
 
       const onConnect = () => {
+        console.log('✅ Socket connected successfully');
         // socket connected
         // stop polling when connected
         if (pollingRef.current) {
@@ -181,6 +182,7 @@ export const NotificationsProvider = ({ children }) => {
         }
         const userId = getCurrentUserId();
         const userRole = user?.role || null;
+        console.log('🔐 Registering user:', { userId, role: userRole });
         if (userId) {
           // Send both userId and role so backend can join admin room
           socketRef.current.emit('register_user', { userId, role: userRole });
@@ -194,6 +196,7 @@ export const NotificationsProvider = ({ children }) => {
             const resp = await api.get(url);
             const list = resp.data?.data || resp.data || [];
             if (Array.isArray(list) && list.length) {
+              console.log(`📥 Synced ${list.length} notifications after socket connect`);
               list.forEach(p => handlerRef.current?.(p));
             }
           } catch (err) { console.error('one-off sync failed', err); }
@@ -201,14 +204,18 @@ export const NotificationsProvider = ({ children }) => {
       };
 
       socketRef.current.on('connect', onConnect);
-      socketRef.current.on('registered_success', () => {});
+      socketRef.current.on('registered_success', (data) => {
+        console.log('✅ Registered for notifications:', data);
+      });
 
       socketRef.current.on('notification', (payload) => {
+        console.log('📩 Notification event received:', payload);
         try { payload.__event = 'notification'; } catch { /* ignore */ }
         handlerRef.current?.(payload);
       });
 
       socketRef.current.on('notification_received', (payload) => {
+        console.log('📩 notification_received event:', payload);
         try { payload.__event = 'notification_received'; } catch { /* ignore */ }
         handlerRef.current?.(payload);
       });
@@ -217,14 +224,19 @@ export const NotificationsProvider = ({ children }) => {
       // emitted by older server code (followup_notification). Remove after server uses
       // the standardized 'notification' event name.
       socketRef.current.on('followup_notification', (payload) => {
+        console.log('📩 followup_notification event:', payload);
         try { payload.__event = 'followup_notification'; } catch { /* ignore */ }
         handlerRef.current?.(payload);
       });
 
       socketRef.current.on('disconnect', (reason) => {
-        console.log('socket disconnected', reason);
+        console.log('❌ Socket disconnected:', reason);
         // start polling fallback
         if (!pollingRef.current) startPolling();
+      });
+
+      socketRef.current.on('connect_error', (error) => {
+        console.error('❌ Socket connection error:', error);
       });
     } catch (err) {
       console.error('Socket init failed', err);
@@ -240,6 +252,7 @@ export const NotificationsProvider = ({ children }) => {
         socketRef.current.off('notification_received');
         socketRef.current.off('followup_notification');
         socketRef.current.off('disconnect');
+        socketRef.current.off('connect_error');
         socketRef.current?.disconnect();
       }
       if (pollingRef.current) clearInterval(pollingRef.current);

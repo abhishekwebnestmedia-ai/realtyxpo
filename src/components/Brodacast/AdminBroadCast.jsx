@@ -4,12 +4,14 @@ import ChatHeader from './shared/ChatHeader';
 import MessageList from './shared/MessageList';
 import MessageComposer from './shared/MessageComposer';
 import CreateTeamModal from './shared/CreateTeamModal';
+import TeamMembersModal from './shared/TeamMembersModal';
 import { useTeams, useBroadcasts } from '../../hooks/useBroadcast';
 
 const AdminBroadCast = () => {
   const [selectedTeamId, setSelectedTeamId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
   
   const { teams, loading: teamsLoading, createTeam } = useTeams();
   const selectedTeamData = teams.find(team => team.id === selectedTeamId);
@@ -72,6 +74,7 @@ const AdminBroadCast = () => {
           teamName={selectedTeamData?.name || 'All'}
           showActiveCount={Boolean(selectedTeamId)}
           activeCount={selectedTeamData?.members?.length || 0}
+          onInfoClick={selectedTeamId ? () => setIsMembersModalOpen(true) : null}
         />
         
         <MessageList 
@@ -90,8 +93,20 @@ const AdminBroadCast = () => {
         onClose={() => setIsCreateModalOpen(false)}
         onCreateTeam={handleCreateTeam}
       />
+
+      <TeamMembersModal
+        isOpen={isMembersModalOpen}
+        onClose={() => setIsMembersModalOpen(false)}
+        teamName={selectedTeamData?.name || 'All'}
+        members={selectedTeamData?.members || []}
+      />
     </div>
   );
 };
 
 export default AdminBroadCast;
+
+
+
+
+

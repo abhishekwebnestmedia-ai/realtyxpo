@@ -1,7 +1,7 @@
 import React from 'react';
 import { Info } from 'lucide-react';
 
-const ChatHeader = ({ teamName, showActiveCount = false, activeCount = 0 }) => {
+const ChatHeader = ({ teamName, showActiveCount = false, activeCount = 0, onInfoClick }) => {
   return (
     <>
       <div className="sticky top-0 z-20 bg-white">
@@ -16,7 +16,15 @@ const ChatHeader = ({ teamName, showActiveCount = false, activeCount = 0 }) => {
                 </div>
               )}
             </div>
-            <Info size={20} className="text-gray-400 cursor-pointer hover:text-gray-600" />
+            {onInfoClick && (
+              <button 
+                onClick={onInfoClick}
+                className="text-gray-400 cursor-pointer hover:text-gray-600 transition-colors"
+                aria-label="View team members"
+              >
+                <Info size={20} />
+              </button>
+            )}
           </div>
         </div>
         <hr style={{ borderColor: '#C6CFFF', borderWidth: '1px' }} className="flex-shrink-0" />

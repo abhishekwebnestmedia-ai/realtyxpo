@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notification Test - RealtyXpo CRM</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2563eb;
+            margin-bottom: 10px;
+        }
+        .status {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .status.success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
+        }
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+        .status.warning {
+            background: #fef3c7;
+            color: #92400e;
+            border-left: 4px solid #f59e0b;
+        }
+        .status.info {
+            background: #dbeafe;
+            color: #1e40af;
+            border-left: 4px solid #3b82f6;
+        }
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1d4ed8;
+        }
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        #log {
+            background: #1f2937;
+            color: #f3f4f6;
+            padding: 20px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 500px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid #374151;
+        }
+        .timestamp {
+            color: #9ca3af;
+            font-size: 12px;
+        }
+        .notification-box {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .notification-box.received {
+            background: #ecfdf5;
+            border-color: #10b981;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔔 Real-Time Notification Test</h1>
+        <p>Backend: <strong>https://backend.realtyxpo.in</strong></p>
+        
+        <div id="connection-status" class="status warning">
+            ⏳ Not connected - Click "Connect to Backend" to start
+        </div>
+        
+        <div>
+            <button id="connect-btn" onclick="connectToBackend()">Connect to Backend</button>
+            <button id="test-manual-btn" onclick="testManualNotification()" disabled>Test Manual Notification</button>
+            <button id="test-admin-btn" onclick="testAdminNotification()" disabled>Test Admin Notification</button>
+            <button id="clear-log-btn" onclick="clearLog()">Clear Log</button>
+        </div>
+        
+        <div class="notification-box">
+            <h3>📊 Statistics</h3>
+            <p>Socket Connected: <strong id="socket-connected">No</strong></p>
+            <p>Notifications Received: <strong id="notif-count">0</strong></p>
+            <p>Last Received: <strong id="last-received">-</strong></p>
+        </div>
+        
+        <h2>Console Log</h2>
+        <div id="log"></div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script>
+        const API_URL = 'https://backend.realtyxpo.in';
+        let socket = null;
+        let notificationCount = 0;
+        
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            
+            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
+            entry.innerHTML = `<span class="timestamp">[${timestamp}]</span> ${icon} ${message}`;
+            
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function updateStatus(message, type) {
+            const statusDiv = document.getElementById('connection-status');
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = message;
+        }
+        
+        function updateStats(socketConnected) {
+            document.getElementById('socket-connected').textContent = socketConnected ? 'Yes ✅' : 'No ❌';
+            document.getElementById('notif-count').textContent = notificationCount;
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+            log('Log cleared', 'info');
+        }
+        
+        function connectToBackend() {
+            log('🔌 Connecting to backend...', 'info');
+            updateStatus('⏳ Connecting...', 'warning');
+            
+            try {
+                socket = io(API_URL, {
+                    transports: ['websocket', 'polling'],
+                    withCredentials: true
+                });
+                
+                socket.on('connect', () => {
+                    log('✅ Socket connected successfully!', 'success');
+                    log(`📡 Socket ID: ${socket.id}`, 'info');
+                    updateStatus('✅ Connected to backend', 'success');
+                    updateStats(true);
+                    
+                    // Enable test buttons
+                    document.getElementById('test-manual-btn').disabled = false;
+                    document.getElementById('test-admin-btn').disabled = false;
+                    
+                    // Register for test notifications
+                    socket.emit('register_user', { userId: 'test-user-123', role: 'admin' });
+                    log('🔐 Registered as test user', 'info');
+                });
+                
+                socket.on('disconnect', (reason) => {
+                    log(`❌ Socket disconnected: ${reason}`, 'error');
+                    updateStatus('❌ Disconnected', 'error');
+                    updateStats(false);
+                });
+                
+                socket.on('connect_error', (error) => {
+                    log(`❌ Connection error: ${error.message}`, 'error');
+                    updateStatus('❌ Connection failed', 'error');
+                });
+                
+                socket.on('registered_success', (data) => {
+                    log(`✅ Registration confirmed: ${JSON.stringify(data)}`, 'success');
+                });
+                
+                // Listen for all notification events
+                socket.on('notification', (payload) => {
+                    notificationCount++;
+                    log(`📩 Notification received: ${JSON.stringify(payload)}`, 'success');
+                    document.getElementById('last-received').textContent = new Date().toLocaleTimeString();
+                    updateStats(true);
+                });
+                
+                socket.on('notification_received', (payload) => {
+                    notificationCount++;
+                    log(`📩 notification_received: ${JSON.stringify(payload)}`, 'success');
+                    document.getElementById('last-received').textContent = new Date().toLocaleTimeString();
+                    updateStats(true);
+                });
+                
+                socket.on('followup_notification', (payload) => {
+                    notificationCount++;
+                    log(`📩 followup_notification: ${JSON.stringify(payload)}`, 'success');
+                    document.getElementById('last-received').textContent = new Date().toLocaleTimeString();
+                    updateStats(true);
+                });
+                
+            } catch (error) {
+                log(`❌ Failed to connect: ${error.message}`, 'error');
+                updateStatus('❌ Connection failed', 'error');
+            }
+        }
+        
+        async function testManualNotification() {
+            log('🧪 Testing manual notification endpoint...', 'info');
+            try {
+                const response = await fetch(`${API_URL}/api/test-socket`);
+                const data = await response.json();
+                log(`✅ Backend response: ${JSON.stringify(data)}`, 'success');
+                log('⏳ Waiting for socket notification...', 'info');
+            } catch (error) {
+                log(`❌ Test failed: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testAdminNotification() {
+            log('🧪 Testing admin notification endpoint...', 'info');
+            try {
+                const response = await fetch(`${API_URL}/api/test-admin-notification`);
+                const data = await response.json();
+                log(`✅ Backend response: ${JSON.stringify(data)}`, 'success');
+                log('⏳ Waiting for socket notification...', 'info');
+            } catch (error) {
+                log(`❌ Test failed: ${error.message}`, 'error');
+            }
+        }
+        
+        // Initialize
+        log('🚀 Notification test page loaded', 'info');
+        log('📝 Click "Connect to Backend" to start', 'info');
+    </script>
+</body>
+</html>
