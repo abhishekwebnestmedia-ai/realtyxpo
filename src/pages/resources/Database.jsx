@@ -158,7 +158,7 @@ const Database = () => {
           <Link to="/database/add" className="btn inline-flex items-center gap-2">
             Add Entry
           </Link>
-{isSuperAdmin && (
+
   <div className="relative inline-block">
     <button
       type="button"
@@ -235,7 +235,7 @@ const Database = () => {
       </div>
     )}
   </div>
-)}
+
 
         </div>
       </div>

@@ -317,6 +317,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
       toast.error(err?.response?.data?.message || 'Failed to delete lead');
     }
   };
+  const [statusMenuPos, setStatusMenuPos] = useState({ top: 0, left: 0 });
 
   return (
     <div className="  rounded-lg ">
@@ -495,25 +496,49 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                   (sortConfig.direction === "asc" ? "▲" : "▼")}
               </th>
               <th
-                className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-center font-medium relative"
-                onClick={(e) => { e.stopPropagation(); setShowStatusMenu((s) => !s); setCurrentPage(1); }}
-              >
-                Status{statusFilter ? `: ${statusFilter}` : ''}
-                {showStatusMenu && (
-                  <div ref={statusFilterRef} className="absolute left-0 top-full mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow p-2" style={{ zIndex: 9999 }} onClick={(ev) => ev.stopPropagation()}>
-                    <select
-                      className="w-full border rounded px-2 py-1 bg-[#FAFBFC]"
-                      value={statusFilter}
-                      onChange={(e) => { onStatusFilterChange(e.target.value); setShowStatusMenu(false); setCurrentPage(1); }}
-                    >
-                      <option value="">All</option>
-                      {statusOptions.map((s) => (
-                        <option key={String(s)} value={String(s)}>{String(s)}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-              </th>
+  className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading text-center font-medium relative"
+  onClick={(e) => {
+    e.stopPropagation();
+    const rect = e.currentTarget.getBoundingClientRect();
+    setStatusMenuPos({ top: rect.bottom + 4, left: rect.left });
+    setShowStatusMenu(true);
+    setCurrentPage(1);
+  }}
+>
+  Status{statusFilter ? `: ${statusFilter}` : ''}
+
+  {showStatusMenu && (
+    <div
+      ref={statusFilterRef}
+      className="fixed bg-white border border-gray-200 rounded-lg shadow-lg p-2"
+      style={{
+        top: statusMenuPos.top,
+        left: statusMenuPos.left,
+        zIndex: 9999999,
+        width: "14rem"
+      }}
+      onClick={(ev) => ev.stopPropagation()}
+    >
+      <select
+        className="w-full border rounded px-2 py-2 bg-[#FAFBFC]"
+        value={statusFilter}
+        onChange={(e) => {
+          onStatusFilterChange(e.target.value);
+          setShowStatusMenu(false);
+          setCurrentPage(1);
+        }}
+      >
+        <option value="">All</option>
+        {statusOptions.map((s) => (
+          <option key={String(s)} value={String(s)}>
+            {String(s)}
+          </option>
+        ))}
+      </select>
+    </div>
+  )}
+</th>
+
               <th
                 className="min-w-20 px-4 py-6 cursor-pointer select-none whitespace-nowrap theading font-medium"
                 onClick={() => handleSort("followUpDate")}

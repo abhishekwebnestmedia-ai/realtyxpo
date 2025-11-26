@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Trash2 } from "lucide-react";
+import ReactDOM from "react-dom";
 
 const ConfirmDeleteButton = ({
   onConfirm,
@@ -40,8 +41,7 @@ const ConfirmDeleteButton = ({
       >
         {label}
       </button>
-
-      {open && (
+      {open && ReactDOM.createPortal(
         <div 
           className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 px-4"
           onClick={() => setOpen(false)}
@@ -77,7 +77,8 @@ const ConfirmDeleteButton = ({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
