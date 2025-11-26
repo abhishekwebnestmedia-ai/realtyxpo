@@ -263,8 +263,8 @@ const Database = () => {
       )}
 
   <div className="overflow-x-auto rounded-xl bg-white">
-        <table className="w-full border-collapse text-sm">
-          <thead className="bg-gray-100 text-gray-600 uppercase text-xs sticky top-0 z-10 border-b">
+        <table className="w-full border-collapse text-sm min-h-[300px] ">
+          <thead className="bg-gray-100 text-gray-600 uppercase text-xs sticky top-0 z-10 border-b ">
             <tr>
               <th className="px-4 py-6 text-left font-medium theading">Project</th>
               <th className="px-4 py-6 text-left font-medium theading">Location</th>
@@ -284,55 +284,43 @@ const Database = () => {
                   >
                     <div className="mb-4">
                       <div className="text-sm font-semibold text-gray-800 mb-1">Price Range</div>
-                      <div className="text-lg font-bold text-blue-600">
-                        ₹{priceRange[0]} Cr - ₹{priceRange[1]} Cr
+                      <div className="flex gap-4 items-center">
+                        <div className="flex flex-col items-start">
+                          <label htmlFor="minPrice" className="text-xs text-gray-600 mb-1">Min (Cr)</label>
+                          <input
+                            id="minPrice"
+                            type="number"
+                            min={1}
+                            max={priceRange[1]}
+                            value={priceRange[0]}
+                            onChange={e => {
+                              let val = Number(e.target.value);
+                              if (val < 1) val = 1;
+                              if (val > priceRange[1]) val = priceRange[1];
+                              setPriceRange([val, priceRange[1]]);
+                            }}
+                            className="border rounded px-2 py-1 w-20"
+                          />
+                        </div>
+                        <span className="mx-2 text-gray-500">to</span>
+                        <div className="flex flex-col items-start">
+                          <label htmlFor="maxPrice" className="text-xs text-gray-600 mb-1">Max (Cr)</label>
+                          <input
+                            id="maxPrice"
+                            type="number"
+                            min={priceRange[0]}
+                            max={40}
+                            value={priceRange[1]}
+                            onChange={e => {
+                              let val = Number(e.target.value);
+                              if (val > 40) val = 40;
+                              if (val < priceRange[0]) val = priceRange[0];
+                              setPriceRange([priceRange[0], val]);
+                            }}
+                            className="border rounded px-2 py-1 w-20"
+                          />
+                        </div>
                       </div>
-                    </div>
-                    <div className="relative px-2 py-4">
-                      {/* Track background */}
-                      <div className="absolute top-1/2 left-0 right-0 h-1.5 bg-gray-200 rounded-full -translate-y-1/2"></div>
-                      {/* Active range track */}
-                      <div 
-                        className="absolute top-1/2 h-1.5 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full -translate-y-1/2 shadow-sm"
-                        style={{
-                          left: `${((priceRange[0] - 1) / 39) * 100}%`,
-                          right: `${100 - ((priceRange[1] - 1) / 39) * 100}%`
-                        }}
-                      ></div>
-                      {/* Min slider */}
-                      <input
-                        type="range"
-                        min="1"
-                        max="40"
-                        value={priceRange[0]}
-                        onChange={(e) => {
-                          const val = Number(e.target.value);
-                          if (val < priceRange[1]) {
-                            setPriceRange([val, priceRange[1]]);
-                          }
-                        }}
-                        className="absolute w-full h-2 appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-blue-600 [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:hover:scale-110 [&::-webkit-slider-thumb]:transition-transform [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-blue-600 [&::-moz-range-thumb]:shadow-md"
-                        style={{ zIndex: priceRange[0] > 35 ? 5 : 3 }}
-                      />
-                      {/* Max slider */}
-                      <input
-                        type="range"
-                        min="1"
-                        max="40"
-                        value={priceRange[1]}
-                        onChange={(e) => {
-                          const val = Number(e.target.value);
-                          if (val > priceRange[0]) {
-                            setPriceRange([priceRange[0], val]);
-                          }
-                        }}
-                        className="absolute w-full h-2 appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-blue-600 [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:hover:scale-110 [&::-webkit-slider-thumb]:transition-transform [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-blue-600 [&::-moz-range-thumb]:shadow-md"
-                        style={{ zIndex: 4 }}
-                      />
-                    </div>
-                    <div className="flex items-center justify-between mt-2 mb-4 text-xs text-gray-500">
-                      <span>₹1 Cr</span>
-                      <span>₹40 Cr</span>
                     </div>
                     <div className="flex justify-between gap-2 pt-3 border-t border-gray-200">
                       <button
@@ -364,7 +352,7 @@ const Database = () => {
               <th className="px-4 py-3 text-center font-medium theading">Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className=''>
             {loading ? (
               <tr>
                 <td colSpan={11} className="py-16 text-center whitespace-nowrap">
