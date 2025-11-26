@@ -17,6 +17,7 @@ import {
 import api from "../../api/api";
 // token now stored in localStorage
 import { toast } from "react-hot-toast";
+import { useTeamMembers } from "../../hooks/useTeamMembers";
 import ToggleSwitch from "../../components/ui/ToggleSwitch";
 import { SmallSwitch } from "../../components/ui";
 import { ScrollableLeads } from "../../components/dashboard";
@@ -123,38 +124,36 @@ const MyTeam = () => {
 
   // NOTE: effects that call functions declared below are added after those functions
 
-  const fetchAllUsers = async () => {
-    try {
-      setLoading(true);
+  // Use cached team members hook
+  const { data: teamMembers, isLoading: teamLoading, error: teamError, refetch: refetchTeam } = useTeamMembers();
+
+  // Sync hook data to local state for backwards compatibility
+  useEffect(() => {
+    if (teamMembers) {
+      setUsers(teamMembers);
+      setLoading(false);
       setError(null);
-      const response = await api.get("/auth/teams");
-      let usersData = [];
-      if (response.data?.users && Array.isArray(response.data.users))
-        usersData = response.data.users;
-      else if (Array.isArray(response.data)) usersData = response.data;
-      else if (response.data?.data && Array.isArray(response.data.data))
-        usersData = response.data.data;
-      
-      // (removed debug logs) first user can be inspected in network tab if needed
-      
-      setUsers(usersData);
-    } catch (err) {
-      if (err.response?.status === 401) {
+    }
+  }, [teamMembers]);
+
+  useEffect(() => {
+    setLoading(teamLoading);
+  }, [teamLoading]);
+
+  useEffect(() => {
+    if (teamError) {
+      if (teamError.response?.status === 401) {
         setError("Authentication failed. Please login again.");
         toast.error("Authentication failed. Please login again.");
       } else {
-        setError(err.response?.data?.message || "Failed to fetch users");
+        setError(teamError.response?.data?.message || "Failed to fetch users");
         toast.error("Failed to load team members");
       }
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [teamError]);
 
-  // call fetchAllUsers on mount (declared after function to avoid TDZ)
-  useEffect(() => {
-    fetchAllUsers();
-  }, []);
+  // Expose refetch as fetchAllUsers for delete handler
+  const fetchAllUsers = refetchTeam;
 
   const fetchUserData = useCallback(async () => {
     if (!selectedUser) return;

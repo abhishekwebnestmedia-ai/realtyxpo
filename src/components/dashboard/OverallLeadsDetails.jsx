@@ -1,8 +1,6 @@
-
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../../api/api";
-import { ChevronDown, Filter, NotepadText } from "lucide-react";
+import { NotepadText } from "lucide-react";
+import { useDashboardCards } from "../../hooks/useDashboardCards";
 
 const cardConfig = [
   { label: 'Site Visit', borderColor: 'border-cyan-400', bgColor: 'bg-cyan-400', textColor: 'text-cyan-600', nav: '/daily-plan' },
@@ -17,28 +15,8 @@ const cardConfig = [
 
 const OverallLeadsDetails = () => {
   const navigate = useNavigate();
-  const [leadData, setLeadData] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await api.get('/card');
-        // Convert array to object for quick lookup
-        const dataObj = {};
-        response.data.forEach(item => {
-          dataObj[item.title] = item.value;
-        });
-        setLeadData(dataObj);
-      } catch (err) {
-        setError('Failed to fetch lead details');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
+  const { cardMap, isPending, isError, error } = useDashboardCards();
+  const errorMessage = error?.userMessage || error?.message || "Failed to fetch lead details";
 
   const handleCardClick = (card) => {
     if (card.nav) {
@@ -56,13 +34,13 @@ const OverallLeadsDetails = () => {
 
       {/* Cards */}
       <div className="grid grid-cols-4 gap-4">
-        {loading ? (
+        {isPending ? (
           <div className="col-span-4 text-center py-8">Loading...</div>
-        ) : error ? (
-          <div className="col-span-4 text-center py-8 text-red-500">{error}</div>
+        ) : isError ? (
+          <div className="col-span-4 text-center py-8 text-red-500">{errorMessage}</div>
         ) : (
           cardConfig.map((card) => {
-            const value = leadData[card.label] ?? 0;
+            const value = Number(cardMap[card.label] ?? 0);
             return (
               <div
                 key={card.label}

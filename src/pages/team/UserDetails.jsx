@@ -4,6 +4,7 @@ import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import api from '../../api/api';
 // Token is stored in localStorage now
 import { toast } from 'react-hot-toast';
+import { useTeamMembers } from '../../hooks/useTeamMembers';
 import ToggleSwitch from '../../components/ui/ToggleSwitch';
 import { ScrollableLeads } from '../../components/dashboard';
 
@@ -26,35 +27,23 @@ const UserDetails = () => {
 
   // If user data is not passed via navigation state, fetch it
   useEffect(() => {
-    if (!user && userId) {
+    if (!user && userId && teamMembers) {
       fetchUserById(userId);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, userId]);
+  }, [user, userId, teamMembers]);
 
-  const fetchUserById = async (id) => {
-    try {
-      const response = await api.get('/auth/teams');
-      let usersData = [];
-      
-      if (response.data.users && Array.isArray(response.data.users)) {
-        usersData = response.data.users;
-      } else if (Array.isArray(response.data)) {
-        usersData = response.data;
-      } else if (response.data.data && Array.isArray(response.data.data)) {
-        usersData = response.data.data;
-      }
-      
-      const foundUser = usersData.find(u => u._id === id || u.id === id);
-      if (foundUser) {
-        setUser(foundUser);
-      } else {
-        toast.error('User not found');
-        navigate('/team');
-      }
-    } catch (error) {
-      console.error('Error fetching user:', error);
-      toast.error('Failed to load user details');
+  // Use cached team members hook
+  const { data: teamMembers } = useTeamMembers();
+
+  const fetchUserById = (id) => {
+    if (!teamMembers) return;
+    
+    const foundUser = teamMembers.find(u => u._id === id || u.id === id);
+    if (foundUser) {
+      setUser(foundUser);
+    } else {
+      toast.error('User not found');
       navigate('/team');
     }
   };

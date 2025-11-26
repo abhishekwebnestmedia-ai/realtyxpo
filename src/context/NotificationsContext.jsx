@@ -264,18 +264,35 @@ export const NotificationsProvider = ({ children }) => {
   const isLikelyFollowup = (payload) => {
     try {
       if (!payload || typeof payload !== 'object') return false;
-      if (payload.__event === 'followup_notification') return true;
-      const type = (payload.type || payload.category || payload.kind || '').toString().toLowerCase();
-      if (type.includes('follow')) return true;
-      const keys = Object.keys(payload).map(k => k.toLowerCase());
-      if (keys.some(k => k.includes('follow'))) {
-        // any field with 'follow' and a truthy value
-        if (keys.some(k => k.includes('follow') && payload[k] != null && payload[k] !== '')) return true;
+
+      const meta = payload.meta && typeof payload.meta === 'object' ? payload.meta : null;
+      if (meta) {
+        const metaFlags = [meta.followup, meta.followUp, meta.followupReminder, meta.followUpReminder, meta.isFollowupReminder];
+        if (metaFlags.some((flag) => flag && flag !== 'false' && flag !== '0')) return true;
+
+        const metaStrings = [meta.category, meta.type, meta.kind];
+        if (metaStrings.some((val) => typeof val === 'string' && /follow[\s-]?up/.test(val.toLowerCase()))) {
+          const joined = metaStrings.filter(Boolean).join(' ').toLowerCase();
+          const looksLikeUpdate = /update|change|reschedul/.test(joined);
+          if (!looksLikeUpdate) return true;
+        }
       }
-      const msg = (payload.message || '').toString().toLowerCase();
-      if (msg.includes('follow up') || msg.includes('follow-up') || msg.includes('followup')) return true;
+
+      if (payload.__event === 'followup_notification') return true;
+
+      const message = (payload.message || '').toString().trim().toLowerCase();
+      if (!message) return false;
+
+      const mentionsFollowup = /follow[\s-]?up/.test(message);
+      if (!mentionsFollowup) return false;
+
+      const looksLikeScheduleChange = /date\s*(has\s*)?updated|updated\s+by|reschedul|resched|change(d)?|snoozed/.test(message);
+      if (looksLikeScheduleChange) return false;
+
+      return true;
+    } catch {
       return false;
-    } catch { return false; }
+    }
   };
 
   const handleIncomingNotification = (payload) => {

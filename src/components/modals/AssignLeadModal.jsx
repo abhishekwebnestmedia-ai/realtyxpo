@@ -1,48 +1,30 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import LeadsTable from '../dashboard/ScrollableLeads.jsx';
 import { X, User, Search, Trash } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import api from '../../api/api';
 import { toast } from 'react-hot-toast';
+import { useUnassignedLeads } from '../../hooks/useUnassignedLeads';
 
 const AssignLeadModal = ({ isOpen, onClose }) => {
   const [showPreview, setShowPreview] = useState(false);
-  // ...existing useState and other hooks...
-  const [leads, setLeads] = useState([]);
   const [users, setUsers] = useState([]);
   const [selectedLeadIds, setSelectedLeadIds] = useState([]);
   const [selectedUser, setSelectedUser] = useState('');
   const [loading, setLoading] = useState(false);
-  const [leadsLoading, setLeadsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const queryClient = useQueryClient();
 
+  // Use the unassigned leads hook
+  const { data: unassignedData, isLoading: leadsLoading, refetch } = useUnassignedLeads();
+  const leads = unassignedData?.data || [];
 
-  // Compose table rows: selected leads (not in filteredLeads) + filteredLeads
-  // Table should only show filtered leads
-
-  // Fetch leads and users when modal opens
+  // Fetch users when modal opens
   useEffect(() => {
     if (isOpen) {
-      fetchLeads();
       fetchUsers();
+      refetch(); // Refresh unassigned leads
     }
-  }, [isOpen]);
-
-  const fetchLeads = async () => {
-    try {
-      setLeadsLoading(true);
-  const response = await api.get('/realtleads/getlead');
-  // response.data may be array or object with .data
-  const allLeads = Array.isArray(response.data) ? response.data : response.data?.data || [];
-  setLeads(allLeads);
-    } catch (error) {
-      console.error('Error fetching leads:', error);
-      toast.error('Failed to fetch leads');
-    } finally {
-      setLeadsLoading(false);
-    }
-  };
+  }, [isOpen, refetch]);
 
   const fetchUsers = async () => {
     try {
@@ -77,16 +59,11 @@ const AssignLeadModal = ({ isOpen, onClose }) => {
     onClose();
   };
 
-  // Filter leads based on search term
-  // Only show leads whose assignTo is empty (unassigned) and match search
+  // Filter leads based on search term (all leads from hook are already unassigned)
   const filteredLeads = useMemo(() => {
     const s = (searchTerm || '').toLowerCase();
+    if (!s) return leads;
     return (leads || []).filter(lead => {
-      const isUnassigned =
-        !lead.assignTo ||
-        (typeof lead.assignTo === 'object' ? !lead.assignTo.name || lead.assignTo.name.trim() === '' : String(lead.assignTo || '').trim() === '');
-      if (!isUnassigned) return false;
-      if (!s) return true;
       const matchesSearch =
         (lead.customerName || '').toLowerCase().includes(s) ||
         String(lead.contactNumber || '').includes(s) ||

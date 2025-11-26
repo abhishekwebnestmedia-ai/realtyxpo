@@ -1,7 +1,6 @@
-
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import ReactApexChart from "react-apexcharts";
-import api from "../../api/api";
+import { useDashboardCards } from "../../hooks/useDashboardCards";
 
 const cardConfig = [
   { label: "Site Visit", color: "#54D0E0" },
@@ -16,30 +15,11 @@ const cardConfig = [
 
 
 export default function PieChartSection() {
-  const [leadData, setLeadData] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { cardMap, isPending, isError, error } = useDashboardCards();
+  const errorMessage = error?.userMessage || error?.message || "Failed to fetch lead details";
   const [activeIndex, setActiveIndex] = useState(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await api.get("/card");
-        const dataObj = {};
-        response.data.forEach(item => {
-          dataObj[item.title] = item.value;
-        });
-        setLeadData(dataObj);
-      } catch (err) {
-        setError("Failed to fetch lead details");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
-
-  const series = cardConfig.map(card => leadData[card.label] ?? 0);
+  const series = cardConfig.map(card => Number(cardMap[card.label] ?? 0));
   const totalLeads = series.reduce((sum, val) => sum + val, 0);
 
   const chartOptions = {
@@ -72,10 +52,10 @@ export default function PieChartSection() {
     <div className="bg-[#F4F6FF] p-6 rounded-2xl flex items-center justify-around w-full h-full">
       {/* Apex Pie Chart */}
       <div className="relative w-40 h-40">
-        {loading ? (
+        {isPending ? (
           <div className="flex items-center justify-center h-full">Loading...</div>
-        ) : error ? (
-          <div className="flex items-center justify-center h-full text-red-500">{error}</div>
+        ) : isError ? (
+          <div className="flex items-center justify-center h-full text-red-500">{errorMessage}</div>
         ) : (
           <>
             <ReactApexChart
@@ -120,7 +100,7 @@ export default function PieChartSection() {
                 </span>
               </div>
               <span className="text-gray-700 text-sm flex-shrink-0">
-                {leadData[item.label] ?? 0}
+                {cardMap[item.label] ?? 0}
               </span>
             </div>
           );

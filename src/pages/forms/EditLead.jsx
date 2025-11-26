@@ -291,7 +291,7 @@ const EditLead = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useContext(AuthContext);
-  const { users, fetchUsers } = useUsers();
+  const { users } = useUsers();
   const filteredUsers = useMemo(() => {
     const blacklist = new Set(["backup", "backup from everywhere"]);
     return (users || []).filter((u) => {
@@ -320,10 +320,6 @@ const EditLead = () => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
 
   // ✅ Load lead once — no dependency on users to avoid form reset
   useEffect(() => {

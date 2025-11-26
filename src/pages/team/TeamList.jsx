@@ -3,6 +3,7 @@ import { Users, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/api';
 import { toast } from 'react-hot-toast';
+import { useTeamMembers } from '../../hooks/useTeamMembers';
 import { resolveImageSrc } from '../../utils/image';
 
 const MyTeam = () => {
@@ -11,46 +12,36 @@ const MyTeam = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchAllUsers();
-  }, []);
+  // Use cached team members hook
+  const { data: teamMembers, isLoading: teamLoading, error: teamError, refetch: refetchTeam } = useTeamMembers();
 
-  const fetchAllUsers = async () => {
-    try {
-      setLoading(true);
+  // Sync hook data to local state for backwards compatibility
+  useEffect(() => {
+    if (teamMembers) {
+      setUsers(teamMembers);
+      setLoading(false);
       setError(null);
-      
-  const response = await api.get('/auth/teams');
-      
-      let usersData = [];
-      if (response.data.users && Array.isArray(response.data.users)) {
-        usersData = response.data.users;
-        console.log('Found users in response.data.users:', usersData.length);
-      } else if (Array.isArray(response.data)) {
-        usersData = response.data;
-        console.log('Found users in direct array:', usersData.length);
-      } else if (response.data.data && Array.isArray(response.data.data)) {
-        usersData = response.data.data;
-        console.log('Found users in response.data.data:', usersData.length);
-      } else {
-        console.log('No recognizable user data structure found:', response.data);
-      }
-      
-      setUsers(usersData);
-    } catch (error) {
-  // silently capture and show friendly toast
-      
-      if (error.response?.status === 401) {
+    }
+  }, [teamMembers]);
+
+  useEffect(() => {
+    setLoading(teamLoading);
+  }, [teamLoading]);
+
+  useEffect(() => {
+    if (teamError) {
+      if (teamError.response?.status === 401) {
         setError('Authentication failed. Please login again.');
         toast.error('Authentication failed. Please login again.');
       } else {
-        setError(error.response?.data?.message || 'Failed to fetch users');
+        setError(teamError.response?.data?.message || 'Failed to fetch users');
         toast.error('Failed to load team members');
       }
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [teamError]);
+
+  // Expose refetch for retry button
+  const fetchAllUsers = refetchTeam;
 
   const handleUserClick = (user) => {
     // Navigate to user details page with user data

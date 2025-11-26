@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import api from "../../../api/api";
 import { toast } from "react-hot-toast";
+import { useTeamMembers } from "../../../hooks/useTeamMembers";
 import ToggleSwitch from "../../../components/ui/ToggleSwitch";
 import { ScrollableLeads } from "../../../components/dashboard";
 import UserDailyPlanTable from "../../../components/dashboard/UserDailyPlanTable";
@@ -37,35 +38,34 @@ const UserMyTeam = () => {
 
   const { user: authUser } = useContext(AuthContext) || {};
 
-  const fetchAllUsers = async () => {
-    try {
-      setLoading(true);
+  // Use cached team members hook
+  const { data: teamMembers, isLoading: teamLoading, error: teamError } = useTeamMembers();
+
+  // Sync hook data to local state for backwards compatibility
+  useEffect(() => {
+    if (teamMembers) {
+      setUsers(teamMembers);
+      setLoading(false);
       setError(null);
-      const response = await api.get("/auth/teams");
-      let usersData = [];
-      if (response.data?.users && Array.isArray(response.data.users))
-        usersData = response.data.users;
-      else if (Array.isArray(response.data)) usersData = response.data;
-      else if (response.data?.data && Array.isArray(response.data.data))
-        usersData = response.data.data;
-      setUsers(usersData);
-    } catch (err) {
-      console.error("Error fetching users:", err);
-      if (err.response?.status === 401) {
+    }
+  }, [teamMembers]);
+
+  useEffect(() => {
+    setLoading(teamLoading);
+  }, [teamLoading]);
+
+  useEffect(() => {
+    if (teamError) {
+      console.error("Error fetching users:", teamError);
+      if (teamError.response?.status === 401) {
         setError("Authentication failed. Please login again.");
         toast.error("Authentication failed. Please login again.");
       } else {
-        setError(err.response?.data?.message || "Failed to fetch users");
+        setError(teamError.response?.data?.message || "Failed to fetch users");
         toast.error("Failed to load team members");
       }
-    } finally {
-      setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchAllUsers();
-  }, []);
+  }, [teamError]);
 
   const fetchUserData = useCallback(async () => {
     if (!selectedUser) return;

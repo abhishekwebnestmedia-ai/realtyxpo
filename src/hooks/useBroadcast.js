@@ -1,53 +1,38 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import io from 'socket.io-client';
 import api from '../api/api';
+import { useTeamMembers } from './useTeamMembers';
 
 // Hook to manage teams/groups
 export const useTeams = () => {
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const isFetchingRef = useRef(false);
 
   const fetchTeams = async () => {
+    // Prevent multiple simultaneous fetches
+    if (isFetchingRef.current) return;
+    
     try {
+      isFetchingRef.current = true;
       setLoading(true);
       const response = await api.get('/groups');
-      const teamsData = await Promise.all(
-        response.data.groups.map(async (group) => {
-          // Fetch latest message for each group
-          let lastMessage = 'No messages yet';
-          let lastMessageTime = group.updatedAt;
-          
-          try {
-            const messagesResponse = await api.get(`/broadcasts/${group._id}`);
-            const broadcasts = messagesResponse.data.broadcasts;
-            if (broadcasts && broadcasts.length > 0) {
-              const latestBroadcast = broadcasts[broadcasts.length - 1];
-              lastMessage = latestBroadcast.message.length > 50 
-                ? `${latestBroadcast.message.substring(0, 50)}...` 
-                : latestBroadcast.message;
-              lastMessageTime = latestBroadcast.createdAt;
-            }
-          } catch {
-            console.log(`No messages found for group ${group._id}`);
-          }
-          
-          return {
-            id: group._id,
-            name: group.name,
-            lastMessage,
-            time: new Date(lastMessageTime).toLocaleTimeString('en-US', { 
-              hour: '2-digit', 
-              minute: '2-digit', 
-              hour12: true 
-            }),
-            members: group.members,
-            createdBy: group.createdBy
-          };
-        })
-      );
       
-      // Use backend-provided groups as-is (no client-side All injection)
+      // Don't fetch broadcasts for each group - just use group data
+      const teamsData = response.data.groups.map(group => ({
+        id: group._id,
+        name: group.name,
+        lastMessage: 'Click to view messages',
+        time: new Date(group.updatedAt).toLocaleTimeString('en-US', { 
+          hour: '2-digit', 
+          minute: '2-digit', 
+          hour12: true 
+        }),
+        members: group.members,
+        createdBy: group.createdBy
+      }));
+      
       setTeams(teamsData);
       setError(null);
     } catch (err) {
@@ -55,6 +40,7 @@ export const useTeams = () => {
       console.error('Error fetching teams:', err);
     } finally {
       setLoading(false);
+      isFetchingRef.current = false;
     }
   };
 
@@ -84,29 +70,14 @@ export const useTeams = () => {
 
 // Hook to manage users for team creation
 export const useUsers = () => {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  const fetchUsers = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get('/auth/teams');
-      setUsers(response.data.users);
-      setError(null);
-    } catch (err) {
-      setError('Failed to fetch users');
-      console.error('Error fetching users:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data, isLoading, error, refetch } = useTeamMembers();
+  const fetchUsers = useCallback(() => refetch(), [refetch]);
 
   return {
-    users,
-    loading,
+    users: data || [],
+    loading: isLoading,
     error,
-    fetchUsers
+    fetchUsers,
   };
 };
 
