@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useNotifications } from '../../hooks/useNotifications';
 import { formatLocalTimestamp, parseLocalTimestamp } from '../../utils/datetime';
 import InventoryApprovalModal from '../../components/modals/InventoryApprovalModal';
+import NotificationItem from '../../components/ui/NotificationItem';
 
 const formatGroupTitle = (dateStr) => {
   if (!dateStr) return 'Unknown';
@@ -80,7 +81,7 @@ const NotificationsPage = () => {
         {grouped.map((group) => (
           <div key={group.key}>
             <div className="px-4 py-3  text-sm font-semibold text-gray-700 text-center">
-              <span className="inline-block px-3 py-1 bg-white rounded-full shadow-sm">{group.title}</span>
+              <span className="inline-block px-3 py-1  rounded-full shadow-sm">{group.title}</span>
             </div>
             {group.items.map((n) => (
               <div key={n.notificationId || n._id}>
