@@ -83,7 +83,7 @@ const SidebarMenu = ({ isOpen }) => {
   }, [currentPath, isOpen, visibleItems]);
 
   return (
-    <div className="relative flex flex-col h-full py-4">
+    <div className="relative flex flex-col h-full py-4 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
       {/* Logo toggles sidebar */}
       <div
         className="flex justify-center overflow-hidden cursor-pointer border-slate-700"

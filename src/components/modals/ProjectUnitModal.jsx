@@ -22,7 +22,7 @@ const ProjectUnitModal = ({ isOpen, onClose, unit, onUpdated }) => {
 
   return (
     <>
-      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
         <div className="bg-white rounded-2xl shadow-xl w-[560px] max-h-[90vh] overflow-y-auto p-6 relative unit-modal-scroll">
           <style>{`.unit-modal-scroll::-webkit-scrollbar{display:none} .unit-modal-scroll{scrollbar-width:none; -ms-overflow-style:none;}`}</style>
           <button onClick={onClose} className="absolute top-4 right-4 text-gray-600 hover:text-gray-800"><X /></button>

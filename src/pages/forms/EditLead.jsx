@@ -347,18 +347,44 @@ const EditLead = () => {
         }
 
         // Parse followUp into separate date and 12-hour time for editable inputs
+        // If raw ISO (UTC) format, convert to IST first; otherwise parse directly
         let followUpDate = '';
         let followUpTime = '';
-        const rawFollow = lead.followUp ?? lead.followUpDate ?? '';
+        const rawFollow = lead.followUpRaw ?? lead.followUp ?? lead.followUpDate ?? '';
         if (rawFollow) {
-          const m = String(rawFollow).match(/^([0-9]{4}-[0-9]{2}-[0-9]{2})T([0-9]{2}):([0-9]{2})/);
-          if (m) {
-            followUpDate = m[1];
-            const hh = parseInt(m[2], 10);
-            const mm = m[3];
-            const ampm = hh >= 12 ? 'PM' : 'AM';
-            const hour12 = ((hh + 11) % 12) + 1;
-            followUpTime = `${String(hour12).padStart(2, '0')}:${mm} ${ampm}`;
+          const asStr = String(rawFollow).trim();
+          
+          // Check if it's ISO UTC format (ends with Z or has timezone)
+          if (asStr.includes('Z') || asStr.match(/[+-]\d{2}:\d{2}$/)) {
+            // Convert UTC to IST by creating Date and formatting in IST
+            const utcDate = new Date(asStr);
+            if (!isNaN(utcDate.getTime())) {
+              // Format in IST timezone
+              const istOptions = { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false };
+              const istParts = new Intl.DateTimeFormat('en-CA', istOptions).formatToParts(utcDate);
+              const getPart = (type) => istParts.find(p => p.type === type)?.value || '';
+              followUpDate = `${getPart('year')}-${getPart('month')}-${getPart('day')}`;
+              const hh = parseInt(getPart('hour'), 10);
+              const mm = getPart('minute');
+              const ampm = hh >= 12 ? 'PM' : 'AM';
+              const hour12 = ((hh + 11) % 12) + 1;
+              followUpTime = `${String(hour12).padStart(2, '0')}:${mm} ${ampm}`;
+            }
+          } else {
+            // Handle "YYYY-MM-DD HH:mm:ss" (space) format - already in IST
+            const m = asStr.match(/^([0-9]{4}-[0-9]{2}-[0-9]{2})[T\s]([0-9]{2}):([0-9]{2})/);
+            if (m) {
+              followUpDate = m[1];
+              const hh = parseInt(m[2], 10);
+              const mm = m[3];
+              const ampm = hh >= 12 ? 'PM' : 'AM';
+              const hour12 = ((hh + 11) % 12) + 1;
+              followUpTime = `${String(hour12).padStart(2, '0')}:${mm} ${ampm}`;
+            } else {
+              // Try to extract just the date if no time part
+              const dateMatch = asStr.match(/^([0-9]{4}-[0-9]{2}-[0-9]{2})/);
+              if (dateMatch) followUpDate = dateMatch[1];
+            }
           }
         }
 

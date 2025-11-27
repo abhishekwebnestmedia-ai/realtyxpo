@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-hot-toast";
 import api from "../../../../api/api"; // axios instance
 
 const DEFAULT_TYPOLOGY_CATEGORIES = ["1BHK", "2BHK", "3BHK", "4BHK", "5BHK"];
@@ -95,13 +96,13 @@ const Step2ProjectDetails = () => {
       // ✅ Production-level cache invalidation
       queryClient.invalidateQueries({ queryKey: ["inventory"] });
       
-      alert("Step2 details updated successfully!");
+      toast.success("Project details updated successfully!");
       
       // ✅ Navigate back to inventory page
       navigate("/inventry");
     } catch (err) {
       console.error("Error updating inventory:", err);
-      alert("Failed to update Step2!");
+      toast.error(err?.response?.data?.message || "Failed to update project details. Please try again.");
     }
   };
 
@@ -185,12 +186,19 @@ const Step2ProjectDetails = () => {
         />
       </div>
 
-      {/* Save Button */}
-      <div className="col-span-2 flex justify-end mt-6">
+      {/* Cancel and Save Buttons */}
+      <div className="col-span-2 flex justify-end gap-3 mt-6">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
+        >
+          Cancel
+        </button>
         <button
           type="button"
           onClick={handleSave}
-          className="px-6 py-2 bg-green-600 text-white rounded-lg"
+          className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
         >
           Save
         </button>

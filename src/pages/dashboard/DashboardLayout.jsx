@@ -11,6 +11,14 @@ const FollowupReminderContainer = () => {
   const reminder = ctx?.followupControls?.reminder || null;
   const snooze = ctx?.followupControls?.snooze || (()=>{});
   const dismiss = ctx?.followupControls?.dismiss || (()=>{});
+  
+  // Debug logging
+  React.useEffect(() => {
+    if (reminder) {
+      console.log('🔔 FollowupReminderContainer: reminder received', reminder);
+    }
+  }, [reminder]);
+  
   return (
     <FollowupReminder reminder={reminder} onSnooze={snooze} onDismiss={dismiss} />
   );

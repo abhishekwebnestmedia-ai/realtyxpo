@@ -823,7 +823,7 @@ const ProjectsWorking = () => {
             </div>
           </div>
  
-         <div className="grid justify-start w-full gap-10">
+         <div className="grid justify-start w-full gap-1">
   {sortedFloors.map(([floor, units]) => (
     <div
       key={floor}
@@ -836,7 +836,7 @@ const ProjectsWorking = () => {
         </h2>
       </div>
       {/* Units Grid */}
-      <div className="flex flex-wrap gap-4 justify-start">
+      <div className="flex flex-wrap gap-1 justify-start">
         {units
           .sort((a, b) => {
             const unitA = parseInt(a.cleanedUnitNumber.match(/\d+/)?.[0] || 0);
@@ -854,7 +854,7 @@ const ProjectsWorking = () => {
             >
               {/* Colored Box */}
               <div
-                className="w-24 h-20 rounded-t-md"
+                className="w-24 h-8 rounded-t-md"
                 style={{
                   backgroundColor: getStatusColor(unit.status).coverColor,
                 }}

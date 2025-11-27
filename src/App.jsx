@@ -33,6 +33,7 @@ import Step2ProjectDetails from "./pages/forms/components/Stepperformedit/Step2P
 import Step1SellerDetails from "./pages/forms/components/Stepperformedit/Step1SellerDetails";
 import "react-toastify/dist/ReactToastify.css";
 import { ScrollToTop } from "./components/ui";
+import FollowupModalListener from './components/FollowupModalListener';
 
 const App = () => {
   return (
@@ -98,6 +99,7 @@ const App = () => {
             <Route path="notifications" element={<NotificationsPage />} />
           </Route>
         </Routes>
+                <FollowupModalListener />
         </Router>
         <ToastContainer />
         <Toaster
@@ -116,3 +118,6 @@ const App = () => {
 };
 
 export default App;
+
+
+

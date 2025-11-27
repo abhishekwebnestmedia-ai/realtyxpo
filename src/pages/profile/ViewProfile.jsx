@@ -78,7 +78,7 @@ const ViewProfile = ({ profileUser = null, customHeading = null, showEditButton 
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="lg:col-span-1">
-            <div className="rounded-xl p-6 bg-white">
+            <div className="rounded-xl p-6 bg-white sticky top-0">
               <div className="text-center mb-4">
                 {profileSrc ? (
                   <img src={profileSrc} alt="Profile" className="w-24 h-24 rounded-full object-cover mx-auto mb-4 border-4 border-gray-200" />

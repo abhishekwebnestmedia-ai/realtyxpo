@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
+import { toast } from "react-hot-toast";
 import api from "../../api/api";
 
 const EditMemberModal = ({ isOpen, onClose, member, onUpdateSuccess }) => {
@@ -47,7 +48,7 @@ const EditMemberModal = ({ isOpen, onClose, member, onUpdateSuccess }) => {
       onClose();
     } catch (error) {
       console.error("Update failed:", error);
-      alert("Failed to update member. Please try again.");
+      toast.error(error?.response?.data?.message || "Failed to update member. Please try again.");
     } finally {
       setIsLoading(false);
     }

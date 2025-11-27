@@ -37,7 +37,7 @@ export const NotificationsProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
-  const [followupReminder, setFollowupReminder] = useState(null); // { notification, nextShowAt: null }
+  const [followupReminder, setFollowupReminder] = useState(null); // { notification, receivedAt }
   const [isRinging, setIsRinging] = useState(false);
   const socketRef = useRef(null);
   const audioRef = useRef(null);
@@ -140,7 +140,91 @@ export const NotificationsProvider = ({ children }) => {
     return () => { mounted = false; };
   }, [isAuthed]);
 
-  
+  // Central handler for any notification payload (socket + polling)
+  useEffect(() => {
+    handlerRef.current = (payload) => {
+      if (!payload) return;
+
+      try {
+        const notificationId = payload._id || payload.notificationId;
+        const createdTs = computeClientTimestamp(
+          payload.createdAt || payload.createdAtISO || payload.date || payload.followUp || payload.followUpDate
+        );
+
+        setNotifications((prev) => {
+          const existingIdx = prev.findIndex((n) => (n._id || n.notificationId) === notificationId);
+          const base = {
+            notificationId,
+            _clientTs: createdTs,
+            ...payload,
+            isRead: payload.isRead ?? payload.read ?? false,
+          };
+
+          if (existingIdx === -1) {
+            const next = [base, ...prev];
+            next.sort((a, b) => (b._clientTs || 0) - (a._clientTs || 0));
+            return next;
+          }
+
+          const next = [...prev];
+          next[existingIdx] = { ...next[existingIdx], ...base };
+          next.sort((a, b) => (b._clientTs || 0) - (a._clientTs || 0));
+          return next;
+        });
+
+        setUnreadCount((current) => {
+          const isRead = payload.isRead ?? payload.read ?? false;
+          if (isRead) return current;
+          return current + 1;
+        });
+
+        // Detect follow-up reminder notifications for lead / inventory / broker
+        const meta = payload.meta || {};
+        // Check multiple ways to identify a followup notification
+        const isFollowupNotification = 
+          (meta.followupReminder && meta.event === 'followup') ||
+          (meta.followupReminder === true) ||
+          (meta.event === 'followup') ||
+          (payload.message && /follow[\s-]?up/i.test(payload.message) && /reminder|missed/i.test(payload.message));
+        
+        if (isFollowupNotification) {
+          console.log('📩 Followup notification detected:', { meta, message: payload.message });
+          const entity = meta.entity || (payload.type ? payload.type.toLowerCase() : null);
+          const targetId =
+            payload.leadId ||
+            payload.inventoryId ||
+            payload.brokerId ||
+            payload.itemId ||
+            payload._id;
+
+          if (targetId) {
+            setFollowupReminder({
+              notification: {
+                ...payload,
+                entity: entity || 'lead',
+                targetId,
+              },
+              receivedAt: Date.now(),
+            });
+
+            // optional bell sound
+            try {
+              const audio = audioRef.current;
+              if (audio) {
+                audio.currentTime = 0;
+                audio.loop = false;
+                audio.play().catch(() => {});
+              }
+            } catch {
+              // ignore audio errors
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Notification handler error', err);
+      }
+    };
+  }, []);
 
   // connect socket.io and fallback polling (only when authenticated)
   useEffect(() => {

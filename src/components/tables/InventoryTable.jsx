@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useRef, useEffect } from "react";
 import { Pencil } from "lucide-react";
+import { toast } from "react-hot-toast";
 import api from "../../api/api"; // ✅ axios instance
 import ConfirmDeleteButton from "../ui/notifications/ConfirmDelete"; // adjust path
 import useIsSuperAdmin from "../../hooks/useIsSuperAdmin";
@@ -148,7 +149,7 @@ const InventoryTable = ({ data = [], onDeleteSuccess, hideSearch = false, extern
       if (onDeleteSuccess) onDeleteSuccess(id);
     } catch (error) {
       console.error("Delete failed:", error);
-      alert("Failed to delete item. Please try again.");
+      toast.error(error?.response?.data?.message || "Failed to delete item. Please try again.");
 
       // Rollback UI if delete failed
       setLocalData(data);

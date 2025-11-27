@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Edit3, Loader2, Notebook, Trash2 } from 'lucide-react';
+import { Edit3, Loader2, Notebook, Trash2, Download } from 'lucide-react';
 import useIsSuperAdmin from '../../hooks/useIsSuperAdmin';
 import toast from 'react-hot-toast';
 import api from '../../api/api';
@@ -168,6 +168,7 @@ const Database = () => {
       }}
       className="inline-flex items-center gap-2 px-3 py-2 border rounded bg-white hover:bg-gray-50"
     >
+      <Download size={16} />
       Export
     </button>
 

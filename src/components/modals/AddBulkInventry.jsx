@@ -394,7 +394,7 @@ import {
   Upload,
   FileSpreadsheet,
   AlertCircle,
-  Eye,
+  Download,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import * as XLSX from "xlsx";
@@ -402,8 +402,6 @@ import api from "../../api/api";
 
 const AddBulkInventry = ({ isOpen, onClose }) => {
   const [selectedFile, setSelectedFile] = useState(null);
-  const [fileHeaders, setFileHeaders] = useState([]); // 🆕 Header preview
-  const [showHeaderPreview, setShowHeaderPreview] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
@@ -412,9 +410,46 @@ const AddBulkInventry = ({ isOpen, onClose }) => {
   const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
 
+  // Download sample Excel template
+  const handleDownloadSample = () => {
+    const headers = [
+      'sellerName',
+      'inventoryType',
+      'sector',
+      'unitNo',
+      'towerNo',
+      'typology',
+      'size',
+      'demand',
+      'Project',
+      'contactNumbers',
+      'email',
+      'paymentStatus',
+      'registryType',
+      'requirement',
+      'date',
+      'capturedBy',
+      'assignTo',
+      'transferTo',
+      'followUpDate',
+      'source',
+      'loanStatus',
+      'remarks',
+    ];
+    
+    const sampleData = [
+      headers,
+      ['John Doe', 'Residential', 'Sector 50', '101', 'Tower A', '3BHK', '1500 sqft', '1.5 Cr', 'Green Valley', '9876543210', 'john@example.com', 'Paid', 'Registered', 'Looking for buyer', '2025-01-15', 'Admin', 'Sales Team', '', '2025-01-20', 'Website', 'Approved', 'Prime location'],
+    ];
+    
+    const ws = XLSX.utils.aoa_to_sheet(sampleData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Inventory');
+    XLSX.writeFile(wb, 'inventory_bulk_upload_sample.xlsx');
+  };
+
   const resetState = () => {
     setSelectedFile(null);
-    setFileHeaders([]);
     setUploadStatus(null);
     setErrorMessage("");
     setUploadProgress(0);
@@ -487,13 +522,6 @@ const AddBulkInventry = ({ isOpen, onClose }) => {
       setSelectedFile(file);
       setUploadStatus(null);
       setErrorMessage("");
-
-      try {
-        const headers = await extractHeaders(file);
-        setFileHeaders(headers);
-      } catch (err) {
-        setErrorMessage("Unable to read file headers. Please check the format.");
-      }
     }
   };
 
@@ -634,34 +662,23 @@ const AddBulkInventry = ({ isOpen, onClose }) => {
           </button>
         </div>
 
-        {/* 🆕 Header Preview */}
-        {showHeaderPreview && fileHeaders.length > 0 && (
-          <div className="mb-4 bg-gray-50 border border-gray-200 rounded-lg p-3">
-            <div className="flex items-center gap-2 mb-2">
-              <Eye size={16} className="text-blue-600" />
-              <span className="text-sm font-semibold text-gray-800">
-                Header Preview ({fileHeaders.length} columns)
-              </span>
-              <button
-                type="button"
-                onClick={() => setShowHeaderPreview(false)}
-                className="ml-auto text-sm text-gray-500 hover:text-gray-700"
-              >
-                Close
-              </button>
+        {/* Download Sample Template */}
+        <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-blue-800">Need a template?</p>
+              <p className="text-xs text-blue-600">Download sample Excel file with correct headers</p>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {fileHeaders.map((header, i) => (
-                <span
-                  key={i}
-                  className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-md border border-blue-200"
-                >
-                  {header}
-                </span>
-              ))}
-            </div>
+            <button
+              type="button"
+              onClick={handleDownloadSample}
+              className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 inline-flex items-center gap-1"
+            >
+              <Download size={14} />
+              Download Sample
+            </button>
           </div>
-        )}
+        </div>
 
         {/* Upload Section */}
         <div
@@ -703,49 +720,12 @@ const AddBulkInventry = ({ isOpen, onClose }) => {
               />
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="text-[#334DE5] border border-[#334DE5] px-4 py-2 rounded-md inline-flex items-center gap-2"
+                className="text-[#334DE5] border border-[#334DE5] px-4 py-2 rounded-lg inline-flex items-center gap-2 hover:bg-blue-50 transition-colors"
                 disabled={isUploading}
               >
                 <Upload size={16} />
                 Browse File
               </button>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    // show template headers if no file selected
-                    setShowHeaderPreview(true);
-                    if (!fileHeaders || fileHeaders.length === 0) {
-                      // optional: show a suggested template for inventory
-                      setFileHeaders([
-                        'sellerName',
-                        'inventoryType',
-                        'sector',
-                        'unitNo',
-                        'towerNo',
-                        'typology',
-                        'size',
-                        'demand',
-                        'Project',
-                        'contactNumbers',
-                        'email',
-                        'paymentStatus',
-                        'registryType',
-                        'requirement',
-                        'date',
-                        'capturedBy',
-                        'assignTo',
-                        'transferTo',
-                        'followUpDate',
-                        'source',
-                        'loanStatus',
-                        'remarks',
-                      ]);
-                    }
-                  }}
-                  className="ml-2 px-3 py-2 border rounded-md text-sm"
-                >
-                  Preview Headers
-                </button>
             </>
           ) : (
             <div className="space-y-3">
@@ -758,33 +738,11 @@ const AddBulkInventry = ({ isOpen, onClose }) => {
                 <button
                   onClick={() => {
                     setSelectedFile(null);
-                    setFileHeaders([]);
                     if (fileInputRef.current) fileInputRef.current.value = "";
                   }}
                   className="text-sm text-red-600 hover:text-red-700"
                 >
                   Remove file
-                </button>
-              )}
-              {/* Preview for selected file */}
-              {selectedFile && (
-                <button
-                  type="button"
-                  onClick={async () => {
-                    if (!fileHeaders || fileHeaders.length === 0) {
-                      try {
-                        const headers = await extractHeaders(selectedFile);
-                        setFileHeaders(headers);
-                      } catch {
-                        setErrorMessage('Unable to read file headers.');
-                        return;
-                      }
-                    }
-                    setShowHeaderPreview(true);
-                  }}
-                  className="text-sm ml-2 px-3 py-2 border rounded-md"
-                >
-                  Preview Headers
                 </button>
               )}
             </div>

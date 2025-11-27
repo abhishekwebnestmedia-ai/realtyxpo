@@ -33,9 +33,13 @@ const AddBrokerRequirement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    // Client-side validation: required fields
-    if (!form.brokerName || !form.contactNumber || !form.requirement || !form.followUpDate) {
-      setError('Please fill Broker Name, Contact Number, Requirement and Follow-up Date');
+    // Basic validation - only check truly required fields
+    if (!form.brokerName?.trim()) {
+      setError('Please enter broker name');
+      return;
+    }
+    if (!form.contactNumber?.trim()) {
+      setError('Please enter contact number');
       return;
     }
     setLoading(true);
@@ -77,11 +81,11 @@ const AddBrokerRequirement = () => {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block mb-1 font-medium">Broker Name</label>
-            <input name="brokerName" value={form.brokerName} onChange={handleChange} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" placeholder="Enter brokerName" />
+            <input name="brokerName" value={form.brokerName} onChange={handleChange} className="w-full border border-gray-300 bg-[#FAFBFC] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter broker name" />
           </div>
           <div>
             <label className="block mb-1 font-medium">Company Name</label>
-            <input name="companyName" value={form.companyName} onChange={handleChange} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" placeholder="Enter company name (optional)" />
+            <input name="companyName" value={form.companyName} onChange={handleChange} className="w-full border border-gray-300 bg-[#FAFBFC] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter company name (optional)" />
           </div>
 
           <div>
@@ -89,17 +93,19 @@ const AddBrokerRequirement = () => {
             <input
               name="contactNumber"
               value={form.contactNumber}
-              onChange={handleChange}
-              pattern="^[0-9]{7,15}$"
-              title="Enter a valid phone number (digits only)"
-              required
-              className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2"
-              placeholder="Enter contactNumber"
+              onChange={(e) => {
+                // Only allow numbers
+                const val = e.target.value.replace(/[^0-9]/g, '');
+                setForm(prev => ({ ...prev, contactNumber: val }));
+              }}
+              type="tel"
+              className="w-full border border-gray-300 bg-[#FAFBFC] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Enter contact number"
             />
           </div>
           <div>
             <label className="block mb-1 font-medium">Status</label>
-            <select name="status" value={form.status} onChange={handleChange} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2">
+            <select name="status" value={form.status} onChange={handleChange} className="w-full border border-gray-300 bg-[#FAFBFC] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
               <option value="Hot">Hot</option>
               <option value="Not connected">Not connected</option>
               <option value="Serious">Serious</option>
@@ -116,31 +122,30 @@ const AddBrokerRequirement = () => {
               value={form.followUpDate}
               onChange={handleChange}
               type="datetime-local"
-              required
-              className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2"
+              className="w-full border border-gray-300 bg-[#FAFBFC] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
           <div>
             <label className="block mb-1 font-medium">Source</label>
-            <input name="source" value={form.source} onChange={handleChange} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" placeholder="Enter source" />
+            <input name="source" value={form.source} onChange={handleChange} className="w-full border border-gray-300 bg-[#FAFBFC] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter source" />
           </div>
 
           <div>
             <label className="block mb-1 font-medium">Remark</label>
-            <textarea name="remark" value={form.remark} onChange={handleChange} rows={4} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" placeholder="Enter remark" />
+            <textarea name="remark" value={form.remark} onChange={handleChange} rows={4} className="w-full border border-gray-300 bg-[#FAFBFC] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter remark" />
           </div>
 
           <div>
             <label className="block mb-1 font-medium">Requirement</label>
-            <textarea name="requirement" value={form.requirement} onChange={handleChange} rows={4} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" placeholder="Enter requirement" />
+            <textarea name="requirement" value={form.requirement} onChange={handleChange} rows={4} className="w-full border border-gray-300 bg-[#FAFBFC] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter requirement" />
           </div>
         </div>
 
         {error && <p className="text-red-500 mt-3">{error}</p>}
 
         <div className="mt-6 flex gap-3 justify-end">
-          <button type="button" onClick={() => navigate(-1)} className="rounded border border-red-500 px-4 py-2 text-red-600 hover:bg-red-50">Cancel</button>
-          <button type="submit" disabled={loading} className="btn px-4 py-2">{loading ? 'Saving...' : 'Save'}</button>
+          <button type="button" onClick={() => navigate(-1)} className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">Cancel</button>
+          <button type="submit" disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors">{loading ? 'Saving...' : 'Submit'}</button>
         </div>
       </form>
     </div>

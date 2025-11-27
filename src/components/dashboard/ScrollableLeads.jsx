@@ -153,7 +153,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
       }
       setLeadDetails(leadData);
     } catch (error) {
-      alert(`Failed to fetch lead details: ${error.response?.data?.message || error.message}`);
+      toast.error(`Failed to fetch lead details: ${error.response?.data?.message || error.message}`);
       setLeadDetails(null);
     } finally {
       setLoading(false);
@@ -208,7 +208,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
       setIsPopupOpen(true);
       fetchLeadDetails(leadId);
     } else {
-      alert('Unable to fetch lead details: No valid ID found');
+      toast.error('Unable to fetch lead details: No valid ID found');
     }
   };
 
@@ -715,7 +715,7 @@ const LeadsTable = ({ data = [], onEdit, onDelete, hideSearch = false, externalS
                         onClick={(e) => {
                           e.stopPropagation();
                           const id = row?.id ?? row?._id ?? row?.leadId;
-                          if (!id) return alert('Unable to fetch history: missing id');
+                          if (!id) return toast.error('Unable to fetch history: missing id');
                           setSelectedLead(row);
                           setIsHistoryOpen(true);
                           fetchHistory(id);

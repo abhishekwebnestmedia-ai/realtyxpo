@@ -9,7 +9,7 @@ const EditOptionsPopup = ({ isOpen, onClose, id }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-5 flex items-center justify-center z-50 ">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 ">
       <div className="bg-white rounded-2xl  w-full max-w-lg py-10 px-20 relative flex flex-col gap-4">
         {/* Header */}
         <h2 className="text-2xl font-semibold mb-2 text-center">

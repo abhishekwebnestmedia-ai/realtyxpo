@@ -190,9 +190,6 @@ const BrokersRequirements = () => {
           <thead className="bg-gray-100 text-gray-600 uppercase text-xs sticky top-0 z-10">
             <tr>
               <th className="px-4 py-2 font-medium theading">S.No</th>
-              <th className="min-w-20 px-4 py-6 whitespace-nowrap theading text-left font-medium">
-                Captured By
-              </th>
               <th className="min-w-32 px-4 py-6 whitespace-nowrap theading text-left font-medium">
                 Broker Name
               </th>
@@ -251,9 +248,6 @@ const BrokersRequirements = () => {
                 >
                   <td className="px-4 py-4 text-center">{startIndex + paginatedData.indexOf(row) + 1}</td>
                   <td className="px-4 py-4 whitespace-nowrap">
-                    {row.capturedBy || row.sellerName || 'N/A'}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap">
                       {row.brokerName}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
@@ -275,7 +269,18 @@ const BrokersRequirements = () => {
                     </span>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
-                    {row.createdAt ? new Date(row.createdAt).toLocaleDateString() : row.date || 'N/A'}
+                    {row.createdAt ? (() => {
+                      // Handle DD/MM/YYYY, HH:mm format
+                      const dateStr = row.createdAt;
+                      if (typeof dateStr === 'string' && dateStr.includes('/')) {
+                        const parts = dateStr.split(',')[0].split('/');
+                        if (parts.length === 3) {
+                          return `${parts[0]}/${parts[1]}/${parts[2]}`;
+                        }
+                      }
+                      const d = new Date(dateStr);
+                      return isNaN(d.getTime()) ? dateStr : d.toLocaleDateString('en-IN');
+                    })() : row.date || 'N/A'}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     {row.requirement}
@@ -313,7 +318,7 @@ const BrokersRequirements = () => {
               ))
             ) : (
               <tr>
-                <td colSpan={12} className="text-center py-6 text-gray-500">
+                <td colSpan={11} className="text-center py-6 text-gray-500">
                   No data found
                 </td>
               </tr>

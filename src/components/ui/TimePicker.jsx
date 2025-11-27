@@ -57,8 +57,8 @@ export default function TimePicker({ name, value = '', onChange, id, className }
     triggerChange(hour, minute, v);
   };
 
-  // build minute options (every 5 minutes by default for compactness)
-  const minuteOptions = Array.from({ length: 12 }).map((_, i) => String(i * 5).padStart(2, '0'));
+  // build minute options for every minute from 01 to 60
+  const minuteOptions = Array.from({ length: 60 }).map((_, i) => String((i + 1) % 60).padStart(2, '0'));
   const hourOptions = Array.from({ length: 12 }).map((_, i) => String(i + 1).padStart(2, '0'));
 
   return (

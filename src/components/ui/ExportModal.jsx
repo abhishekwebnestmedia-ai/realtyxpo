@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, FileText, FileSpreadsheet } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 import { exportToCsv, exportToExcel, exportToPdf } from '../../utils/exporter';
 
 /**
@@ -45,7 +46,7 @@ const ExportModal = ({
 
   const handleExport = (format) => {
     if (!data || data.length === 0) {
-      alert('No data available to export');
+      toast.error('No data available to export');
       return;
     }
 
@@ -91,7 +92,7 @@ const ExportModal = ({
           exportToPdf(exportData, columns, title);
           break;
         default:
-          alert('Invalid format selected');
+          toast.error('Invalid format selected');
           return;
       }
       
@@ -99,7 +100,7 @@ const ExportModal = ({
       setTimeout(() => onClose(), 500);
     } catch (error) {
       console.error('Export failed:', error);
-      alert('Export failed. Please try again.');
+      toast.error('Export failed. Please try again.');
     }
   };
 

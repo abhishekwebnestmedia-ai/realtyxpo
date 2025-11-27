@@ -324,7 +324,7 @@ import {
   Upload,
   FileSpreadsheet,
   AlertCircle,
-  Eye,
+  Download,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import * as XLSX from "xlsx";
@@ -332,8 +332,6 @@ import api from "../../api/api";
 
 const AddBulkLead = ({ isOpen, onClose }) => {
   const [selectedFile, setSelectedFile] = useState(null);
-  const [fileHeaders, setFileHeaders] = useState([]); // 🆕 store header preview
-  const [showHeaderPreview, setShowHeaderPreview] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState(null); // 'success' | 'error' | null
   const [errorMessage, setErrorMessage] = useState("");
@@ -341,10 +339,37 @@ const AddBulkLead = ({ isOpen, onClose }) => {
   const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
 
+  // Download sample Excel template
+  const handleDownloadSample = () => {
+    const headers = [
+      'customerName',
+      'contactNumber',
+      'email',
+      'status',
+      'followUpDate',
+      'requirement',
+      'remark',
+      'date',
+      'capturedBy',
+      'assignTo',
+      'transferTo',
+      'source'
+    ];
+    
+    const sampleData = [
+      headers,
+      ['John Doe', '9876543210', 'john@example.com', 'Hot', '2025-01-20', 'Looking for 3BHK', 'Interested buyer', '2025-01-15', 'Admin', 'Sales Team', '', 'Website'],
+    ];
+    
+    const ws = XLSX.utils.aoa_to_sheet(sampleData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Leads');
+    XLSX.writeFile(wb, 'leads_bulk_upload_sample.xlsx');
+  };
+
   // Reset everything
   const resetState = () => {
     setSelectedFile(null);
-    setFileHeaders([]);
     setUploadStatus(null);
     setErrorMessage("");
     setUploadProgress(0);
@@ -354,41 +379,6 @@ const AddBulkLead = ({ isOpen, onClose }) => {
   const handleClose = () => {
     resetState();
     onClose();
-  };
-
-  // 🆕 Extract headers only
-  const extractHeaders = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-
-      reader.onload = (e) => {
-        try {
-          if (file.type === "text/csv") {
-            const firstLine = e.target.result.split("\n")[0];
-            const headers = firstLine
-              .split(",")
-              .map((h) => h.replace(/"/g, "").trim());
-            resolve(headers);
-          } else {
-            const workbook = XLSX.read(e.target.result, { type: "binary" });
-            const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            const range = XLSX.utils.decode_range(sheet["!ref"]);
-            const headers = [];
-            for (let C = range.s.c; C <= range.e.c; ++C) {
-              const cell = sheet[XLSX.utils.encode_cell({ r: 0, c: C })];
-              if (cell && cell.v) headers.push(cell.v);
-            }
-            resolve(headers);
-          }
-        } catch (err) {
-          reject(err);
-        }
-      };
-
-      reader.onerror = () => reject("Failed to read file");
-      if (file.type === "text/csv") reader.readAsText(file);
-      else reader.readAsBinaryString(file);
-    });
   };
 
   const handleFileSelect = async (event) => {
@@ -413,15 +403,6 @@ const AddBulkLead = ({ isOpen, onClose }) => {
 
     setSelectedFile(file);
     setErrorMessage("");
-
-    // Try reading headers for preview
-    try {
-      const headers = await extractHeaders(file);
-      setFileHeaders(headers);
-    } catch (err) {
-      console.error("Header extraction failed:", err);
-      setErrorMessage("Unable to read file headers. Please check the format.");
-    }
   };
 
   // Convert entire file into JSON
@@ -541,37 +522,26 @@ const AddBulkLead = ({ isOpen, onClose }) => {
           </button>
         </div>
 
-        {/* 🆕 Header Preview */}
-        {showHeaderPreview && fileHeaders.length > 0 && (
-          <div className="mb-4 bg-gray-50 border border-gray-200 rounded-lg p-3">
-            <div className="flex items-center gap-2 mb-2">
-              <Eye size={16} className="text-blue-600" />
-              <span className="text-sm font-semibold text-gray-800">
-                Header Preview ({fileHeaders.length} columns)
-              </span>
-              <button
-                type="button"
-                onClick={() => setShowHeaderPreview(false)}
-                className="ml-auto text-sm text-gray-500 hover:text-gray-700"
-              >
-                Close
-              </button>
+        {/* Download Sample Template */}
+        <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-blue-800">Need a template?</p>
+              <p className="text-xs text-blue-600">Download sample Excel file with correct headers</p>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {fileHeaders.map((header, i) => (
-                <span
-                  key={i}
-                  className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-md border border-blue-200"
-                >
-                  {header}
-                </span>
-              ))}
-            </div>
+            <button
+              type="button"
+              onClick={handleDownloadSample}
+              className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 inline-flex items-center gap-1"
+            >
+              <Download size={14} />
+              Download Sample
+            </button>
           </div>
-        )}
+        </div>
 
         {/* File Upload Box */}
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
           {!selectedFile ? (
             <>
               <FileSpreadsheet
@@ -593,37 +563,11 @@ const AddBulkLead = ({ isOpen, onClose }) => {
               />
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="text-[#334DE5] border border-[#334DE5] px-4 py-2 rounded-md inline-flex items-center gap-2"
+                className="text-[#334DE5] border border-[#334DE5] px-4 py-2 rounded-lg inline-flex items-center gap-2 hover:bg-blue-50 transition-colors"
                 disabled={isUploading}
               >
                 <Upload size={16} />
                 Browse File
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  // if there are no extracted headers, show template
-                  if (!fileHeaders || fileHeaders.length === 0) {
-                    setFileHeaders([
-                      'customerName',
-                      'contactNumber',
-                      'email',
-                      'status',
-                      'followUpDate',
-                      'requirement',
-                      'remark',
-                      'date',
-                      'capturedBy',
-                      'assignTo',
-                      'transferTo',
-                      'source'
-                    ]);
-                  }
-                  setShowHeaderPreview(true);
-                }}
-                className="ml-2 px-3 py-2 border rounded-md text-sm"
-              >
-                Preview Headers
               </button>
             </>
           ) : (

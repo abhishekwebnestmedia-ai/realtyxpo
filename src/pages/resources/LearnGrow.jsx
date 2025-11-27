@@ -547,42 +547,44 @@ const LearnGrow = () => {
       {showCreateForm && (
         <form
           onSubmit={handleCreateFolder}
-          className="mt-5 flex flex-col  gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center"
+          className="mt-5 rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
         >
-          <div className="flex-1">
-            <label htmlFor="new-folder-name" className="block text-sm font-medium text-gray-700">
-              Folder name
-            </label>
-            <input
-              id="new-folder-name"
-              type="text"
-              value={newFolderName}
-              onChange={(event) => setNewFolderName(event.target.value)}
-              placeholder="e.g. Onboarding, Sales Playbooks"
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-              disabled={createLoading}
-            />
-          </div>
-          <div className="flex items-center gap-2 self-end sm:self-auto">
-            <button
-              type="button"
-              onClick={() => {
-                setShowCreateForm(false);
-                setNewFolderName('');
-              }}
-              className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
-              disabled={createLoading}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-70"
-              disabled={createLoading}
-            >
-              {createLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-              Create
-            </button>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
+            <div className="flex-1">
+              <label htmlFor="new-folder-name" className="block text-sm font-medium text-gray-700 mb-1">
+                Folder name
+              </label>
+              <input
+                id="new-folder-name"
+                type="text"
+                value={newFolderName}
+                onChange={(event) => setNewFolderName(event.target.value)}
+                placeholder="e.g. Onboarding, Sales Playbooks"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                disabled={createLoading}
+              />
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCreateForm(false);
+                  setNewFolderName('');
+                }}
+                className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-200"
+                disabled={createLoading}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
+                disabled={createLoading}
+              >
+                {createLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                Create
+              </button>
+            </div>
           </div>
         </form>
       )}
@@ -590,36 +592,35 @@ const LearnGrow = () => {
       {showRenameForm && activeFolder ? (
         <form
           onSubmit={handleRenameFolder}
-          className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:flex-row sm:items-end"
+          className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
         >
-          {/* Heading in its own div */}
-          <div className="sm:flex-1">
-            <h3 className="text-sm font-medium text-gray-700">Rename folder</h3>
-          </div>
-
-          {/* Input and action buttons grouped together */}
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-3 w-full">
-            <input
-              id="rename-folder-name"
-              type="text"
-              value={renameName}
-              onChange={(event) => setRenameName(event.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-              placeholder="Enter rename-folder-name"
-              disabled={renameLoading}
-            />
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
+            <div className="flex-1">
+              <label htmlFor="rename-folder-name" className="block text-sm font-medium text-gray-700 mb-1">
+                Rename folder
+              </label>
+              <input
+                id="rename-folder-name"
+                type="text"
+                value={renameName}
+                onChange={(event) => setRenameName(event.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                placeholder="Enter new folder name"
+                disabled={renameLoading}
+              />
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
               <button
                 type="button"
                 onClick={() => setShowRenameForm(false)}
-                className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
+                className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-200"
                 disabled={renameLoading}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-70"
+                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
                 disabled={renameLoading}
               >
                 {renameLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Edit3 className="h-4 w-4" />}

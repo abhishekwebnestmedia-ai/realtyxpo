@@ -235,6 +235,7 @@ import logo from "/logo.svg";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { Eye, EyeOff } from "lucide-react";
+import { toast } from "react-hot-toast";
 import { ForgotPasswordModal } from '../../components/modals';
 
 const Login = () => {
@@ -306,7 +307,7 @@ const Login = () => {
     });
     if (res && res.success) {
       // success
-      alert("Registration successful! Please login.");
+      toast.success("Registration successful! Please login.");
       setIsFlipped(false);
       return res;
     }
@@ -323,8 +324,8 @@ const Login = () => {
     try {
       await doRegister();
     } catch (error) {
-      // registerError state already set in doRegister; fallback to alert
-      alert("Registration failed: " + (error.message || "Registration failed"));
+      // registerError state already set in doRegister; fallback to toast
+      toast.error(error.message || "Registration failed. Please try again.");
     } finally {
       setTimeout(() => setIsRegistering(false), 300);
     }

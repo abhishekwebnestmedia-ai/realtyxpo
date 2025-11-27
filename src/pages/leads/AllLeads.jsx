@@ -227,7 +227,7 @@ import { getViewerPerms, canViewLead } from "../../utils/permissions";
 import ExportModal from "../../components/ui/ExportModal";
 import TokenSearch from "../../components/ui/TokenSearch";
 import { ToggleSwitch } from "../../components/ui";
-import { FilePlus2, Plus } from 'lucide-react';
+import { FilePlus2, Plus, Download } from 'lucide-react';
 
 const AllLeads = () => {
   const navigate = useNavigate();
@@ -423,9 +423,10 @@ const AllLeads = () => {
             />
             {isAdmin && (
               <button
-                className="btn ml-2"
+                className="btn ml-2 inline-flex items-center gap-2"
                 onClick={() => setShowExportModal(true)}
               >
+                <Download size={16} />
                 Export
               </button>
             )}

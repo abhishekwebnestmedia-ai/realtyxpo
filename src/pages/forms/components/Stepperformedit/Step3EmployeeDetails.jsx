@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext, useMemo } from "react";
 import TimePicker from '../../../../components/ui/TimePicker';
 import { useParams, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-hot-toast";
 import { useUsers } from "../../../../hooks/useBroadcast";
 import { AuthContext } from "../../../../context/AuthContext";
 import api from "../../../../api/api";
@@ -107,35 +108,65 @@ const Step3EmployeeDetails = () => {
           ? inventoryData.source[0] || ""
           : inventoryData.source || "";
 
-        // Inventory followup key might vary (followUpDate, followUp)
+        // Inventory followup - prefer raw ISO format if available, then fallback to formatted
         const inventoryFollowUp =
-          inventoryData.followUpDate ?? inventoryData.followUp ?? "";
+          inventoryData.followUpDateRaw ?? inventoryData.followUpDate ?? inventoryData.followUp ?? "";
 
         // Inventory remarks key variations (remarks / remark)
         const inventoryRemark = inventoryData.remarks ?? inventoryData.remark ?? "";
 
         // parse follow-up into separate date and 12-hour time for the edit form
+        // If raw ISO (UTC) format, convert to IST first; otherwise parse directly
         let followUpDateVal = '';
         let followUpTimeVal = '';
+        
+        console.log('📅 Raw followup data:', { 
+          followUpDateRaw: inventoryData.followUpDateRaw,
+          followUpDate: inventoryData.followUpDate,
+          followUp: inventoryData.followUp,
+          using: inventoryFollowUp 
+        });
+        
         if (inventoryFollowUp) {
-          const asStr = String(inventoryFollowUp);
-          if (asStr.includes('T')) {
-            const parts = asStr.split('T');
-            followUpDateVal = parts[0];
-            const timePart = parts[1] || '';
-            const m = timePart.match(/^(\d{1,2}):(\d{2})/);
-            if (m) {
-              let hh = parseInt(m[1], 10);
-              const mm = m[2];
+          const asStr = String(inventoryFollowUp).trim();
+          
+          // Check if it's ISO UTC format (ends with Z or has timezone)
+          if (asStr.includes('Z') || asStr.match(/[+-]\d{2}:\d{2}$/)) {
+            // Convert UTC to IST by creating Date and formatting in IST
+            const utcDate = new Date(asStr);
+            if (!isNaN(utcDate.getTime())) {
+              // Format in IST timezone
+              const istOptions = { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false };
+              const istParts = new Intl.DateTimeFormat('en-CA', istOptions).formatToParts(utcDate);
+              const getPart = (type) => istParts.find(p => p.type === type)?.value || '';
+              followUpDateVal = `${getPart('year')}-${getPart('month')}-${getPart('day')}`;
+              const hh = parseInt(getPart('hour'), 10);
+              const mm = getPart('minute');
               const ampm = hh >= 12 ? 'PM' : 'AM';
               const hour12 = ((hh + 11) % 12) + 1;
               followUpTimeVal = `${String(hour12).padStart(2, '0')}:${mm} ${ampm}`;
             }
           } else {
-            // no time part, treat as date-only
-            followUpDateVal = asStr.split('T')[0] || asStr;
+            // Handle "YYYY-MM-DD HH:mm:ss" (space) format - already in IST
+            const separator = asStr.includes('T') ? 'T' : ' ';
+            const parts = asStr.split(separator);
+            followUpDateVal = parts[0] || '';
+            const timePart = parts[1] || '';
+            
+            if (timePart) {
+              const m = timePart.match(/^(\d{1,2}):(\d{2})/);
+              if (m) {
+                let hh = parseInt(m[1], 10);
+                const mm = m[2];
+                const ampm = hh >= 12 ? 'PM' : 'AM';
+                const hour12 = ((hh + 11) % 12) + 1;
+                followUpTimeVal = `${String(hour12).padStart(2, '0')}:${mm} ${ampm}`;
+              }
+            }
           }
         }
+        
+        console.log('📅 Parsed followup:', { followUpDateVal, followUpTimeVal });
 
         setFormData({
           capturedBy: resolveToUserName(inventoryData.capturedBy),
@@ -218,13 +249,13 @@ const Step3EmployeeDetails = () => {
       // ✅ Production-level cache invalidation
       queryClient.invalidateQueries({ queryKey: ["inventory"] });
       
-      alert("Step3 details updated successfully!");
+      toast.success("Employee details updated successfully!");
       
       // ✅ Navigate back to inventory page
       navigate("/inventry");
     } catch (err) {
       console.error("Error updating Step3:", err.response?.data || err.message || err);
-      alert("Failed to update Step3! See console for details.");
+      toast.error(err?.response?.data?.message || "Failed to update employee details. Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -337,13 +368,20 @@ const Step3EmployeeDetails = () => {
         />
       </div>
 
-      {/* Save Button */}
-      <div className="col-span-2 flex justify-end mt-6">
+      {/* Cancel and Save Buttons */}
+      <div className="col-span-2 flex justify-end gap-3 mt-6">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
+        >
+          Cancel
+        </button>
         <button
           type="button"
           onClick={handleSave}
           disabled={isSaving}
-          className={`px-6 py-2 text-white rounded-lg ${isSaving ? "bg-gray-400" : "bg-green-600"}`}
+          className={`px-6 py-2 text-white rounded-lg ${isSaving ? "bg-gray-400" : "bg-green-600 hover:bg-green-700"}`}
         >
           {isSaving ? "Saving..." : "Save"}
         </button>

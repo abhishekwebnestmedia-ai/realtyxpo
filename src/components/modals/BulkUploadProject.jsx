@@ -36,14 +36,19 @@ const BulkUploadProject = ({ isOpen, onClose, onSuccess }) => {
       'Tower Name',
       'Unit Number',
       'Project Type',
-      'Status'
+      'Status',
+      'Owner Name',
+      'Email',
+      'Mobile Numbers',
+      'Remarks',
+      'Assign To'
     ];
     
     const sampleRows = [
-      ['Residential', 'ReadyToMove', 'Gurgaon', 'Dwarka Expressway', 'Sector 104', 'M3M Heights', 'Tower A', 'Floor 5, Unit No 501', 'Residential', 'Vacant'],
-      ['Residential', 'ReadyToMove', 'Gurgaon', 'Dwarka Expressway', 'Sector 104', 'M3M Heights', 'Tower A', 'Floor 5, Unit No 502', 'Residential', 'Self Occupied'],
-      ['Commercial', 'ReadyToMove', 'Gurgaon', 'Golf Course Road', 'Sector 53', 'DLF Park Place', 'Tower B', 'Floor 10, Unit No 1001', 'Commercial', 'Rental'],
-      ['Residential', 'UnderConstruction', 'Gurgaon', 'Sohna Road', 'Sector 68', 'Tulip Orange', 'Tower C', 'Floor 3, Unit No 305', 'Residential', 'For Sale'],
+      ['Residential', 'ReadyToMove', 'Gurgaon', 'Dwarka Expressway', 'Sector 104', 'M3M Heights', 'Tower A', 'Floor 5, Unit No 501', 'Residential', 'Vacant', 'Rohit Sharma', 'rohit@example.com', '9876543210', 'Owner lives here', 'Dell'],
+      ['Residential', 'ReadyToMove', 'Gurgaon', 'Dwarka Expressway', 'Sector 104', 'M3M Heights', 'Tower A', 'Floor 5, Unit No 502', 'Residential', 'Self Occupied', 'Kunal Verma', 'kunal@example.com', '9823567890,9811223344', 'Multiple contacts', 'Dell'],
+      ['Commercial', 'ReadyToMove', 'Gurgaon', 'Golf Course Road', 'Sector 53', 'DLF Park Place', 'Tower B', 'Floor 10, Unit No 1001', 'Commercial', 'Rental', 'TechPrime Pvt Ltd', 'admin@techprime.com', '9988776655', 'Corporate tenant', ''],
+      ['Residential', 'UnderConstruction', 'Gurgaon', 'Sohna Road', 'Sector 68', 'Tulip Orange', 'Tower C', 'Floor 3, Unit No 305', 'Residential', 'For Sale', 'Alpha Realtech', 'alpha@company.com', '9933111199', 'Under finishing', ''],
     ];
 
     // Create CSV content

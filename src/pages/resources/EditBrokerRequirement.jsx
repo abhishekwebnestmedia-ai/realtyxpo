@@ -33,19 +33,44 @@ const EditBrokerRequirement = () => {
         const payload = res?.data ?? res;
         const data = payload?.data ?? payload;
 
-        // Parse followUp date/time similar to EditLead
+        // Parse followUp date/time - convert UTC to IST if needed
         let followUpDate = '';
         let followUpTime = '';
         const rawFollow = data.followUpDateRaw ?? data.followUpDate ?? '';
         if (rawFollow) {
-          const m = String(rawFollow).match(/^([0-9]{4}-[0-9]{2}-[0-9]{2})T([0-9]{2}):([0-9]{2})/);
-          if (m) {
-            followUpDate = m[1];
-            const hh = parseInt(m[2], 10);
-            const mm = m[3];
-            const ampm = hh >= 12 ? 'PM' : 'AM';
-            const hour12 = ((hh + 11) % 12) + 1;
-            followUpTime = `${String(hour12).padStart(2, '0')}:${mm} ${ampm}`;
+          const asStr = String(rawFollow).trim();
+          
+          // Check if it's ISO UTC format (ends with Z or has timezone)
+          if (asStr.includes('Z') || asStr.match(/[+-]\d{2}:\d{2}$/)) {
+            // Convert UTC to IST by creating Date and formatting in IST
+            const utcDate = new Date(asStr);
+            if (!isNaN(utcDate.getTime())) {
+              // Format in IST timezone
+              const istOptions = { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false };
+              const istParts = new Intl.DateTimeFormat('en-CA', istOptions).formatToParts(utcDate);
+              const getPart = (type) => istParts.find(p => p.type === type)?.value || '';
+              followUpDate = `${getPart('year')}-${getPart('month')}-${getPart('day')}`;
+              const hh = parseInt(getPart('hour'), 10);
+              const mm = getPart('minute');
+              const ampm = hh >= 12 ? 'PM' : 'AM';
+              const hour12 = ((hh + 11) % 12) + 1;
+              followUpTime = `${String(hour12).padStart(2, '0')}:${mm} ${ampm}`;
+            }
+          } else {
+            // Handle "YYYY-MM-DD HH:mm:ss" (space) format - already in IST
+            const m = asStr.match(/^([0-9]{4}-[0-9]{2}-[0-9]{2})[T\s]([0-9]{2}):([0-9]{2})/);
+            if (m) {
+              followUpDate = m[1];
+              const hh = parseInt(m[2], 10);
+              const mm = m[3];
+              const ampm = hh >= 12 ? 'PM' : 'AM';
+              const hour12 = ((hh + 11) % 12) + 1;
+              followUpTime = `${String(hour12).padStart(2, '0')}:${mm} ${ampm}`;
+            } else {
+              // Try to extract just the date if no time part
+              const dateMatch = asStr.match(/^([0-9]{4}-[0-9]{2}-[0-9]{2})/);
+              if (dateMatch) followUpDate = dateMatch[1];
+            }
           }
         }
 
@@ -134,19 +159,19 @@ const EditBrokerRequirement = () => {
           <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block mb-1 font-medium">Broker Name</label>
-                <input name="brokerName" value={form.brokerName} onChange={handleChange} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" placeholder="Enter brokerName" />
+                <input name="brokerName" value={form.brokerName} onChange={handleChange} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter brokerName" />
               </div>
               <div>
                 <label className="block mb-1 font-medium">Company Name</label>
-                <input name="companyName" value={form.companyName} onChange={handleChange} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" placeholder="Enter company name (optional)" />
+                <input name="companyName" value={form.companyName} onChange={handleChange} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter company name (optional)" />
               </div>
               <div>
                 <label className="block mb-1 font-medium">Contact No.</label>
-                <input name="contactNumber" value={form.contactNumber} onChange={handleChange} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" placeholder="Enter contactNumber" />
+                <input name="contactNumber" value={form.contactNumber} onChange={(e) => { if (/^[0-9]*$/.test(e.target.value)) handleChange(e); }} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter contactNumber" />
               </div>
               <div>
                 <label className="block mb-1 font-medium">Status</label>
-                <select name="status" value={form.status} onChange={handleChange} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2">
+                <select name="status" value={form.status} onChange={handleChange} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                   <option value="Hot">Hot</option>
                   <option value="Not connected">Not connected</option>
                   <option value="Serious">Serious</option>
@@ -163,29 +188,29 @@ const EditBrokerRequirement = () => {
                 value={form.followUpDate}
                 onChange={handleChange}
                 type="date"
-                className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2 mb-2"
+                className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
               <TimePicker name="followUpTime" value={form.followUpTime} onChange={handleChange} className="w-full" />
             </div>
               <div>
                 <label className="block mb-1 font-medium">Source</label>
-                <input name="source" value={form.source} onChange={handleChange} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" placeholder="Enter source" />
+                <input name="source" value={form.source} onChange={handleChange} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter source" />
               </div>
 
               <div>
                 <label className="block mb-1 font-medium">Remark</label>
-                <textarea name="remark" value={form.remark} onChange={handleChange} rows={4} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" />
+                <textarea name="remark" value={form.remark} onChange={handleChange} rows={4} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
               </div>
 
                 <div>
                   <label className="block mb-1 font-medium">Requirement</label>
-                  <textarea name="requirement" value={form.requirement} onChange={handleChange} rows={4} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2" />
+                  <textarea name="requirement" value={form.requirement} onChange={handleChange} rows={4} className="w-full border border-gray-300 bg-[#FAFBFC] rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
                 </div>
             </div>
 
           <div className="mt-6 flex gap-3 justify-end">
-            <button type="button" onClick={() => navigate(-1)} className="border border-red-500 text-red-500 bg-white rounded-md px-4 py-2">Cancel</button>
-            <button type="button" onClick={handleUpdate} disabled={loading} className="btn px-4 py-2">{loading ? 'Updating...' : 'Update'}</button>
+            <button type="button" onClick={() => navigate(-1)} className="bg-gray-100 text-gray-700 rounded-lg px-4 py-2 hover:bg-gray-200 transition-colors">Cancel</button>
+            <button type="button" onClick={handleUpdate} disabled={loading} className="bg-blue-600 text-white rounded-lg px-4 py-2 hover:bg-blue-700 transition-colors disabled:opacity-50">{loading ? 'Updating...' : 'Update'}</button>
           </div>
         </form>
       )}
