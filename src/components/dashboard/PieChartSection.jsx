@@ -1,6 +1,7 @@
-import React, { useState } from "react";
-import ReactApexChart from "react-apexcharts";
+import React, { Suspense, lazy, useState } from "react";
 import { useDashboardCards } from "../../hooks/useDashboardCards";
+
+const ReactApexChart = lazy(() => import("react-apexcharts"));
 
 const cardConfig = [
   { label: "Site Visit", color: "#54D0E0" },
@@ -58,12 +59,14 @@ export default function PieChartSection() {
           <div className="flex items-center justify-center h-full text-red-500">{errorMessage}</div>
         ) : (
           <>
-            <ReactApexChart
-              options={chartOptions}
-              series={series}
-              type="donut"
-              height={160}
-            />
+            <Suspense fallback={<div className="flex items-center justify-center h-full">Loading chart...</div>}>
+              <ReactApexChart
+                options={chartOptions}
+                series={series}
+                type="donut"
+                height={160}
+              />
+            </Suspense>
             {/* Center text */}
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
               <span className="text-3xl font-bold text-[#61D26D]">{totalLeads}</span>

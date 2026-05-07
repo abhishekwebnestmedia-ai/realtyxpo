@@ -8,9 +8,9 @@ import axios from "axios";
 // const baseURL = import.meta.env.DEV 
 //   ? "http://localhost:5000/api" 
 //   : "https://backend.realtyxpo.in/api";
-const baseURL = "https://backend.realtyxpo.in/api";
+// const baseURL = "https://nesthubackend.webnestmedia.online/api";
 
-
+const baseURL = "https://maroon-hippopotamus-660766.hostingersite.com/api";
 console.log('API BASE URL:', baseURL);
 
 const api = axios.create({

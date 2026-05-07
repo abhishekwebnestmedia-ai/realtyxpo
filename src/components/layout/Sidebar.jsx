@@ -8,6 +8,8 @@ import icon5 from "/menuicons/5.svg";
 import icon6 from "/menuicons/6.svg";
 import icon7 from "/menuicons/7.svg";
 import icon8 from "/menuicons/8.svg";
+
+
 import icon9 from "/menuicons/9.svg";
 import icon10 from "/menuicons/10.svg";
 import { AuthContext } from "../../context/AuthContext";
@@ -29,7 +31,7 @@ const SidebarMenu = ({ isOpen }) => {
       path: "/brokers-requirements",
     },
     { icon: icon6, text: "My Team", path: "/my-team" },
-    { icon: icon7, text: "Find Opportunity", path: "/find-opportunity" },
+    // { icon: icon7, text: "Find Opportunity", path: "/find-opportunity" },
   { icon: icon8, text: "Learn Grow", path: "/learn-grow" },
   { icon: icon10, text: "Database", path: "/database" },
   ];
