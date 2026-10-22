@@ -1,20 +1,13 @@
 import axios from "axios";
+import config from "../utils/config";
 
 // Enable sending cookies (for HttpOnly cookie support). The server should
 // set an HttpOnly cookie on login and clear it on logout. We keep the
 // client-side cookie helpers as a fallback, but prefer server-managed cookies.
 
-// Use localhost for development, production URL for production
-// const baseURL = import.meta.env.DEV 
-//   ? "http://localhost:5000/api" 
-//   : "https://backend.realtyxpo.in/api";
-// const baseURL = "https://nesthubackend.webnestmedia.online/api";
-
-const baseURL = "https://maroon-hippopotamus-660766.hostingersite.com/api";
-console.log('API BASE URL:', baseURL);
-
 const api = axios.create({
-  baseURL: baseURL,
+  baseURL: config.getApiUrl('/api'),
+  timeout: config.API_TIMEOUT,
   headers: {
     "Content-Type": "application/json",
   },
@@ -41,5 +34,4 @@ api.interceptors.request.use((config) => {
 }, (error) => Promise.reject(error));
 
 export default api;
-
 

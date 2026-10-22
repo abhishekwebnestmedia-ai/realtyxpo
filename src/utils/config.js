@@ -6,7 +6,7 @@
 class Config {
   constructor() {
     // API Configuration
-    this.API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://backend.realtyxpo.in';
+    this.API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://realty-backend-dgxy.onrender.com';
     this.API_TIMEOUT = parseInt(import.meta.env.VITE_API_TIMEOUT) || 30000;
     
     // Environment

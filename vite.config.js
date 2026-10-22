@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => {
       historyApiFallback: true,
       proxy: {
         '/api': {
-          target: 'https://backend.realtyxpo.in',
+          target: 'https://realty-backend-dgxy.onrender.com',
           changeOrigin: true,
           secure: true,
           rewrite: (path) => path.replace(/^\/api/, '/api')
